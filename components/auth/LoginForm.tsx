@@ -60,10 +60,10 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="mb-2">
         <h2 className="text-2xl font-semibold text-white">Bine ai revenit</h2>
-        <p className="mt-1 text-sm text-zinc-400">Intră în contul tău</p>
+        <p className="mt-2 text-sm text-zinc-400">Intră în contul tău</p>
       </div>
 
       {message === 'password_updated' && (
@@ -78,7 +78,7 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <label className="block text-sm font-medium text-zinc-300">Email</label>
         <input
           {...register('email')}
@@ -90,7 +90,7 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
         {errors.email && <p className="text-sm text-red-400">{errors.email.message}</p>}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="block text-sm font-medium text-zinc-300">Parolă</label>
           <Link href="/forgot-password" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
