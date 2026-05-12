@@ -4,88 +4,125 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12"
-      style={{ background: '#09090f' }}>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-6 py-16"
+      style={{ background: '#08080f' }}
+    >
+      {/* Purple glow top */}
       <div
         className="pointer-events-none fixed inset-0 -z-10"
         aria-hidden="true"
         style={{
           background:
-            'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(139,92,246,0.12) 0%, transparent 65%)',
+            'radial-gradient(ellipse 60% 40% at 50% -5%, rgba(120,60,230,0.2) 0%, transparent 70%)',
         }}
       />
 
       {/* Logo */}
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-white tracking-tight">
-          Viral<span className="text-purple-500">Hook</span>
+        <h1 className="text-4xl font-bold tracking-tight" style={{ color: '#ffffff' }}>
+          Viral<span style={{ color: '#a855f7' }}>Hook</span>
         </h1>
-        <p className="mt-2 text-sm text-zinc-500">AI Viral Shorts Generator</p>
+        <p className="mt-2 text-sm" style={{ color: '#6b7280' }}>
+          AI Viral Shorts Generator
+        </p>
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-5xl flex rounded-2xl overflow-hidden border border-white/[0.06] shadow-2xl"
-        style={{ boxShadow: '0 25px 80px rgba(0,0,0,0.6)' }}>
-
-        {/* Left panel */}
+      <div
+        className="w-full flex rounded-2xl overflow-hidden"
+        style={{
+          maxWidth: '960px',
+          border: '1px solid rgba(255,255,255,0.07)',
+          boxShadow: '0 30px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(139,92,246,0.05)',
+        }}
+      >
+        {/* ── Left panel ── */}
         <div
-          className="hidden md:flex w-[380px] shrink-0 flex-col p-12 gap-10"
+          className="hidden md:flex flex-col justify-between"
           style={{
-            background: 'linear-gradient(160deg, #1a1135 0%, #130d2e 50%, #0e0b22 100%)',
+            width: '340px',
+            flexShrink: 0,
+            padding: '44px 40px',
+            background: 'linear-gradient(150deg, #16103a 0%, #110d30 55%, #0c0a22 100%)',
             borderRight: '1px solid rgba(255,255,255,0.05)',
           }}
         >
-          {/* Rocket icon */}
+          {/* Rocket */}
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-            style={{ background: 'rgba(139,92,246,0.25)' }}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 12,
+              background: 'rgba(139,92,246,0.22)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+            }}
           >
             🚀
           </div>
 
-          {/* Headline + features */}
-          <div className="flex flex-col gap-8">
+          {/* Text + features */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <div>
-              <h2 className="text-3xl font-bold text-white leading-snug">
+              <h2
+                className="font-bold leading-snug"
+                style={{ fontSize: 28, color: '#ffffff', marginBottom: 12 }}
+              >
                 Bine ai<br />revenit!
               </h2>
-              <p className="mt-3 text-sm text-zinc-400 leading-relaxed">
+              <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.65 }}>
                 Intră în contul tău și continuă<br />să creezi conținut viral.
               </p>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
-                  style={{ background: 'rgba(139,92,246,0.2)' }}>
-                  ⚡
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { icon: '⚡', bg: 'rgba(139,92,246,0.2)', text: 'Generează shorts viral cu AI' },
+                { icon: '⏱', bg: 'rgba(59,130,246,0.2)', text: 'Economisește timp' },
+                { icon: '👥', bg: 'rgba(236,72,153,0.2)', text: 'Crește-ți audiența' },
+              ].map(({ icon, bg, text }) => (
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      background: bg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 16,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {icon}
+                  </div>
+                  <span style={{ fontSize: 13, color: '#d1d5db' }}>{text}</span>
                 </div>
-                <span className="text-sm text-zinc-300">Generează shorts viral cu AI</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
-                  style={{ background: 'rgba(59,130,246,0.2)' }}>
-                  ⏱
-                </div>
-                <span className="text-sm text-zinc-300">Economisește timp</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
-                  style={{ background: 'rgba(236,72,153,0.2)' }}>
-                  👥
-                </div>
-                <span className="text-sm text-zinc-300">Crește-ți audiența</span>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Bottom gradient line */}
-          <div className="mt-auto h-px w-full"
-            style={{ background: 'linear-gradient(90deg, rgba(139,92,246,0.5), transparent)' }} />
+          {/* Bottom line */}
+          <div
+            style={{
+              height: 1,
+              background: 'linear-gradient(90deg, rgba(139,92,246,0.5), transparent)',
+            }}
+          />
         </div>
 
-        {/* Right panel */}
-        <div className="flex-1 p-14" style={{ background: '#0d0d16' }}>
+        {/* ── Right panel ── */}
+        <div
+          className="flex-1"
+          style={{
+            padding: '52px 56px',
+            background: '#0b0b14',
+          }}
+        >
           {children}
         </div>
       </div>
