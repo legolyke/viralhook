@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PROJECT_REF = 'qkkltpkbfsotgxcgkbme'
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const hasSession =
