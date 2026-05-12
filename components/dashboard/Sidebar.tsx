@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface SidebarProps {
@@ -67,7 +67,7 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const initial = email ? email[0].toUpperCase() : 'U'
 
@@ -158,6 +158,7 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
               onClick={handleSignOut}
               disabled={signingOut}
               title="Sign out"
+              aria-label="Sign out"
               style={{ background: 'none', border: 'none', cursor: signingOut ? 'not-allowed' : 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4, flexShrink: 0, opacity: signingOut ? 0.5 : 1, display: 'flex', alignItems: 'center' }}
             >
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
