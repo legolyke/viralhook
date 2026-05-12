@@ -25,16 +25,16 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
   const { pathname } = request.nextUrl
 
-  if (!user && pathname.startsWith('/dashboard')) {
+  if (!session && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  if (user && (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password')) {
+  if (session && (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
