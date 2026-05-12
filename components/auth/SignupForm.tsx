@@ -8,9 +8,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 const signupSchema = z.object({
-  name: z.string().min(2, 'Numele trebuie să aibă minim 2 caractere'),
-  email: z.string().email('Email invalid'),
-  password: z.string().min(8, 'Parola trebuie să aibă minim 8 caractere'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 type SignupData = z.infer<typeof signupSchema>
@@ -51,113 +51,181 @@ export default function SignupForm() {
   async function handleGoogleLogin() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
   }
 
   if (success) {
     return (
-      <div className="text-center space-y-3">
-        <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto">
-          <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, textAlign: 'center', padding: '40px 0' }}>
+        <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(180deg, rgba(139,92,246,0.25), rgba(139,92,246,0.08))', border: '1px solid rgba(168,85,247,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#A855F7" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-white">Verifică emailul</h3>
-        <p className="text-sm text-zinc-400">
-          Am trimis un link de confirmare la adresa ta de email. Apasă pe el pentru a activa contul.
-        </p>
+        <div>
+          <h3 style={{ fontSize: 28, fontWeight: 700, color: '#ffffff', margin: '0 0 12px' }}>Check your email!</h3>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: 0, maxWidth: 340 }}>
+            We sent a confirmation link to your email address. Click it to activate your account.
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold text-white mb-6">Creează cont gratuit</h2>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <h2 style={{ fontSize: 52, fontWeight: 700, color: '#ffffff', margin: '0 0 8px', lineHeight: 1.1 }}>
+        Create account
+      </h2>
+      <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', margin: '0 0 40px' }}>
+        Start generating viral content today.
+      </p>
 
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1">Nume</label>
-        <input
-          {...register('name')}
-          type="text"
-          autoComplete="name"
-          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
-          placeholder="Numele tău"
-        />
-        {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1">Email</label>
-        <input
-          {...register('email')}
-          type="email"
-          autoComplete="email"
-          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
-          placeholder="tu@example.com"
-        />
-        {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1">Parolă</label>
-        <input
-          {...register('password')}
-          type="password"
-          autoComplete="new-password"
-          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
-          placeholder="Minim 8 caractere"
-        />
-        {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>}
-      </div>
-
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+        {/* Name */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Full name</label>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              </svg>
+            </div>
+            <input
+              {...register('name')}
+              type="text"
+              autoComplete="name"
+              placeholder="Your full name"
+              style={{
+                width: '100%', height: 72, borderRadius: 18,
+                paddingLeft: 60, paddingRight: 20,
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(168,85,247,0.45)',
+                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
+              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
+            />
+          </div>
+          {errors.name && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.name.message}</p>}
         </div>
-      )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
-      >
-        {loading ? 'Se creează contul...' : 'Create Account'}
-      </button>
-
-      <div className="relative my-2">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-800" />
+        {/* Email */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Email</label>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+            </div>
+            <input
+              {...register('email')}
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              style={{
+                width: '100%', height: 72, borderRadius: 18,
+                paddingLeft: 60, paddingRight: 20,
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(168,85,247,0.45)',
+                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
+              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
+            />
+          </div>
+          {errors.email && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.email.message}</p>}
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-zinc-950 text-zinc-500">sau</span>
+
+        {/* Password */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Password</label>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </div>
+            <input
+              {...register('password')}
+              type="password"
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              style={{
+                width: '100%', height: 72, borderRadius: 18,
+                paddingLeft: 60, paddingRight: 20,
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(168,85,247,0.45)',
+                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
+              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
+            />
+          </div>
+          {errors.password && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.password.message}</p>}
         </div>
-      </div>
 
-      <button
-        type="button"
-        onClick={handleGoogleLogin}
-        className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-3"
-      >
-        <svg className="w-5 h-5" viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-        </svg>
-        Continue with Google
-      </button>
+        {error && (
+          <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12 }}>
+            <p style={{ fontSize: 14, color: '#f87171', margin: 0 }}>{error}</p>
+          </div>
+        )}
 
-      <p className="text-center text-sm text-zinc-500 pt-2">
-        Ai deja cont?{' '}
-        <Link href="/login" className="text-purple-400 hover:text-purple-300 transition-colors">
-          Autentifică-te
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: '100%', height: 74, borderRadius: 20,
+            background: 'linear-gradient(90deg, #7C3AED, #C026D3)',
+            border: 'none', color: '#ffffff', fontSize: 20, fontWeight: 700,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1,
+            transition: 'transform 0.15s, box-shadow 0.15s',
+            marginTop: 12,
+          }}
+          onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 40px rgba(168,85,247,0.35)' } }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+        >
+          {loading ? 'Creating account...' : 'Create Account'}
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+          <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)' }}>or</span>
+          <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          style={{
+            width: '100%', height: 68, borderRadius: 18,
+            background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
+            color: '#ffffff', fontSize: 15, fontWeight: 500, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+            transition: 'border-color 0.15s, background 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.background = 'transparent' }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+      </form>
+
+      <p style={{ textAlign: 'center', fontSize: 14, color: 'rgba(255,255,255,0.4)', marginTop: 28 }}>
+        Already have an account?{' '}
+        <Link href="/login" style={{ color: '#A855F7', textDecoration: 'none', fontWeight: 500 }}>
+          Sign in
         </Link>
       </p>
-    </form>
+    </div>
   )
 }

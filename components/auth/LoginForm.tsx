@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 
 const loginSchema = z.object({
   email: z.string().email('Email invalid'),
-  password: z.string().min(8, 'Parola trebuie să aibă minim 8 caractere'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 type LoginData = z.infer<typeof loginSchema>
@@ -39,7 +39,7 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
       password: data.password,
     })
     if (error) {
-      setError('Email sau parolă incorectă.')
+      setError('Invalid email or password.')
       setLoading(false)
       return
     }
@@ -59,20 +59,20 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {/* Title */}
       <h2 style={{ fontSize: 52, fontWeight: 700, color: '#ffffff', margin: '0 0 8px', lineHeight: 1.1 }}>
-        Conectează-te
+        Sign in
       </h2>
       <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', margin: '0 0 40px' }}>
-        Intră în contul tău.
+        Welcome back! Enter your credentials.
       </p>
 
       {message === 'password_updated' && (
         <div style={{ padding: '14px 18px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, marginBottom: 28 }}>
-          <p style={{ fontSize: 14, color: '#4ade80', margin: 0 }}>Parola a fost resetată cu succes.</p>
+          <p style={{ fontSize: 14, color: '#4ade80', margin: 0 }}>Password reset successfully. You can now sign in.</p>
         </div>
       )}
       {errorParam === 'auth_callback_failed' && (
         <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, marginBottom: 28 }}>
-          <p style={{ fontSize: 14, color: '#f87171', margin: 0 }}>Autentificarea a eșuat. Încearcă din nou.</p>
+          <p style={{ fontSize: 14, color: '#f87171', margin: 0 }}>Authentication failed. Please try again.</p>
         </div>
       )}
 
@@ -122,7 +122,7 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Parolă</label>
             <Link href="/forgot-password" style={{ fontSize: 14, color: '#A855F7', textDecoration: 'none' }}>
-              Ai uitat parola?
+              Forgot password?
             </Link>
           </div>
           <div style={{ position: 'relative' }}>
@@ -218,7 +218,7 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
             e.currentTarget.style.boxShadow = 'none'
           }}
         >
-          {loading ? 'Se conectează...' : 'Sign In'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
         {/* Separator */}
@@ -269,9 +269,9 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
 
       {/* Footer */}
       <p style={{ textAlign: 'center', fontSize: 14, color: 'rgba(255,255,255,0.4)', marginTop: 28 }}>
-        Nu ai cont?{' '}
+        Don&apos;t have an account?{' '}
         <Link href="/signup" style={{ color: '#A855F7', textDecoration: 'none', fontWeight: 500 }}>
-          Creează unul
+          Sign up
         </Link>
       </p>
     </div>

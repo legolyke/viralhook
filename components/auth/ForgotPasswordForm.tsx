@@ -40,16 +40,16 @@ export default function ForgotPasswordForm() {
           </svg>
         </div>
         <div>
-          <h3 style={{ fontSize: 28, fontWeight: 700, color: '#ffffff', margin: '0 0 12px' }}>Email trimis!</h3>
+          <h3 style={{ fontSize: 28, fontWeight: 700, color: '#ffffff', margin: '0 0 12px' }}>Email sent!</h3>
           <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: 0, maxWidth: 340 }}>
-            Dacă există un cont cu această adresă, vei primi un link de resetare a parolei.
+            If an account exists with this email, you&apos;ll receive a password reset link shortly.
           </p>
         </div>
         <Link href="/login" style={{ fontSize: 15, color: '#A855F7', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500, marginTop: 8 }}>
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
-          Înapoi la Login
+          Back to Login
         </Link>
       </div>
     )
@@ -58,10 +58,10 @@ export default function ForgotPasswordForm() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <h2 style={{ fontSize: 52, fontWeight: 700, color: '#ffffff', margin: '0 0 8px', lineHeight: 1.1 }}>
-        Ai uitat parola?
+        Forgot password?
       </h2>
       <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', margin: '0 0 40px' }}>
-        Introdu emailul și îți trimitem un link de resetare.
+        Enter your email and we&apos;ll send you a reset link.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
@@ -132,7 +132,7 @@ export default function ForgotPasswordForm() {
             e.currentTarget.style.boxShadow = 'none'
           }}
         >
-          {loading ? 'Se trimite...' : 'Trimite link de resetare'}
+          {loading ? 'Sending...' : 'Send reset link'}
         </button>
       </form>
 
@@ -141,7 +141,7 @@ export default function ForgotPasswordForm() {
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
-          Înapoi la Login
+          Back to Login
         </Link>
       </p>
     </div>

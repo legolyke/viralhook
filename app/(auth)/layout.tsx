@@ -54,7 +54,7 @@ export default function AuthLayout({
           </span>
         </h1>
         <p style={{ fontSize: 20, color: 'rgba(255,255,255,0.6)', margin: '10px 0 0' }}>
-          AI Viral Shorts Generator
+          AI-Powered Viral Shorts Generator
         </p>
       </div>
 
@@ -102,8 +102,8 @@ export default function AuthLayout({
                 margin: '0 0 16px',
               }}
             >
-              Bine ai{' '}
-              <span style={{ color: '#A855F7' }}>revenit!</span>
+              Welcome{' '}
+              <span style={{ color: '#A855F7' }}>back!</span>
             </h2>
             <p
               style={{
@@ -113,16 +113,16 @@ export default function AuthLayout({
                 margin: 0,
               }}
             >
-              Intră în contul tău și continuă să creezi conținut viral.
+              Sign in to your account and continue creating viral content.
             </p>
           </div>
 
           {/* Benefits */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {[
-              { emoji: '⚡', text: 'Generează shorts viral cu AI' },
-              { emoji: '📊', text: 'Economisește timp' },
-              { emoji: '🚀', text: 'Crește-ți audiența' },
+              { emoji: '⚡', text: 'Generate viral shorts with AI' },
+              { emoji: '📊', text: 'Save time & boost productivity' },
+              { emoji: '🚀', text: 'Grow your audience fast' },
             ].map(({ emoji, text }) => (
               <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div

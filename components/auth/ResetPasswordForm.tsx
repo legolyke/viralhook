@@ -8,10 +8,10 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const resetSchema = z.object({
-  password: z.string().min(8, 'Parola trebuie să aibă minim 8 caractere'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Parolele nu coincid',
+  message: "Passwords don't match",
   path: ['confirmPassword'],
 })
 
@@ -41,12 +41,10 @@ export default function ResetPasswordForm() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    })
+    const { error } = await supabase.auth.updateUser({ password: data.password })
 
     if (error) {
-      setError('Eroare la resetarea parolei. Încearcă din nou.')
+      setError('Error resetting password. Please try again.')
       setLoading(false)
       return
     }
@@ -56,56 +54,104 @@ export default function ResetPasswordForm() {
 
   if (!sessionReady) {
     return (
-      <div className="text-center space-y-3">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-sm text-zinc-400">Se verifică linkul de resetare...</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: 'center', padding: '40px 0' }}>
+        <div style={{ width: 36, height: 36, border: '2px solid #A855F7', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', margin: 0 }}>Verifying reset link...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold text-white mb-6">Parolă nouă</h2>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <h2 style={{ fontSize: 52, fontWeight: 700, color: '#ffffff', margin: '0 0 8px', lineHeight: 1.1 }}>
+        New password
+      </h2>
+      <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', margin: '0 0 40px' }}>
+        Choose a strong password for your account.
+      </p>
 
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1">Parolă nouă</label>
-        <input
-          {...register('password')}
-          type="password"
-          autoComplete="new-password"
-          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
-          placeholder="Minim 8 caractere"
-        />
-        {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1">Confirmă parola</label>
-        <input
-          {...register('confirmPassword')}
-          type="password"
-          autoComplete="new-password"
-          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
-          placeholder="Repetă parola"
-        />
-        {errors.confirmPassword && <p className="mt-1 text-sm text-red-400">{errors.confirmPassword.message}</p>}
-      </div>
-
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+        {/* New password */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>New password</label>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </div>
+            <input
+              {...register('password')}
+              type="password"
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              style={{
+                width: '100%', height: 72, borderRadius: 18,
+                paddingLeft: 60, paddingRight: 20,
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(168,85,247,0.45)',
+                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
+              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
+            />
+          </div>
+          {errors.password && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.password.message}</p>}
         </div>
-      )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
-      >
-        {loading ? 'Se salvează...' : 'Reset Password'}
-      </button>
-    </form>
+        {/* Confirm password */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Confirm password</label>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </div>
+            <input
+              {...register('confirmPassword')}
+              type="password"
+              autoComplete="new-password"
+              placeholder="Repeat your password"
+              style={{
+                width: '100%', height: 72, borderRadius: 18,
+                paddingLeft: 60, paddingRight: 20,
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(168,85,247,0.45)',
+                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
+              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
+            />
+          </div>
+          {errors.confirmPassword && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.confirmPassword.message}</p>}
+        </div>
+
+        {error && (
+          <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12 }}>
+            <p style={{ fontSize: 14, color: '#f87171', margin: 0 }}>{error}</p>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: '100%', height: 74, borderRadius: 20,
+            background: 'linear-gradient(90deg, #7C3AED, #C026D3)',
+            border: 'none', color: '#ffffff', fontSize: 20, fontWeight: 700,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1,
+            transition: 'transform 0.15s, box-shadow 0.15s',
+            marginTop: 12,
+          }}
+          onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 40px rgba(168,85,247,0.35)' } }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+        >
+          {loading ? 'Saving...' : 'Reset Password'}
+        </button>
+      </form>
+    </div>
   )
 }
