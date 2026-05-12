@@ -69,6 +69,9 @@ export default function SignupForm() {
             We sent a confirmation link to your email address. Click it to activate your account.
           </p>
         </div>
+        <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, background: 'linear-gradient(90deg, #7C3AED, #C026D3)', color: '#ffffff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
+          Go to Sign In
+        </Link>
       </div>
     )
   }
