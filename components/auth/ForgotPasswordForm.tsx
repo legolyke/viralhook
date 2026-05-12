@@ -16,6 +16,7 @@ type ForgotData = z.infer<typeof forgotSchema>
 export default function ForgotPasswordForm() {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
 
   const { register, handleSubmit, formState: { errors } } = useForm<ForgotData>({
@@ -24,9 +25,15 @@ export default function ForgotPasswordForm() {
 
   async function onSubmit(data: ForgotData) {
     setLoading(true)
-    await supabase.auth.resetPasswordForEmail(data.email, {
+    setError(null)
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
       redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     })
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
     setSent(true)
     setLoading(false)
   }
@@ -73,6 +80,12 @@ export default function ForgotPasswordForm() {
           </div>
           {errors.email && <p style={{ fontSize: 12, color: '#f87171', margin: 0 }}>{errors.email.message}</p>}
         </div>
+
+        {error && (
+          <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12 }}>
+            <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{error}</p>
+          </div>
+        )}
 
         <button type="submit" disabled={loading} className="auth-btn-primary">
           {loading ? 'Sending...' : 'Send reset link'}
