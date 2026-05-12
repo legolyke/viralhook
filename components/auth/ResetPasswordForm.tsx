@@ -25,8 +25,13 @@ export default function ResetPasswordForm() {
   const supabase = createClient()
 
   useEffect(() => {
+    // Session already established by /auth/callback (code exchanged server-side)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true)
+    })
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setSessionReady(true)
       }
     })
