@@ -60,55 +60,55 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold text-white mb-6">Bine ai revenit</h2>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="mb-2">
+        <h2 className="text-2xl font-semibold text-white">Bine ai revenit</h2>
+        <p className="mt-1 text-sm text-zinc-400">Intră în contul tău</p>
       </div>
 
       {message === 'password_updated' && (
-        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+        <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
           <p className="text-sm text-green-400">Parola a fost resetată cu succes. Te poți autentifica acum.</p>
         </div>
       )}
 
       {errorParam === 'auth_callback_failed' && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
           <p className="text-sm text-red-400">Autentificarea a eșuat. Încearcă din nou.</p>
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1">Email</label>
+      <div className="space-y-1.5">
+        <label className="block text-sm font-medium text-zinc-300">Email</label>
         <input
           {...register('email')}
           type="email"
           autoComplete="email"
-          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
+          className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all"
           placeholder="tu@example.com"
         />
-        {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>}
+        {errors.email && <p className="text-sm text-red-400">{errors.email.message}</p>}
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-1">Parolă</label>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-zinc-300">Parolă</label>
+          <Link href="/forgot-password" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
+            Ai uitat parola?
+          </Link>
+        </div>
         <input
           {...register('password')}
           type="password"
           autoComplete="current-password"
-          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
+          className="w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all"
           placeholder="••••••••"
         />
-        {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>}
-      </div>
-
-      <div className="flex justify-end">
-        <Link href="/forgot-password" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
-          Ai uitat parola?
-        </Link>
+        {errors.password && <p className="text-sm text-red-400">{errors.password.message}</p>}
       </div>
 
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
           <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
@@ -116,24 +116,24 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+        className="w-full py-3 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors mt-2"
       >
         {loading ? 'Se conectează...' : 'Sign In'}
       </button>
 
-      <div className="relative my-2">
+      <div className="relative my-1">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-zinc-800" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-zinc-950 text-zinc-500">sau</span>
+          <span className="px-3 bg-zinc-950 text-zinc-500">sau</span>
         </div>
       </div>
 
       <button
         type="button"
         onClick={handleGoogleLogin}
-        className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-3"
+        className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-3"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -144,9 +144,9 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
         Continue with Google
       </button>
 
-      <p className="text-center text-sm text-zinc-500 pt-2">
+      <p className="text-center text-sm text-zinc-500 pt-1">
         Nu ai cont?{' '}
-        <Link href="/signup" className="text-purple-400 hover:text-purple-300 transition-colors">
+        <Link href="/signup" className="text-purple-400 hover:text-purple-300 transition-colors font-medium">
           Creează unul
         </Link>
       </p>
