@@ -13,7 +13,7 @@ export default function AuthLayout({
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 32px 16px;
+          padding: 20px 16px;
           position: relative;
           box-sizing: border-box;
         }
@@ -26,22 +26,22 @@ export default function AuthLayout({
         }
         .auth-logo {
           text-align: center;
-          margin-bottom: 28px;
+          margin-bottom: 16px;
           position: relative;
           z-index: 1;
         }
         .auth-logo h1 {
-          font-size: 48px;
+          font-size: 32px;
           font-weight: 800;
-          letter-spacing: -1.5px;
+          letter-spacing: -1px;
           margin: 0;
           color: #ffffff;
           line-height: 1;
         }
         .auth-logo p {
-          font-size: 15px;
+          font-size: 13px;
           color: rgba(255,255,255,0.5);
-          margin: 8px 0 0;
+          margin: 6px 0 0;
         }
         .auth-hook-gradient {
           background: linear-gradient(90deg, #7C3AED, #C026D3);
@@ -52,7 +52,7 @@ export default function AuthLayout({
         .auth-card {
           width: 100%;
           max-width: 520px;
-          border-radius: 24px;
+          border-radius: 20px;
           background: rgba(10,10,18,0.95);
           border: 1px solid rgba(168,85,247,0.25);
           backdrop-filter: blur(20px);
@@ -67,7 +67,7 @@ export default function AuthLayout({
         }
         .auth-right {
           flex: 1;
-          padding: 40px 36px;
+          padding: 28px 20px;
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -75,7 +75,8 @@ export default function AuthLayout({
 
         @media (min-width: 900px) {
           .auth-page { padding: 40px 24px; }
-          .auth-logo h1 { font-size: 64px; }
+          .auth-logo h1 { font-size: 64px; letter-spacing: -1.5px; }
+          .auth-logo p { font-size: 15px; }
           .auth-logo { margin-bottom: 32px; }
           .auth-card {
             max-width: 1050px;

@@ -21,9 +21,9 @@ body {
   line-height: 1.1;
 }
 .auth-form-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(255,255,255,0.55);
-  margin: 0 0 32px;
+  margin: 0 0 20px;
 }
 .auth-input {
   width: 100%;
@@ -88,7 +88,7 @@ body {
 @media (min-width: 900px) {
   .auth-form-title { font-size: 40px; }
   .auth-form-subtitle { font-size: 15px; margin-bottom: 40px; }
-  .auth-input { height: 72px; border-radius: 18px; font-size: 16px; }
+  .auth-input { height: 72px; border-radius: 18px; font-size: 16px; padding-left: 56px; }
   .auth-btn-primary { height: 74px; border-radius: 20px; font-size: 18px; }
   .auth-btn-google { height: 68px; border-radius: 18px; font-size: 15px; }
 }
