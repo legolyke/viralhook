@@ -77,7 +77,7 @@ export default function ForgotPasswordForm() {
               {...register('email')}
               type="email"
               autoComplete="email"
-              placeholder="tu@example.com"
+              placeholder="you@example.com"
               style={{
                 width: '100%',
                 height: 72,

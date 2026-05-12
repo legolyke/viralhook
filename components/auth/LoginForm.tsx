@@ -58,10 +58,10 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {/* Title */}
-      <h2 style={{ fontSize: 52, fontWeight: 700, color: '#ffffff', margin: '0 0 8px', lineHeight: 1.1 }}>
+      <h2 style={{ fontSize: 40, fontWeight: 700, color: '#ffffff', margin: '0 0 8px', lineHeight: 1.1 }}>
         Sign in
       </h2>
-      <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', margin: '0 0 40px' }}>
+      <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', margin: '0 0 40px' }}>
         Welcome back! Enter your credentials.
       </p>
 
@@ -90,7 +90,7 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
               {...register('email')}
               type="email"
               autoComplete="email"
-              placeholder="tu@example.com"
+              placeholder="you@example.com"
               style={{
                 width: '100%',
                 height: 72,

@@ -95,7 +95,7 @@ export default function AuthLayout({
           <div>
             <h2
               style={{
-                fontSize: 54,
+                fontSize: 38,
                 fontWeight: 700,
                 lineHeight: 1.1,
                 color: '#ffffff',
@@ -107,7 +107,7 @@ export default function AuthLayout({
             </h2>
             <p
               style={{
-                fontSize: 16,
+                fontSize: 15,
                 color: 'rgba(255,255,255,0.55)',
                 lineHeight: 1.65,
                 margin: 0,
