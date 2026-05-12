@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -20,8 +20,18 @@ type ResetData = z.infer<typeof resetSchema>
 export default function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [sessionReady, setSessionReady] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setSessionReady(true)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [supabase])
 
   const { register, handleSubmit, formState: { errors } } = useForm<ResetData>({
     resolver: zodResolver(resetSchema),
@@ -42,6 +52,15 @@ export default function ResetPasswordForm() {
     }
 
     router.push('/login?message=password_updated')
+  }
+
+  if (!sessionReady) {
+    return (
+      <div className="text-center space-y-3">
+        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-sm text-zinc-400">Se verifică linkul de resetare...</p>
+      </div>
+    )
   }
 
   return (

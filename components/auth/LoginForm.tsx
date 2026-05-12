@@ -15,7 +15,12 @@ const loginSchema = z.object({
 
 type LoginData = z.infer<typeof loginSchema>
 
-export default function LoginForm() {
+interface LoginFormProps {
+  message?: string
+  errorParam?: string
+}
+
+export default function LoginForm({ message, errorParam }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -42,6 +47,7 @@ export default function LoginForm() {
 
     router.push('/dashboard')
     router.refresh()
+    setLoading(false)
   }
 
   async function handleGoogleLogin() {
@@ -58,6 +64,18 @@ export default function LoginForm() {
       <div>
         <h2 className="text-xl font-semibold text-white mb-6">Bine ai revenit</h2>
       </div>
+
+      {message === 'password_updated' && (
+        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+          <p className="text-sm text-green-400">Parola a fost resetată cu succes. Te poți autentifica acum.</p>
+        </div>
+      )}
+
+      {errorParam === 'auth_callback_failed' && (
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-400">Autentificarea a eșuat. Încearcă din nou.</p>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-zinc-300 mb-1">Email</label>

@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Rute auth — redirect la dashboard dacă e deja autentificat
-  if (user && (pathname === '/login' || pathname === '/signup')) {
+  if (user && (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
