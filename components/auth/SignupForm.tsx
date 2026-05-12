@@ -75,141 +75,69 @@ export default function SignupForm() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <h2 style={{ fontSize: 40, fontWeight: 700, color: '#ffffff', margin: '0 0 8px', lineHeight: 1.1 }}>
-        Create account
-      </h2>
-      <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', margin: '0 0 40px' }}>
-        Start generating viral content today.
-      </p>
+      <h2 className="auth-form-title">Create account</h2>
+      <p className="auth-form-subtitle">Start generating viral content today.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Name */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Full name</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Full name</label>
           <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 18, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
               </svg>
             </div>
-            <input
-              {...register('name')}
-              type="text"
-              autoComplete="name"
-              placeholder="Your full name"
-              style={{
-                width: '100%', height: 72, borderRadius: 18,
-                paddingLeft: 60, paddingRight: 20,
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(168,85,247,0.45)',
-                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
-              }}
-              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
-              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
-            />
+            <input {...register('name')} type="text" autoComplete="name" placeholder="Your full name" className="auth-input" />
           </div>
-          {errors.name && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.name.message}</p>}
+          {errors.name && <p style={{ fontSize: 12, color: '#f87171', margin: 0 }}>{errors.name.message}</p>}
         </div>
 
         {/* Email */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Email</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Email</label>
           <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 18, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
               </svg>
             </div>
-            <input
-              {...register('email')}
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              style={{
-                width: '100%', height: 72, borderRadius: 18,
-                paddingLeft: 60, paddingRight: 20,
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(168,85,247,0.45)',
-                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
-              }}
-              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
-              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
-            />
+            <input {...register('email')} type="email" autoComplete="email" placeholder="you@example.com" className="auth-input" />
           </div>
-          {errors.email && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.email.message}</p>}
+          {errors.email && <p style={{ fontSize: 12, color: '#f87171', margin: 0 }}>{errors.email.message}</p>}
         </div>
 
         {/* Password */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Password</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.75)' }}>Password</label>
           <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 20, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 18, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
               </svg>
             </div>
-            <input
-              {...register('password')}
-              type="password"
-              autoComplete="new-password"
-              placeholder="At least 8 characters"
-              style={{
-                width: '100%', height: 72, borderRadius: 18,
-                paddingLeft: 60, paddingRight: 20,
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(168,85,247,0.45)',
-                color: '#ffffff', fontSize: 16, outline: 'none', boxSizing: 'border-box',
-              }}
-              onFocus={e => { e.currentTarget.style.boxShadow = '0 0 0 4px rgba(168,85,247,0.12)'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.7)' }}
-              onBlur={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(168,85,247,0.45)' }}
-            />
+            <input {...register('password')} type="password" autoComplete="new-password" placeholder="At least 8 characters" className="auth-input" />
           </div>
-          {errors.password && <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{errors.password.message}</p>}
+          {errors.password && <p style={{ fontSize: 12, color: '#f87171', margin: 0 }}>{errors.password.message}</p>}
         </div>
 
         {error && (
-          <div style={{ padding: '14px 18px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12 }}>
-            <p style={{ fontSize: 14, color: '#f87171', margin: 0 }}>{error}</p>
+          <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12 }}>
+            <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{error}</p>
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: '100%', height: 74, borderRadius: 20,
-            background: 'linear-gradient(90deg, #7C3AED, #C026D3)',
-            border: 'none', color: '#ffffff', fontSize: 20, fontWeight: 700,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1,
-            transition: 'transform 0.15s, box-shadow 0.15s',
-            marginTop: 12,
-          }}
-          onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 40px rgba(168,85,247,0.35)' } }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
-        >
+        <button type="submit" disabled={loading} className="auth-btn-primary">
           {loading ? 'Creating account...' : 'Create Account'}
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
-          <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)' }}>or</span>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>or</span>
           <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }} />
         </div>
 
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          style={{
-            width: '100%', height: 68, borderRadius: 18,
-            background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
-            color: '#ffffff', fontSize: 15, fontWeight: 500, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-            transition: 'border-color 0.15s, background 0.15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.background = 'transparent' }}
-        >
+        <button type="button" onClick={handleGoogleLogin} className="auth-btn-google">
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -220,11 +148,9 @@ export default function SignupForm() {
         </button>
       </form>
 
-      <p style={{ textAlign: 'center', fontSize: 14, color: 'rgba(255,255,255,0.4)', marginTop: 28 }}>
+      <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 24 }}>
         Already have an account?{' '}
-        <Link href="/login" style={{ color: '#A855F7', textDecoration: 'none', fontWeight: 500 }}>
-          Sign in
-        </Link>
+        <Link href="/login" style={{ color: '#A855F7', textDecoration: 'none', fontWeight: 500 }}>Sign in</Link>
       </p>
     </div>
   )
