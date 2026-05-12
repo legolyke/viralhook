@@ -61,10 +61,11 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="mb-2">
-        <h2 className="text-2xl font-bold text-white">Conectează-te</h2>
-        <p className="mt-1.5 text-sm text-zinc-400">Intră în contul tău.</p>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-7">
+      {/* Title */}
+      <div>
+        <h2 className="text-3xl font-bold text-white">Conectează-te</h2>
+        <p className="mt-2 text-sm text-zinc-400">Intră în contul tău.</p>
       </div>
 
       {message === 'password_updated' && (
@@ -80,10 +81,10 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
       )}
 
       {/* Email */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-300">Email</label>
+      <div className="flex flex-col gap-2.5">
+        <label className="text-sm font-medium text-zinc-300">Email</label>
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
             <svg className="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
             </svg>
@@ -92,7 +93,13 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
             {...register('email')}
             type="email"
             autoComplete="email"
-            className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all"
+            className="w-full pl-11 pr-4 py-3.5 rounded-xl text-white placeholder-zinc-600 focus:outline-none transition-all text-sm"
+            style={{
+              background: '#1a1a27',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(139,92,246,0.6)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
             placeholder="tu@example.com"
           />
         </div>
@@ -100,15 +107,15 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
       </div>
 
       {/* Password */}
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-zinc-300">Parolă</label>
+          <label className="text-sm font-medium text-zinc-300">Parolă</label>
           <Link href="/forgot-password" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
             Ai uitat parola?
           </Link>
         </div>
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
             <svg className="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
             </svg>
@@ -117,13 +124,19 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
             {...register('password')}
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
-            className="w-full pl-10 pr-12 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all"
+            className="w-full pl-11 pr-12 py-3.5 rounded-xl text-white placeholder-zinc-600 focus:outline-none transition-all text-sm"
+            style={{
+              background: '#1a1a27',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(139,92,246,0.6)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
             placeholder="••••••••"
           />
           <button
             type="button"
             onClick={() => setShowPassword(v => !v)}
-            className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             {showPassword ? (
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -146,27 +159,39 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
         </div>
       )}
 
+      {/* Submit */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors"
+        className="w-full py-3.5 font-semibold rounded-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+        style={{ background: 'linear-gradient(135deg, #7c3aed, #9333ea)' }}
+        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'linear-gradient(135deg, #6d28d9, #7c3aed)' }}
+        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = 'linear-gradient(135deg, #7c3aed, #9333ea)' }}
       >
         {loading ? 'Se conectează...' : 'Sign In'}
       </button>
 
+      {/* Separator */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-800" />
+          <div className="w-full" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-3 bg-zinc-950 text-zinc-500">sau</span>
+          <span className="px-3 text-zinc-600" style={{ background: '#0d0d16' }}>sau</span>
         </div>
       </div>
 
+      {/* Google */}
       <button
         type="button"
         onClick={handleGoogleLogin}
-        className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-3"
+        className="w-full py-3.5 text-white font-medium rounded-xl transition-all flex items-center justify-center gap-3 text-sm"
+        style={{
+          background: '#1a1a27',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#21212f' }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#1a1a27' }}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -177,7 +202,8 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
         Continue with Google
       </button>
 
-      <p className="text-center text-sm text-zinc-500 pt-1">
+      {/* Footer */}
+      <p className="text-center text-sm text-zinc-500">
         Nu ai cont?{' '}
         <Link href="/signup" className="text-purple-400 hover:text-purple-300 transition-colors font-medium">
           Creează unul
