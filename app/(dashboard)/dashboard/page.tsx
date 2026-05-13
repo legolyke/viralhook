@@ -47,6 +47,7 @@ export default async function DashboardPage() {
         </h3>
         {!projects || projects.length === 0 ? (
           <EmptyState
+            icon={<span style={{ fontSize: 20 }}>🎬</span>}
             title="No projects yet"
             description="Upload your first video to get started."
           />
