@@ -252,3 +252,10 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+@keyframes navRipple {
+  to {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}

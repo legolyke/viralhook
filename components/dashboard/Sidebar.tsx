@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import UploadModal from '@/components/upload/UploadModal'
 
 interface SidebarProps {
   email: string
+  fullName?: string
   plan?: string
 }
 
@@ -63,7 +64,64 @@ const NAV_BOTTOM = [
   },
 ]
 
-export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
+type Ripple = { id: number; x: number; y: number }
+
+function NavLink({
+  href,
+  label,
+  icon,
+  active,
+  onClick,
+}: {
+  href: string
+  label: string
+  icon: React.ReactNode
+  active: boolean
+  onClick?: () => void
+}) {
+  const [ripples, setRipples] = useState<Ripple[]>([])
+
+  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const id = Date.now() + Math.random()
+    setRipples(r => [...r, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }])
+    setTimeout(() => setRipples(r => r.filter(rip => rip.id !== id)), 600)
+    onClick?.()
+  }
+
+  return (
+    <Link
+      href={href}
+      onClick={handleClick}
+      data-active={active ? 'true' : undefined}
+      className={`dashboard-nav-item${active ? ' dashboard-nav-item-active' : ''}`}
+      style={{ position: 'relative', overflow: 'hidden' }}
+    >
+      {icon}
+      {label}
+      {ripples.map(r => (
+        <span
+          key={r.id}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: r.x,
+            top: r.y,
+            width: 160,
+            height: 160,
+            borderRadius: '50%',
+            background: 'rgba(168,85,247,0.22)',
+            transform: 'translate(-50%, -50%) scale(0)',
+            animation: 'navRipple 0.6s ease-out forwards',
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
+    </Link>
+  )
+}
+
+export default function Sidebar({ email, fullName, plan = 'FREE' }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -71,6 +129,8 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [showHamburger, setShowHamburger] = useState(true)
   const lastScrollY = useRef(0)
+  const navRef = useRef<HTMLElement>(null)
+  const [indicator, setIndicator] = useState({ top: 0, height: 36, visible: false })
 
   useEffect(() => {
     const onScroll = () => {
@@ -81,9 +141,20 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-  const supabase = useMemo(() => createClient(), [])
 
-  const initial = email ? email[0].toUpperCase() : 'U'
+  useLayoutEffect(() => {
+    if (!navRef.current) return
+    const active = navRef.current.querySelector('[data-active="true"]') as HTMLElement | null
+    if (active) {
+      setIndicator({ top: active.offsetTop, height: active.offsetHeight, visible: true })
+    } else {
+      setIndicator(p => ({ ...p, visible: false }))
+    }
+  }, [pathname])
+
+  const supabase = useMemo(() => createClient(), [])
+  const displayName = fullName?.trim() || email
+  const initial = displayName ? displayName[0].toUpperCase() : 'U'
 
   async function handleSignOut() {
     setSigningOut(true)
@@ -91,9 +162,21 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
     router.push('/login')
   }
 
+  const allNavItems = [...NAV_MAIN, ...NAV_BOTTOM]
+
   return (
     <>
-      <button className="dashboard-hamburger" onClick={() => setOpen(true)} aria-label="Open menu" style={{ display: open ? 'none' : undefined, opacity: showHamburger ? 1 : 0, pointerEvents: showHamburger ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
+      <button
+        className="dashboard-hamburger"
+        onClick={() => setOpen(true)}
+        aria-label="Open menu"
+        style={{
+          display: open ? 'none' : undefined,
+          opacity: showHamburger ? 1 : 0,
+          pointerEvents: showHamburger ? 'auto' : 'none',
+          transition: 'opacity 0.2s',
+        }}
+      >
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
@@ -115,22 +198,39 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+        <nav ref={navRef} style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', position: 'relative' }}>
+          {/* Sliding indicator */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: 0,
+              width: 3,
+              borderRadius: 3,
+              background: 'linear-gradient(to bottom, #7C3AED, #C026D3)',
+              transition: 'top 0.25s cubic-bezier(0.4,0,0.2,1), height 0.15s, opacity 0.2s',
+              top: indicator.top + 12,
+              height: indicator.height,
+              opacity: indicator.visible ? 1 : 0,
+              pointerEvents: 'none',
+            }}
+          />
+
           {NAV_MAIN.map(item => (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
+              label={item.label}
+              icon={item.icon}
+              active={pathname === item.href}
               onClick={() => setOpen(false)}
-              className={`dashboard-nav-item${pathname === item.href ? ' dashboard-nav-item-active' : ''}`}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
+            />
           ))}
 
           <button
             onClick={() => { setOpen(false); setIsUploadOpen(true) }}
             className="dashboard-nav-new"
+            style={{ position: 'relative', overflow: 'hidden' }}
           >
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -141,15 +241,14 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
           <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '6px 0' }} />
 
           {NAV_BOTTOM.map(item => (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
+              label={item.label}
+              icon={item.icon}
+              active={pathname === item.href}
               onClick={() => setOpen(false)}
-              className={`dashboard-nav-item${pathname === item.href ? ' dashboard-nav-item-active' : ''}`}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
+            />
           ))}
         </nav>
 
@@ -164,13 +263,40 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
               Upgrade
             </Link>
           </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#7C3AED,#C026D3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-              {initial}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</div>
-            </div>
+            <Link
+              href="/profile"
+              onClick={() => setOpen(false)}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                textDecoration: 'none',
+                borderRadius: 7,
+                padding: '4px 6px',
+                transition: 'background 0.15s',
+                minWidth: 0,
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#7C3AED,#C026D3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                {initial}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {displayName}
+                </div>
+                {fullName && (
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {email}
+                  </div>
+                )}
+              </div>
+            </Link>
+
             <button
               onClick={handleSignOut}
               disabled={signingOut}

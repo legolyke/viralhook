@@ -14,7 +14,11 @@ export default async function DashboardLayout({
 
   return (
     <div className="dashboard-layout">
-      <Sidebar email={user.email ?? ''} plan="FREE" />
+      <Sidebar
+          email={user.email ?? ''}
+          fullName={user.user_metadata?.full_name ?? user.user_metadata?.name}
+          plan="FREE"
+        />
       <main className="dashboard-main">
         {children}
       </main>
