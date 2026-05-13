@@ -33,7 +33,6 @@ export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, margin: 0 }}>
           {status === 'uploading' ? 'Uploading video...' : 'Processing video...'}
         </p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     )
   }
@@ -65,12 +64,15 @@ export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
       controls
       muted
       playsInline
+      aria-label="Project video"
       style={{
         width: '100%',
         borderRadius: 16,
         background: '#000',
         maxHeight: 480,
       }}
-    />
+    >
+      Your browser does not support video playback.
+    </video>
   )
 }
