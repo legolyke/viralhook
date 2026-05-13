@@ -4,6 +4,7 @@ import Link from 'next/link'
 import ProjectHeader from '@/components/project/ProjectHeader'
 import VideoPlayer from '@/components/project/VideoPlayer'
 import ClipsGrid from '@/components/project/ClipsGrid'
+import TranscriptPanel from '@/components/project/TranscriptPanel'
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return '—'
@@ -44,6 +45,12 @@ export default async function ProjectDetailPage({
     .single()
 
   if (!project) redirect('/dashboard')
+
+  const { data: transcript } = await supabase
+    .from('transcripts')
+    .select('full_text, content, language')
+    .eq('project_id', project.id)
+    .maybeSingle()
 
   return (
     <div className="dashboard-content" style={{ maxWidth: 900 }}>
@@ -96,6 +103,8 @@ export default async function ProjectDetailPage({
           </div>
         ))}
       </div>
+
+      <TranscriptPanel status={project.status} transcript={transcript} />
 
       <ClipsGrid projectStatus={project.status} />
     </div>
