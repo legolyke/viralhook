@@ -213,7 +213,7 @@ body {
 
 @media (max-width: 768px) {
   .dashboard-content {
-    padding: 20px 16px;
+    padding: 16px 8px;
   }
   .dashboard-sidebar {
     transform: translateX(-100%);

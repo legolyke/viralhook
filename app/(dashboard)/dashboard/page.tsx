@@ -21,8 +21,7 @@ export default async function DashboardPage() {
     ?? user.user_metadata?.name
     ?? user.email?.split('@')[0]
     ?? 'there'
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+  const greeting = 'Hello'
 
   return (
     <div className="dashboard-content"  style={{ maxWidth: 1200 }}>
