@@ -4,7 +4,6 @@ const OPENAI_BASE = 'https://api.openai.com/v1'
 
 export interface DetectedClip {
   title: string
-  hook: string
   start_ms: number
   end_ms: number
   score: number
@@ -38,7 +37,6 @@ Return a JSON object: {"clips": [...]}
 
 Each clip must have:
 - "title": catchy title, max 60 chars
-- "hook": opening line that hooks viewers, max 100 chars
 - "start_ms": clip start in milliseconds (use a real "s" value from word timestamps)
 - "end_ms": clip end in milliseconds (use a real "e" value from word timestamps)
 - "score": virality score 0.0-1.0
@@ -89,11 +87,11 @@ Rules:
   return parsed.clips.filter(
     (clip) =>
       typeof clip.title === 'string' &&
-      typeof clip.hook === 'string' &&
       typeof clip.start_ms === 'number' &&
       typeof clip.end_ms === 'number' &&
       typeof clip.score === 'number' &&
       clip.score >= 0 && clip.score <= 1 &&
-      clip.end_ms - clip.start_ms >= 15000
+      clip.end_ms - clip.start_ms >= 15000 &&
+      clip.end_ms - clip.start_ms <= 60000
   )
 }

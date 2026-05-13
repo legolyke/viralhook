@@ -18,7 +18,7 @@ const mockHighlights = [
 
 const mockClipsResponse = {
   clips: [
-    { title: 'Amazing moment', hook: 'Hello world', start_ms: 200, end_ms: 20000, score: 0.9 },
+    { title: 'Amazing moment', start_ms: 200, end_ms: 20000, score: 0.9 },
   ],
 }
 
@@ -107,8 +107,24 @@ describe('detectViralClips', () => {
   it('filters out clips with duration under 15 seconds', async () => {
     const response = {
       clips: [
-        { title: 'Good clip', hook: 'hook', start_ms: 0, end_ms: 30000, score: 0.8 },
-        { title: 'Too short', hook: 'hook', start_ms: 0, end_ms: 10000, score: 0.9 },
+        { title: 'Good clip', start_ms: 0, end_ms: 30000, score: 0.8 },
+        { title: 'Too short', start_ms: 0, end_ms: 10000, score: 0.9 },
+      ],
+    }
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: JSON.stringify(response) } }] }),
+    })
+    const clips = await detectViralClips(mockWords, mockHighlights, 'Hello world')
+    expect(clips).toHaveLength(1)
+    expect(clips[0].title).toBe('Good clip')
+  })
+
+  it('filters out clips with duration over 60 seconds', async () => {
+    const response = {
+      clips: [
+        { title: 'Good clip', start_ms: 0, end_ms: 30000, score: 0.8 },
+        { title: 'Too long', start_ms: 0, end_ms: 70000, score: 0.9 },
       ],
     }
     mockFetch.mockResolvedValueOnce({
