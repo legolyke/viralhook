@@ -55,7 +55,7 @@ export default async function ProjectDetailPage({
 
   const { data: clips } = await supabase
     .from('clips')
-    .select('id, title, start_time, end_time, virality_score')
+    .select('id, title, start_time, end_time, virality_score, status, file_url')
     .eq('project_id', project.id)
     .order('virality_score', { ascending: false })
 
@@ -114,7 +114,12 @@ export default async function ProjectDetailPage({
 
       <TranscriptPanel status={project.status} transcript={transcript} />
 
-      <ClipsGrid projectStatus={project.status} projectId={project.id} clips={clips ?? []} />
+      <ClipsGrid
+          projectStatus={project.status}
+          projectId={project.id}
+          projectFileUrl={project.file_url ?? ''}
+          clips={clips ?? []}
+        />
     </div>
   )
 }
