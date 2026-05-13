@@ -55,11 +55,27 @@ export default {
 
     const { clip_id, source_key, start_time, end_time, crop_x } = body
 
+    if (!/^[0-9a-f-]{36}$/.test(clip_id)) {
+      return Response.json({ error: 'Invalid clip_id' }, { status: 400 })
+    }
+
+    if (!source_key || typeof start_time !== 'number' || typeof end_time !== 'number' || typeof crop_x !== 'number') {
+      return Response.json({ error: 'Missing or invalid required fields' }, { status: 400 })
+    }
+    if (end_time <= start_time) {
+      return Response.json({ error: 'end_time must be greater than start_time' }, { status: 400 })
+    }
+    if (crop_x < 0 || crop_x > 1) {
+      return Response.json({ error: 'crop_x must be between 0 and 1' }, { status: 400 })
+    }
+
     try {
       const obj = await env.R2.get(source_key)
       if (!obj) throw new Error(`Source not found in R2: ${source_key}`)
       const sourceBuffer = new Uint8Array(await obj.arrayBuffer())
 
+      // NOTE: @ffmpeg/ffmpeg v0.12.x requires Workers Unbound and may need a CF-compatible
+      // WASM loading strategy. For production, test with `wrangler dev` before deploying.
       const ffmpeg = new FFmpeg()
       const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
       await ffmpeg.load({
