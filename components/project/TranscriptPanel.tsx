@@ -21,7 +21,6 @@ function applyHighlights(fullText: string, highlights: AssemblyAIHighlight[]): R
   const topPhrases = highlights
     .filter(h => h.rank > 0.7)
     .sort((a, b) => b.rank - a.rank)
-    .slice(0, 8)
     .map(h => h.text)
 
   if (topPhrases.length === 0) return fullText
