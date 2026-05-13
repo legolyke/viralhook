@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import UploadModal from '@/components/upload/UploadModal'
 
@@ -69,6 +69,18 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [showHamburger, setShowHamburger] = useState(true)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const currentY = window.scrollY
+      setShowHamburger(currentY <= lastScrollY.current || currentY < 10)
+      lastScrollY.current = currentY
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
   const supabase = useMemo(() => createClient(), [])
 
   const initial = email ? email[0].toUpperCase() : 'U'
@@ -81,7 +93,7 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
 
   return (
     <>
-      <button className="dashboard-hamburger" onClick={() => setOpen(true)} aria-label="Open menu" style={{ display: open ? 'none' : undefined }}>
+      <button className="dashboard-hamburger" onClick={() => setOpen(true)} aria-label="Open menu" style={{ display: open ? 'none' : undefined, opacity: showHamburger ? 1 : 0, pointerEvents: showHamburger ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
