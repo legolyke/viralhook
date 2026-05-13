@@ -25,6 +25,7 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const statusStyle = STATUS_STYLES[status] ?? STATUS_STYLES.processing
 
@@ -35,6 +36,7 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
       return
     }
     setIsSaving(true)
+    setError(null)
     try {
       const res = await fetch(`/api/projects/${id}`, {
         method: 'PATCH',
@@ -45,7 +47,13 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
         const data = await res.json()
         setCurrentTitle(data.title)
         setEditValue(data.title)
+      } else {
+        setError('Failed to save title. Please try again.')
+        setEditValue(currentTitle)
       }
+    } catch {
+      setError('Failed to save title. Please try again.')
+      setEditValue(currentTitle)
     } finally {
       setIsSaving(false)
       setEditing(false)
@@ -54,9 +62,16 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
 
   async function handleDelete() {
     setIsDeleting(true)
+    setError(null)
     try {
       const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
-      if (res.ok) router.push('/dashboard')
+      if (res.ok) {
+        router.push('/dashboard')
+      } else {
+        setError('Failed to delete project. Please try again.')
+      }
+    } catch {
+      setError('Failed to delete project. Please try again.')
     } finally {
       setIsDeleting(false)
       setShowDeleteModal(false)
@@ -74,7 +89,7 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
               onChange={(e) => setEditValue(e.target.value)}
               onBlur={saveTitle}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') saveTitle()
+                if (e.key === 'Enter') e.currentTarget.blur()
                 if (e.key === 'Escape') { setEditing(false); setEditValue(currentTitle) }
               }}
               disabled={isSaving}
@@ -121,6 +136,11 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
           >
             {status}
           </span>
+          {error && (
+            <p style={{ color: '#F87171', fontSize: 12, margin: '6px 0 0' }}>
+              {error}
+            </p>
+          )}
         </div>
 
         <button
