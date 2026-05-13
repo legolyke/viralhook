@@ -113,8 +113,9 @@ export default function FileUpload({ userPlan = 'free', onClose, projectName = '
 
       const confirmData = await confirmRes.json() as { success: boolean; transcriptionError?: string | null }
       if (confirmData.transcriptionError) {
-        console.error('[DEBUG] Transcription error:', confirmData.transcriptionError)
         setError(`[DEBUG] Transcription failed: ${confirmData.transcriptionError}`)
+        setStatus('idle')
+        return
       }
 
       setStatus('done')
