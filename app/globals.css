@@ -244,6 +244,9 @@ body {
   .clips-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+  .project-meta-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
 @keyframes spin {
