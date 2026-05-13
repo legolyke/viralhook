@@ -12,7 +12,8 @@ export interface DetectedClip {
 export async function detectViralClips(
   words: AssemblyAIWord[],
   highlights: AssemblyAIHighlight[],
-  fullText: string
+  fullText: string,
+  language = 'en'
 ): Promise<DetectedClip[]> {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
 
@@ -32,7 +33,7 @@ export async function detectViralClips(
     .sort(([a], [b]) => a - b)
     .map(([time_ms, ws]) => ({ time_ms, text: ws.join(' ') }))
 
-  const systemPrompt = `You are a viral content expert. Analyze video transcripts to identify the most engaging moments for TikTok, Reels, and YouTube Shorts. Return ONLY valid JSON.`
+  const systemPrompt = `You are a viral content expert. Analyze video transcripts to identify the most engaging moments for TikTok, Reels, and YouTube Shorts. Return ONLY valid JSON. Always write titles in the same language as the transcript (language code: ${language}).`
 
   const userPrompt = `Analyze this video transcript and identify viral clip moments.
 

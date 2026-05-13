@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     const words = transcript.words ?? []
     const highlights = transcript.auto_highlights_result?.results ?? []
     if (words.length > 0) {
-      const clips = await detectViralClips(words, highlights, transcript.text ?? '')
+      const clips = await detectViralClips(words, highlights, transcript.text ?? '', transcript.language_code ?? 'en')
       if (clips.length > 0) {
         const { error: clipsErr } = await supabase.from('clips').insert(
           clips.map((clip) => ({

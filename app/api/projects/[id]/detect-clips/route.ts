@@ -32,7 +32,7 @@ export async function POST(
 
   const { data: transcriptRow } = await supabase
     .from('transcripts')
-    .select('full_text, content')
+    .select('full_text, content, language')
     .eq('project_id', id)
     .maybeSingle()
 
@@ -52,7 +52,7 @@ export async function POST(
 
   let clips
   try {
-    clips = await detectViralClips(words, highlights, transcriptRow.full_text)
+    clips = await detectViralClips(words, highlights, transcriptRow.full_text, transcriptRow.language ?? 'en')
   } catch (err) {
     return NextResponse.json(
       { error: `Clip detection failed: ${err instanceof Error ? err.message : String(err)}` },
