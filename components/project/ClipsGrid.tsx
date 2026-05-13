@@ -136,7 +136,7 @@ export default function ClipsGrid({ projectStatus, projectId, clips }: ClipsGrid
           }}
           className="clips-grid"
         >
-          {clips.sort((a, b) => b.score - a.score).map((clip) => (
+          {[...clips].sort((a, b) => b.score - a.score).map((clip) => (
             <ClipCard key={clip.id} clip={clip} />
           ))}
         </div>
