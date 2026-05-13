@@ -30,7 +30,13 @@ export async function DELETE(
     }
   }
 
-  await supabase.from('projects').delete().eq('id', id).eq('user_id', user.id)
+  const { error: deleteError } = await supabase
+    .from('projects').delete().eq('id', id).eq('user_id', user.id)
+
+  if (deleteError) {
+    console.error('[delete] Supabase error:', deleteError)
+    return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 })
+  }
 
   return NextResponse.json({ success: true })
 }
@@ -44,10 +50,19 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const body = await request.json()
-  const { title } = body as { title: string }
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+  const rawTitle = (body as Record<string, unknown>)?.title
+  if (typeof rawTitle !== 'string') {
+    return NextResponse.json({ error: 'Title must be a string' }, { status: 400 })
+  }
+  const title = rawTitle
 
-  if (!title?.trim() || title.trim().length > 100) {
+  if (!title.trim() || title.trim().length > 100) {
     return NextResponse.json({ error: 'Title must be 1–100 characters' }, { status: 400 })
   }
 
@@ -59,7 +74,14 @@ export async function PATCH(
     .select('id, title')
     .single()
 
-  if (error || !project) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    console.error('[patch] Supabase error:', error)
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+  }
+  if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   return NextResponse.json(project)
 }
