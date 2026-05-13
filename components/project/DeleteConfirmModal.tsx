@@ -30,9 +30,14 @@ export default function DeleteConfirmModal({
         padding: '0 16px',
       }}
       onClick={onCancel}
+      onKeyDown={(e) => { if (e.key === 'Escape') onCancel() }}
+      tabIndex={-1}
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-dialog-title"
         style={{
           background: '#0f0f1a',
           border: '1px solid rgba(239,68,68,0.2)',
@@ -42,7 +47,7 @@ export default function DeleteConfirmModal({
           width: '100%',
         }}
       >
-        <h3 style={{ color: '#fff', fontWeight: 700, fontSize: 18, margin: '0 0 8px' }}>
+        <h3 id="delete-dialog-title" style={{ color: '#fff', fontWeight: 700, fontSize: 18, margin: '0 0 8px' }}>
           Delete project?
         </h3>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 24px', lineHeight: 1.5 }}>
@@ -51,6 +56,7 @@ export default function DeleteConfirmModal({
         </p>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
+            type="button"
             onClick={onCancel}
             disabled={isDeleting}
             style={{
@@ -69,6 +75,7 @@ export default function DeleteConfirmModal({
             Cancel
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isDeleting}
             style={{
