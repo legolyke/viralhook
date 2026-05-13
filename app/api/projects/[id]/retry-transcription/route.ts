@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getTranscript } from '@/lib/assemblyai'
+import { detectViralClips } from '@/lib/openai'
 
 export async function POST(
   _request: Request,
@@ -49,6 +50,32 @@ export async function POST(
     if (insertError && !insertError.message.includes('duplicate')) {
       return NextResponse.json({ error: `Failed to save transcript: ${insertError.message}` }, { status: 500 })
     }
+
+    // Detect viral clips (non-fatal)
+    try {
+      const words = transcript.words ?? []
+      const highlights = transcript.auto_highlights_result?.results ?? []
+      if (words.length > 0) {
+        const clips = await detectViralClips(words, highlights, transcript.text ?? '')
+        if (clips.length > 0) {
+          const { error: clipsErr } = await supabase.from('clips').insert(
+            clips.map((clip) => ({
+              project_id: project.id,
+              user_id: user.id,
+              start_ms: Math.round(clip.start_ms),
+              end_ms: Math.round(clip.end_ms),
+              title: clip.title,
+              score: clip.score,
+              status: 'detected',
+            }))
+          )
+          if (clipsErr) console.error('Failed to insert clips:', clipsErr)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to detect viral clips:', err)
+    }
+
     await supabase.from('projects').update({ status: 'ready', updated_at: new Date().toISOString() }).eq('id', project.id)
     return NextResponse.json({ status: 'ready', message: 'Transcript recovered successfully.' })
   }
