@@ -33,7 +33,10 @@ export default async function DashboardPage() {
         <StatsCard label="Exports used" value={0} limit={3} unit="exports" />
         <StatsCard label="Video processed" value={0} limit={30} unit="min" />
         <StatsCard label="Projects" value={projects?.length ?? 0} />
-        <StatsCard label="Plan" value="FREE" />
+        <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Plan</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#A855F7' }}>FREE</div>
+        </div>
       </div>
 
       <DashboardUploadTrigger />
