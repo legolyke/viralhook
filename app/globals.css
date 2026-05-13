@@ -216,6 +216,9 @@ body {
   .dashboard-content {
     padding: 16px 8px;
   }
+  .dashboard-breadcrumb {
+    display: none;
+  }
   .dashboard-sidebar {
     transform: translateX(-100%);
   }
