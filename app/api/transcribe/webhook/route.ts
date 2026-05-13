@@ -88,7 +88,6 @@ export async function POST(request: Request) {
             user_id: project.user_id,
             start_time: Math.round(clip.start_ms),
             end_time: Math.round(clip.end_ms),
-            duration: Math.round(clip.end_ms - clip.start_ms),
             title: clip.title,
             virality_score: clip.score,
             status: 'detected',
