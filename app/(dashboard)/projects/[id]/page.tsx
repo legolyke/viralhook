@@ -79,7 +79,7 @@ export default async function ProjectDetailPage({
       <StatusPoller status={project.status} />
       <ProjectHeader id={project.id} title={project.title} status={project.status} />
 
-      <VideoPlayer fileUrl={project.file_url ?? ''} status={project.status} projectId={project.id} />
+      <VideoPlayer fileUrl={project.file_url ?? ''} status={project.status} projectId={project.id} durationSeconds={project.duration_seconds ?? 60} />
 
       <div
         style={{
