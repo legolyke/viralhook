@@ -56,6 +56,12 @@ export default function FileUpload({ userPlan = 'free', onClose }: FileUploadPro
 
   const handleFile = useCallback(async (file: File) => {
     setError(null)
+
+    if (!projectName.trim()) {
+      setError('Please enter a project name before uploading.')
+      return
+    }
+
     setStatus('validating')
 
     const formatCheck = validateFileFormat(file.name)
@@ -84,7 +90,7 @@ export default function FileUpload({ userPlan = 'free', onClose }: FileUploadPro
           fileName: file.name,
           fileType: file.type || 'video/mp4',
           durationSeconds,
-          title: projectName.trim() || file.name.replace(/\.[^/.]+$/, ''),
+          title: projectName.trim(),
         }),
       })
       if (!presignRes.ok) {
@@ -138,7 +144,7 @@ export default function FileUpload({ userPlan = 'free', onClose }: FileUploadPro
     <div>
       <div style={{ marginBottom: 12 }}>
         <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
-          Project name <span style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span>
+          Project name <span style={{ color: '#F87171' }}>*</span>
         </label>
         <input
           type="text"

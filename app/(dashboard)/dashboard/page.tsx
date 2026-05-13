@@ -17,19 +17,22 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(20)
 
-  const firstName = user.email?.split('@')[0] ?? 'there'
+  const firstName = user.user_metadata?.full_name?.split(' ')[0]
+    ?? user.user_metadata?.name?.split(' ')[0]
+    ?? user.email?.split('@')[0]
+    ?? 'there'
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1200 }}>
+    <div className="dashboard-content"  style={{ maxWidth: 1200 }}>
       <PageHeader
         breadcrumb="Dashboard"
         title={`${greeting}, ${firstName} 👋`}
         description="Create viral shorts from your long-form content."
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, margin: '32px 0' }}>
+      <div className="dashboard-stats-grid" style={{ margin: '32px 0' }}>
         <StatsCard label="Exports used" value={0} limit={3} unit="exports" />
         <StatsCard label="Video processed" value={0} limit={30} unit="min" />
         <StatsCard label="Projects" value={projects?.length ?? 0} />

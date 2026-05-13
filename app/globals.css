@@ -207,7 +207,14 @@ body {
   justify-content: center;
 }
 
+.dashboard-content {
+  padding: 32px 40px;
+}
+
 @media (max-width: 768px) {
+  .dashboard-content {
+    padding: 20px 16px;
+  }
   .dashboard-sidebar {
     transform: translateX(-100%);
   }
