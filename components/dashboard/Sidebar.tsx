@@ -81,7 +81,7 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
 
   return (
     <>
-      <button className="dashboard-hamburger" onClick={() => setOpen(true)} aria-label="Open menu">
+      <button className="dashboard-hamburger" onClick={() => setOpen(true)} aria-label="Open menu" style={{ display: open ? 'none' : undefined }}>
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
