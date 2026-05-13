@@ -118,7 +118,7 @@ export default function FileUpload({ userPlan = 'free', onClose, projectName = '
       setStatus('idle')
       setProgress(null)
     }
-  }, [userPlan, router])
+  }, [userPlan, router, projectName])
 
   const onDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
