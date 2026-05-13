@@ -33,6 +33,10 @@ export async function POST(
 
   if (!clip) return NextResponse.json({ error: 'Clip not found' }, { status: 404 })
 
+  if (clip.status === 'processing') {
+    return NextResponse.json({ error: 'Export already in progress' }, { status: 409 })
+  }
+
   const { data: project } = await supabase
     .from('projects')
     .select('file_url')
@@ -48,24 +52,49 @@ export async function POST(
     .update({ status: 'processing', updated_at: new Date().toISOString() })
     .eq('id', id)
 
-  const sourceKey = getR2KeyFromUrl(project.file_url)
+  let sourceKey: string
+  try {
+    sourceKey = getR2KeyFromUrl(project.file_url)
+  } catch {
+    return NextResponse.json({ error: 'Invalid source video URL' }, { status: 500 })
+  }
 
-  const workerRes = await fetch(process.env.WORKER_URL!, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.WORKER_SECRET}`,
-    },
-    body: JSON.stringify({
-      clip_id: id,
-      source_key: sourceKey,
-      start_time: clip.start_time,
-      end_time: clip.end_time,
-      crop_x: cropX,
-    }),
-  })
+  if (!process.env.WORKER_URL || !process.env.WORKER_SECRET) {
+    console.error('[export] WORKER_URL or WORKER_SECRET not configured')
+    await supabase
+      .from('clips')
+      .update({ status: 'error', updated_at: new Date().toISOString() })
+      .eq('id', id)
+    return NextResponse.json({ error: 'Service not configured' }, { status: 503 })
+  }
+
+  let workerRes: Response
+  try {
+    workerRes = await fetch(process.env.WORKER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.WORKER_SECRET}`,
+      },
+      body: JSON.stringify({
+        clip_id: id,
+        source_key: sourceKey,
+        start_time: clip.start_time,
+        end_time: clip.end_time,
+        crop_x: cropX,
+      }),
+    })
+  } catch (err) {
+    console.error('[export] Worker unreachable', err)
+    await supabase
+      .from('clips')
+      .update({ status: 'error', updated_at: new Date().toISOString() })
+      .eq('id', id)
+    return NextResponse.json({ error: 'Worker unreachable' }, { status: 500 })
+  }
 
   if (!workerRes.ok) {
+    console.error('[export] Worker returned', workerRes.status, 'for clip', id)
     await supabase
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })

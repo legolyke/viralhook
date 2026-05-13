@@ -73,10 +73,8 @@ describe('POST /api/clips/[id]/export', () => {
   })
 
   it('calls Worker and returns ok:true on success', async () => {
-    let callCount = 0
-    mockSingle.mockImplementation(() => {
-      callCount++
-      if (callCount === 1) return { data: mockClip, error: null }
+    mockSingle.mockImplementation((table: string) => {
+      if (table === 'clips') return { data: mockClip, error: null }
       return { data: mockProject, error: null }
     })
     mockUpdate.mockReturnValue({ error: null })
@@ -100,6 +98,23 @@ describe('POST /api/clips/[id]/export', () => {
     expect(workerBody.start_time).toBe(5000)
     expect(workerBody.end_time).toBe(35000)
     expect(workerBody.source_key).toBe('uploads/proj-1/video.mp4')
+  })
+
+  it('sets status to error and returns 500 when Worker fails', async () => {
+    mockSingle.mockImplementation((table: string) => {
+      if (table === 'clips') return { data: mockClip, error: null }
+      return { data: mockProject, error: null }
+    })
+    mockUpdate.mockReturnValue({ error: null })
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 })
+
+    const req = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ crop_x: 0.5 }),
+    })
+    const res = await POST(req, { params: Promise.resolve({ id: 'clip-1' }) })
+    expect(res.status).toBe(500)
   })
 
   it('returns 400 when crop_x is missing', async () => {
