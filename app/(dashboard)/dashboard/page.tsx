@@ -24,6 +24,7 @@ export default async function DashboardPage() {
   return (
     <div style={{ padding: '32px 40px', maxWidth: 1200 }}>
       <PageHeader
+        breadcrumb="Dashboard"
         title={`${greeting}, ${firstName} 👋`}
         description="Create viral shorts from your long-form content."
       />
