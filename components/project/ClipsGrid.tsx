@@ -123,7 +123,7 @@ export default function ClipsGrid({ projectStatus, projectId, clips }: ClipsGrid
           }}
         >
           <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14, margin: 0 }}>
-            Clip analysis did not produce results.
+            Analysis failed
           </p>
           <ReanalyzeButton projectId={projectId} />
         </div>
