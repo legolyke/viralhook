@@ -46,9 +46,13 @@ export async function POST(
     return NextResponse.json({ error: 'Transcript has no word timestamps' }, { status: 400 })
   }
 
+  if (!transcriptRow.full_text) {
+    return NextResponse.json({ error: 'Transcript text is missing' }, { status: 400 })
+  }
+
   let clips
   try {
-    clips = await detectViralClips(words, highlights, transcriptRow.full_text ?? '')
+    clips = await detectViralClips(words, highlights, transcriptRow.full_text)
   } catch (err) {
     return NextResponse.json(
       { error: `Clip detection failed: ${err instanceof Error ? err.message : String(err)}` },
@@ -57,7 +61,10 @@ export async function POST(
   }
 
   // Delete existing clips for this project before inserting new ones
-  await supabase.from('clips').delete().eq('project_id', id).eq('user_id', user.id)
+  const { error: deleteError } = await supabase.from('clips').delete().eq('project_id', id).eq('user_id', user.id)
+  if (deleteError) {
+    return NextResponse.json({ error: 'Failed to clear existing clips' }, { status: 500 })
+  }
 
   if (clips.length > 0) {
     const { error: insertError } = await supabase.from('clips').insert(
