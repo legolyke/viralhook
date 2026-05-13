@@ -39,7 +39,7 @@ async function uploadWithProgress(
     xhr.onload = () => (xhr.status === 200 ? resolve() : reject(new Error('Upload failed')))
     xhr.onerror = () => reject(new Error('Network error during upload'))
     xhr.open('PUT', presignedUrl)
-    xhr.setRequestHeader('Content-Type', file.type)
+    xhr.setRequestHeader('Content-Type', file.type || 'video/mp4')
     xhr.send(file)
   })
 }
