@@ -38,6 +38,7 @@ export async function startTranscription(
     },
     body: JSON.stringify({
       audio_url: audioUrl,
+      speech_models: ['universal-2'],
       auto_highlights: true,
       webhook_url: webhookUrl,
       webhook_auth_header_name: 'x-assemblyai-secret',
