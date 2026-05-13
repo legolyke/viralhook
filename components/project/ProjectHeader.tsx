@@ -84,28 +84,68 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           {editing ? (
-            <input
-              autoFocus
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onBlur={saveTitle}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') e.currentTarget.blur()
-                if (e.key === 'Escape') { setEditing(false); setEditValue(currentTitle) }
-              }}
-              disabled={isSaving}
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                color: '#fff',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(168,85,247,0.4)',
-                borderRadius: 8,
-                padding: '4px 10px',
-                width: '100%',
-                outline: 'none',
-              }}
-            />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                autoFocus
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveTitle()
+                  if (e.key === 'Escape') { setEditing(false); setEditValue(currentTitle) }
+                }}
+                disabled={isSaving}
+                style={{
+                  flex: 1,
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: '#fff',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(168,85,247,0.4)',
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  outline: 'none',
+                  minWidth: 0,
+                }}
+              />
+              <button
+                type="button"
+                onClick={saveTitle}
+                disabled={isSaving}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  background: 'rgba(168,85,247,0.2)',
+                  border: '1px solid rgba(168,85,247,0.4)',
+                  color: '#C084FC',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                  flexShrink: 0,
+                  opacity: isSaving ? 0.5 : 1,
+                }}
+              >
+                {isSaving ? '...' : 'Save'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setEditing(false); setEditValue(currentTitle) }}
+                disabled={isSaving}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'rgba(255,255,255,0.5)',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                  flexShrink: 0,
+                  opacity: isSaving ? 0.5 : 1,
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           ) : (
             <h1
               onClick={() => setEditing(true)}

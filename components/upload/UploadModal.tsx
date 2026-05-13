@@ -14,12 +14,17 @@ interface UploadModalProps {
 
 export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('file')
+  const [projectName, setProjectName] = useState('')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     if (isOpen) document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [isOpen, onClose])
+
+  useEffect(() => {
+    if (!isOpen) setProjectName('')
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -39,7 +44,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         maxWidth: 520,
         boxShadow: '0 0 60px rgba(168,85,247,0.12)',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h2 style={{ color: '#fff', fontSize: 18, fontWeight: 700, margin: 0 }}>
             New Project
           </h2>
@@ -51,7 +56,31 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 4 }}>
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
+            Project name <span style={{ color: '#F87171' }}>*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="My awesome video"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            autoFocus
+            style={{
+              width: '100%',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 8,
+              padding: '10px 12px',
+              color: '#E9D5FF',
+              fontSize: 14,
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20, background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 4 }}>
           {(['file', 'url'] as Tab[]).map((tab) => (
             <button
               key={tab}
@@ -75,9 +104,9 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         </div>
 
         {activeTab === 'file' ? (
-          <FileUpload onClose={onClose} />
+          <FileUpload projectName={projectName} onClose={onClose} />
         ) : (
-          <UrlImport />
+          <UrlImport projectName={projectName} />
         )}
       </div>
     </div>

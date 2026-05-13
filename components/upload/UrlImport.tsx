@@ -14,7 +14,7 @@ const STATUS_LABELS: Record<string, string> = {
   error: 'Import failed.',
 }
 
-export default function UrlImport() {
+export default function UrlImport({ projectName = '' }: { projectName?: string }) {
   const router = useRouter()
   const [url, setUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +35,7 @@ export default function UrlImport() {
     const res = await fetch('/api/upload/url-import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, title: projectName.trim() || undefined }),
     })
 
     if (!res.ok) {

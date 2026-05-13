@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 interface DeleteConfirmModalProps {
   isOpen: boolean
   projectTitle: string
@@ -15,6 +17,9 @@ export default function DeleteConfirmModal({
   onConfirm,
   onCancel,
 }: DeleteConfirmModalProps) {
+  const [confirmText, setConfirmText] = useState('')
+  const canDelete = confirmText.toLowerCase() === 'delete'
+
   if (!isOpen) return null
 
   return (
@@ -50,10 +55,34 @@ export default function DeleteConfirmModal({
         <h3 id="delete-dialog-title" style={{ color: '#fff', fontWeight: 700, fontSize: 18, margin: '0 0 8px' }}>
           Delete project?
         </h3>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 24px', lineHeight: 1.5 }}>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 16px', lineHeight: 1.5 }}>
           <strong style={{ color: '#E9D5FF' }}>{projectTitle}</strong> will be permanently deleted
           including the video file. This cannot be undone.
         </p>
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+            Type <strong style={{ color: '#F87171' }}>delete</strong> to confirm
+          </label>
+          <input
+            type="text"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="delete"
+            autoComplete="off"
+            style={{
+              width: '100%',
+              padding: '9px 12px',
+              borderRadius: 8,
+              background: 'rgba(239,68,68,0.05)',
+              border: `1px solid ${canDelete ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.1)'}`,
+              color: '#fff',
+              fontSize: 14,
+              outline: 'none',
+              boxSizing: 'border-box',
+              transition: 'border-color 0.15s',
+            }}
+          />
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             type="button"
@@ -77,7 +106,7 @@ export default function DeleteConfirmModal({
           <button
             type="button"
             onClick={onConfirm}
-            disabled={isDeleting}
+            disabled={isDeleting || !canDelete}
             style={{
               flex: 1,
               padding: '10px 0',
@@ -87,8 +116,9 @@ export default function DeleteConfirmModal({
               color: '#F87171',
               fontWeight: 600,
               fontSize: 14,
-              cursor: isDeleting ? 'not-allowed' : 'pointer',
-              opacity: isDeleting ? 0.5 : 1,
+              cursor: (isDeleting || !canDelete) ? 'not-allowed' : 'pointer',
+              opacity: (isDeleting || !canDelete) ? 0.4 : 1,
+              transition: 'opacity 0.15s',
             }}
           >
             {isDeleting ? 'Deleting...' : 'Delete'}
