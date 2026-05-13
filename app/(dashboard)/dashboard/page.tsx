@@ -17,8 +17,8 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(20)
 
-  const firstName = user.user_metadata?.full_name?.split(' ')[0]
-    ?? user.user_metadata?.name?.split(' ')[0]
+  const firstName = user.user_metadata?.full_name
+    ?? user.user_metadata?.name
     ?? user.email?.split('@')[0]
     ?? 'there'
   const hour = new Date().getHours()
