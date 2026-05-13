@@ -1,6 +1,12 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
 interface VideoPlayerProps {
   fileUrl: string
   status: string
+  projectId?: string
 }
 
 const SPINNER_STATUSES: Record<string, string> = {
@@ -15,7 +21,30 @@ const SPINNER_HINTS: Record<string, string> = {
   transcribing: 'Our AI is transcribing your audio and detecting viral moments. This usually takes 1–3 minutes. The page updates automatically.',
 }
 
-export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
+export default function VideoPlayer({ fileUrl, status, projectId }: VideoPlayerProps) {
+  const router = useRouter()
+  const [checking, setChecking] = useState(false)
+  const [checkMsg, setCheckMsg] = useState<string | null>(null)
+
+  async function handleRetry() {
+    if (!projectId) return
+    setChecking(true)
+    setCheckMsg(null)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/retry-transcription`, { method: 'POST' })
+      const data = await res.json() as { status?: string; message?: string; error?: string }
+      if (data.status === 'ready') {
+        router.refresh()
+      } else {
+        setCheckMsg(data.message ?? data.error ?? 'Unknown status')
+      }
+    } catch {
+      setCheckMsg('Failed to check status.')
+    } finally {
+      setChecking(false)
+    }
+  }
+
   if (status in SPINNER_STATUSES) {
     return (
       <div
@@ -56,6 +85,33 @@ export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
           }}>
             {SPINNER_HINTS[status]}
           </p>
+        )}
+        {status === 'transcribing' && projectId && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 4 }}>
+            <button
+              type="button"
+              onClick={handleRetry}
+              disabled={checking}
+              style={{
+                padding: '6px 16px',
+                borderRadius: 8,
+                background: 'rgba(168,85,247,0.1)',
+                border: '1px solid rgba(168,85,247,0.25)',
+                color: '#C084FC',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: checking ? 'not-allowed' : 'pointer',
+                opacity: checking ? 0.6 : 1,
+              }}
+            >
+              {checking ? 'Checking...' : 'Check status now'}
+            </button>
+            {checkMsg && (
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: 0 }}>
+                {checkMsg}
+              </p>
+            )}
+          </div>
         )}
       </div>
     )
