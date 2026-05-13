@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import PreventZoom from '@/components/PreventZoom'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-[#0a0a0a] text-white antialiased`}>
+        <PreventZoom />
         {children}
       </body>
     </html>
