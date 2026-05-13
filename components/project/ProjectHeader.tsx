@@ -11,10 +11,11 @@ interface ProjectHeaderProps {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
-  uploading:  { bg: 'rgba(168,85,247,0.1)',  color: '#C084FC' },
-  processing: { bg: 'rgba(234,179,8,0.1)',   color: '#FCD34D' },
-  ready:      { bg: 'rgba(34,197,94,0.1)',   color: '#4ADE80' },
-  error:      { bg: 'rgba(239,68,68,0.1)',   color: '#F87171' },
+  uploading:    { bg: 'rgba(168,85,247,0.1)',  color: '#C084FC' },
+  processing:   { bg: 'rgba(234,179,8,0.1)',   color: '#FCD34D' },
+  transcribing: { bg: 'rgba(59,130,246,0.1)',  color: '#60A5FA' },
+  ready:        { bg: 'rgba(34,197,94,0.1)',   color: '#4ADE80' },
+  error:        { bg: 'rgba(239,68,68,0.1)',   color: '#F87171' },
 }
 
 export default function ProjectHeader({ id, title, status }: ProjectHeaderProps) {

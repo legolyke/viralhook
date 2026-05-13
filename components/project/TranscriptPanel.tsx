@@ -26,7 +26,7 @@ function applyHighlights(fullText: string, highlights: AssemblyAIHighlight[]): R
   if (topPhrases.length === 0) return fullText
 
   const escaped = topPhrases.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-  const pattern = new RegExp(`(${escaped.join('|')})`, 'gi')
+  const pattern = new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi')
   const parts = fullText.split(pattern)
 
   return (

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to confirm upload' }, { status: 500 })
   }
 
-  const origin = new URL(request.url).origin
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin
   const webhookUrl = `${origin}/api/transcribe/webhook`
 
   try {
