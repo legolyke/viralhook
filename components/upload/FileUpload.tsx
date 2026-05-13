@@ -112,6 +112,7 @@ export default function FileUpload({ userPlan = 'free', onClose, projectName = '
       if (!confirmRes.ok) throw new Error('Failed to finalize upload')
 
       setStatus('done')
+      onClose?.()
       router.push(`/projects/${projectId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
