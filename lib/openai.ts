@@ -17,40 +17,49 @@ export async function detectViralClips(
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
 
   const truncatedText = fullText.slice(0, 8000)
-  const wordsCompact = words.slice(0, 500).map(w => ({ word: w.text, start_ms: w.start, end_ms: w.end }))
   const highlightsCompact = highlights.slice(0, 20).map(h => ({ text: h.text, rank: h.rank }))
-
   const videoDurationMs = words.length > 0 ? words[words.length - 1].end : 0
+
+  // Build a sparse timeline: one entry every ~5 seconds so GPT can reason about clip boundaries
+  const BUCKET_MS = 5000
+  const timelineMap = new Map<number, string[]>()
+  for (const w of words) {
+    const bucket = Math.floor(w.start / BUCKET_MS) * BUCKET_MS
+    if (!timelineMap.has(bucket)) timelineMap.set(bucket, [])
+    timelineMap.get(bucket)!.push(w.text)
+  }
+  const timeline = Array.from(timelineMap.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([time_ms, ws]) => ({ time_ms, text: ws.join(' ') }))
 
   const systemPrompt = `You are a viral content expert. Analyze video transcripts to identify the most engaging moments for TikTok, Reels, and YouTube Shorts. Return ONLY valid JSON.`
 
   const userPrompt = `Analyze this video transcript and identify viral clip moments.
 
-Full transcript text:
+Full transcript:
 ${truncatedText}
 
-Word-level timestamps (each word has start_ms and end_ms in milliseconds):
-${JSON.stringify(wordsCompact)}
+Video duration: ${videoDurationMs}ms (${Math.round(videoDurationMs / 1000)} seconds)
 
-Total video duration: ${videoDurationMs}ms
+Timeline — what is said around each 5-second mark:
+${JSON.stringify(timeline)}
 
-Viral phrases (hints):
+Viral phrases detected (hints):
 ${JSON.stringify(highlightsCompact)}
 
 Return a JSON object: {"clips": [...]}
 
 Each clip must have:
 - "title": catchy title, max 60 chars
-- "start_ms": start of the clip in milliseconds — must be the start_ms of the FIRST word in the clip segment
-- "end_ms": end of the clip in milliseconds — must be the end_ms of the LAST word in the clip segment
+- "start_ms": use a time_ms value from the timeline above as the clip start
+- "end_ms": use a time_ms value from the timeline above as the clip end (must be at least 3 entries after start_ms)
 - "score": virality score 0.0-1.0
 
-IMPORTANT rules:
+Rules:
 - start_ms MUST be less than end_ms
-- end_ms - start_ms MUST be between 15000ms and 60000ms (15 to 60 seconds)
-- Each clip spans a continuous segment of many words, NOT a single word
+- end_ms - start_ms MUST be between 15000 and 60000 (15 to 60 seconds)
 - No overlapping clips
-- Return 1-5 clips (fewer is fine for short videos)
+- Return 1-5 clips (1 clip is fine for a short video)
 - Prioritize: emotional moments, humor, surprise, quotable phrases`
 
   const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
