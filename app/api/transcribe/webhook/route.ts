@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     if (words.length > 0) {
       const clips = await detectViralClips(words, highlights, transcript.text ?? '')
       if (clips.length > 0) {
-        await supabase.from('clips').insert(
+        const { error: clipsErr } = await supabase.from('clips').insert(
           clips.map((clip) => ({
             project_id: project.id,
             user_id: project.user_id,
@@ -93,6 +93,7 @@ export async function POST(request: Request) {
             status: 'detected',
           }))
         )
+        if (clipsErr) console.error('Failed to insert clips:', clipsErr)
       }
     }
   } catch (err) {

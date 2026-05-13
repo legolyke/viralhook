@@ -51,6 +51,7 @@ Rules:
 
   const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
     method: 'POST',
+    signal: AbortSignal.timeout(25000),
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
