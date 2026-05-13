@@ -29,15 +29,16 @@ async function getVideoDuration(file: File): Promise<number> {
 async function uploadWithProgress(
   file: File,
   presignedUrl: string,
-  onProgress: (pct: number) => void
+  onProgress: (pct: number) => void,
+  r2Host?: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
     }
-    xhr.onload = () => (xhr.status === 200 ? resolve() : reject(new Error('Upload failed')))
-    xhr.onerror = () => reject(new Error('Network error during upload'))
+    xhr.onload = () => (xhr.status === 200 ? resolve() : reject(new Error(`Upload failed (${xhr.status})`)))
+    xhr.onerror = () => reject(new Error(`Network error uploading to: ${r2Host ?? 'unknown'}`))
     xhr.open('PUT', presignedUrl)
     xhr.setRequestHeader('Content-Type', file.type || 'video/mp4')
     xhr.send(file)
@@ -91,7 +92,9 @@ export default function FileUpload({ userPlan = 'free', onClose }: FileUploadPro
       }
       const { presignedUrl, projectId } = await presignRes.json()
 
-      await uploadWithProgress(file, presignedUrl, setProgress)
+      const r2Host = new URL(presignedUrl).hostname
+
+      await uploadWithProgress(file, presignedUrl, setProgress, r2Host)
 
       setStatus('confirming')
       const confirmRes = await fetch('/api/upload/confirm', {
