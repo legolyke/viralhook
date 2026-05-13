@@ -34,7 +34,15 @@ export async function POST(request: Request) {
   }
 
   const key = `${user.id}/${randomUUID()}/${fileName}`
-  const presignedUrl = await generatePresignedUploadUrl(key, fileType)
+
+  let presignedUrl: string
+  try {
+    presignedUrl = await generatePresignedUploadUrl(key, fileType)
+  } catch (r2Error) {
+    console.error('[presign] R2 error:', r2Error)
+    return NextResponse.json({ error: 'Failed to generate upload URL (R2)' }, { status: 500 })
+  }
+
   const fileUrl = getPublicUrl(key)
 
   const { data: project, error } = await supabase
@@ -50,7 +58,8 @@ export async function POST(request: Request) {
     .single()
 
   if (error) {
-    return NextResponse.json({ error: 'Failed to create project' }, { status: 500 })
+    console.error('[presign] Supabase error:', error)
+    return NextResponse.json({ error: `DB error: ${error.message}` }, { status: 500 })
   }
 
   return NextResponse.json({ presignedUrl, projectId: project.id })
