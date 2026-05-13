@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { startTranscription } from '@/lib/assemblyai'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -12,6 +13,17 @@ export async function POST(request: Request) {
     projectId: string
     fileSize: number
     durationSeconds: number
+  }
+
+  const { data: project, error: fetchError } = await supabase
+    .from('projects')
+    .select('file_url')
+    .eq('id', projectId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (fetchError || !project?.file_url) {
+    return NextResponse.json({ error: 'Project not found' }, { status: 404 })
   }
 
   const { error } = await supabase
@@ -27,6 +39,24 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: 'Failed to confirm upload' }, { status: 500 })
+  }
+
+  const origin = new URL(request.url).origin
+  const webhookUrl = `${origin}/api/transcribe/webhook`
+
+  try {
+    const jobId = await startTranscription(project.file_url, webhookUrl)
+    await supabase
+      .from('projects')
+      .update({
+        status: 'transcribing',
+        transcript_job_id: jobId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', projectId)
+  } catch (err) {
+    console.error('Failed to start transcription:', err)
+    // Non-fatal: upload is confirmed, transcription can be retried
   }
 
   return NextResponse.json({ success: true })
