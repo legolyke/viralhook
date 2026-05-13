@@ -59,6 +59,8 @@ describe('detectViralClips', () => {
     const body = JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string)
     expect(body.model).toBe('gpt-4o-mini')
     expect(body.response_format).toEqual({ type: 'json_object' })
+    const headers = (mockFetch.mock.calls[0][1] as RequestInit).headers as Record<string, string>
+    expect(headers['Authorization']).toBe('Bearer sk-test-key')
   })
 
   it('throws on OpenAI API error', async () => {
@@ -93,11 +95,20 @@ describe('detectViralClips', () => {
       .rejects.toThrow('missing clips array')
   })
 
-  it('filters out clips with duration under 5 seconds', async () => {
+  it('returns empty array when GPT returns no clips', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: JSON.stringify({ clips: [] }) } }] }),
+    })
+    const clips = await detectViralClips(mockWords, mockHighlights, 'Hello world')
+    expect(clips).toHaveLength(0)
+  })
+
+  it('filters out clips with duration under 15 seconds', async () => {
     const response = {
       clips: [
         { title: 'Good clip', hook: 'hook', start_ms: 0, end_ms: 30000, score: 0.8 },
-        { title: 'Too short', hook: 'hook', start_ms: 0, end_ms: 3000, score: 0.9 },
+        { title: 'Too short', hook: 'hook', start_ms: 0, end_ms: 10000, score: 0.9 },
       ],
     }
     mockFetch.mockResolvedValueOnce({

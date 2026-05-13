@@ -17,7 +17,8 @@ export async function detectViralClips(
 ): Promise<DetectedClip[]> {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
 
-  const wordsCompact = words.map(w => ({ t: w.text, s: w.start, e: w.end }))
+  const truncatedText = fullText.slice(0, 8000)
+  const wordsCompact = words.slice(0, 500).map(w => ({ t: w.text, s: w.start, e: w.end }))
   const highlightsCompact = highlights.slice(0, 20).map(h => ({ text: h.text, rank: h.rank }))
 
   const systemPrompt = `You are a viral content expert. Analyze video transcripts to identify the most engaging moments for TikTok, Reels, and YouTube Shorts. Return ONLY valid JSON.`
@@ -25,7 +26,7 @@ export async function detectViralClips(
   const userPrompt = `Analyze this video transcript and identify 3-5 viral clip moments.
 
 Full text:
-${fullText}
+${truncatedText}
 
 Word timestamps (t=text, s=start_ms, e=end_ms):
 ${JSON.stringify(wordsCompact)}
@@ -62,6 +63,7 @@ Rules:
       ],
       response_format: { type: 'json_object' },
       temperature: 0.3,
+      max_tokens: 500,
     }),
   })
 
@@ -86,9 +88,11 @@ Rules:
   return parsed.clips.filter(
     (clip) =>
       typeof clip.title === 'string' &&
+      typeof clip.hook === 'string' &&
       typeof clip.start_ms === 'number' &&
       typeof clip.end_ms === 'number' &&
       typeof clip.score === 'number' &&
-      clip.end_ms - clip.start_ms >= 5000
+      clip.score >= 0 && clip.score <= 1 &&
+      clip.end_ms - clip.start_ms >= 15000
   )
 }
