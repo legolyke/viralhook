@@ -22,7 +22,7 @@ function SkeletonClipCard({ index }: { index: number }) {
           justifyContent: 'center',
         }}
       >
-        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.3)" strokeWidth={1.5}>
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.3)" strokeWidth={1.5} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125v-.375a1.125 1.125 0 0 1 1.125-1.125M21 10.5h.375a1.125 1.125 0 0 1 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M4.5 10.5H18V5.625c0-.621-.504-1.125-1.125-1.125H5.625C5.004 4.5 4.5 5.004 4.5 5.625V10.5Z" />
         </svg>
       </div>
