@@ -55,9 +55,9 @@ export default async function ProjectDetailPage({
 
   const { data: clips } = await supabase
     .from('clips')
-    .select('id, title, start_ms, end_ms, score')
+    .select('id, title, start_time, end_time, virality_score')
     .eq('project_id', project.id)
-    .order('score', { ascending: false })
+    .order('virality_score', { ascending: false })
 
   return (
     <div className="dashboard-content" style={{ maxWidth: 900 }}>

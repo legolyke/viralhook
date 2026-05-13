@@ -3,9 +3,9 @@ import ReanalyzeButton from './ReanalyzeButton'
 interface Clip {
   id: string
   title: string
-  start_ms: number
-  end_ms: number
-  score: number
+  start_time: number
+  end_time: number
+  virality_score: number
 }
 
 interface ClipsGridProps {
@@ -22,7 +22,7 @@ function formatMs(ms: number): string {
 }
 
 function ClipCard({ clip }: { clip: Clip }) {
-  const durationMs = clip.end_ms - clip.start_ms
+  const durationMs = clip.end_time - clip.start_time
   const durationSec = Math.round(durationMs / 1000)
 
   return (
@@ -46,18 +46,18 @@ function ClipCard({ clip }: { clip: Clip }) {
             flexShrink: 0,
             fontSize: 12,
             fontWeight: 700,
-            color: clip.score >= 0.8 ? '#4ADE80' : clip.score >= 0.6 ? '#FCD34D' : '#C084FC',
-            background: clip.score >= 0.8 ? 'rgba(34,197,94,0.1)' : clip.score >= 0.6 ? 'rgba(234,179,8,0.1)' : 'rgba(168,85,247,0.1)',
+            color: clip.virality_score >= 0.8 ? '#4ADE80' : clip.virality_score >= 0.6 ? '#FCD34D' : '#C084FC',
+            background: clip.virality_score >= 0.8 ? 'rgba(34,197,94,0.1)' : clip.virality_score >= 0.6 ? 'rgba(234,179,8,0.1)' : 'rgba(168,85,247,0.1)',
             padding: '2px 8px',
             borderRadius: 20,
           }}
         >
-          {Math.round(clip.score * 100)}%
+          {Math.round(clip.virality_score * 100)}%
         </span>
       </div>
 
       <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
-        <span>⏱ {formatMs(clip.start_ms)} – {formatMs(clip.end_ms)}</span>
+        <span>⏱ {formatMs(clip.start_time)} – {formatMs(clip.end_time)}</span>
         <span>({durationSec}s)</span>
       </div>
 
@@ -136,7 +136,7 @@ export default function ClipsGrid({ projectStatus, projectId, clips }: ClipsGrid
           }}
           className="clips-grid"
         >
-          {[...clips].sort((a, b) => b.score - a.score).map((clip) => (
+          {[...clips].sort((a, b) => b.virality_score - a.virality_score).map((clip) => (
             <ClipCard key={clip.id} clip={clip} />
           ))}
         </div>

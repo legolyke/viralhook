@@ -86,10 +86,11 @@ export async function POST(request: Request) {
           clips.map((clip) => ({
             project_id: project.id,
             user_id: project.user_id,
-            start_ms: Math.round(clip.start_ms),
-            end_ms: Math.round(clip.end_ms),
+            start_time: Math.round(clip.start_ms),
+            end_time: Math.round(clip.end_ms),
+            duration: Math.round(clip.end_ms - clip.start_ms),
             title: clip.title,
-            score: clip.score,
+            virality_score: clip.score,
             status: 'detected',
           }))
         )
