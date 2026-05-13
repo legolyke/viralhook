@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getTranscript, verifyWebhookSecret } from '@/lib/assemblyai'
 import { createServiceClient } from '@/lib/supabase/server'
+import { detectViralClips } from '@/lib/openai'
 
 interface WebhookPayload {
   transcript_id: string
@@ -72,6 +73,30 @@ export async function POST(request: Request) {
   if (insertError) {
     console.error('Failed to save transcript:', insertError)
     return NextResponse.json({ error: 'Failed to save transcript' }, { status: 500 })
+  }
+
+  // Detect viral clips (non-fatal — project still becomes ready if this fails)
+  try {
+    const words = transcript.words ?? []
+    const highlights = transcript.auto_highlights_result?.results ?? []
+    if (words.length > 0) {
+      const clips = await detectViralClips(words, highlights, transcript.text ?? '')
+      if (clips.length > 0) {
+        await supabase.from('clips').insert(
+          clips.map((clip) => ({
+            project_id: project.id,
+            user_id: project.user_id,
+            start_ms: Math.round(clip.start_ms),
+            end_ms: Math.round(clip.end_ms),
+            title: clip.title,
+            score: clip.score,
+            status: 'detected',
+          }))
+        )
+      }
+    }
+  } catch (err) {
+    console.error('Failed to detect viral clips:', err)
   }
 
   const { error: readyErr } = await supabase
