@@ -9,6 +9,12 @@ const SPINNER_STATUSES: Record<string, string> = {
   transcribing: 'Transcribing audio...',
 }
 
+const SPINNER_HINTS: Record<string, string> = {
+  uploading: 'Your video is being uploaded securely.',
+  processing: 'Preparing your video for AI analysis...',
+  transcribing: 'Our AI is transcribing your audio and detecting viral moments. This usually takes 1–3 minutes. The page updates automatically.',
+}
+
 export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
   if (status in SPINNER_STATUSES) {
     return (
@@ -36,9 +42,21 @@ export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
             animation: 'spin 1s linear infinite',
           }}
         />
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, margin: 0 }}>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: 0, fontWeight: 500 }}>
           {SPINNER_STATUSES[status]}
         </p>
+        {SPINNER_HINTS[status] && (
+          <p style={{
+            color: 'rgba(255,255,255,0.25)',
+            fontSize: 13,
+            margin: 0,
+            textAlign: 'center',
+            maxWidth: 380,
+            lineHeight: 1.6,
+          }}>
+            {SPINNER_HINTS[status]}
+          </p>
+        )}
       </div>
     )
   }
