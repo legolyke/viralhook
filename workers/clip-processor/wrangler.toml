@@ -1,0 +1,15 @@
+name = "viralhook-clip-processor"
+main = "index.ts"
+compatibility_date = "2025-05-13"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "viralhook"
+
+[vars]
+SUPABASE_URL = ""
+R2_PUBLIC_URL = ""
+
+# Secrets — set via: wrangler secret put <NAME>
+# SUPABASE_SERVICE_ROLE_KEY
+# WORKER_SECRET
