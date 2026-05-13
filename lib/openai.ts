@@ -62,7 +62,7 @@ Rules:
       ],
       response_format: { type: 'json_object' },
       temperature: 0.3,
-      max_tokens: 500,
+      max_tokens: 1000,
     }),
   })
 
@@ -84,7 +84,9 @@ Rules:
 
   if (!Array.isArray(parsed.clips)) throw new Error('OpenAI response missing clips array')
 
-  return parsed.clips.filter(
+  console.log('[detectViralClips] raw clips from GPT:', JSON.stringify(parsed.clips))
+
+  const filtered = parsed.clips.filter(
     (clip) =>
       typeof clip.title === 'string' &&
       typeof clip.start_ms === 'number' &&
@@ -94,4 +96,7 @@ Rules:
       clip.end_ms - clip.start_ms >= 15000 &&
       clip.end_ms - clip.start_ms <= 60000
   )
+
+  console.log('[detectViralClips] filtered count:', filtered.length)
+  return filtered
 }
