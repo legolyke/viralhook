@@ -44,7 +44,6 @@ export async function POST(request: Request) {
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin
   const webhookUrl = `${origin}/api/transcribe/webhook`
 
-  let transcriptionError: string | null = null
   try {
     const jobId = await startTranscription(project.file_url, webhookUrl)
     await supabase
@@ -57,8 +56,7 @@ export async function POST(request: Request) {
       .eq('id', projectId)
   } catch (err) {
     console.error('Failed to start transcription:', err)
-    transcriptionError = err instanceof Error ? err.message : String(err)
   }
 
-  return NextResponse.json({ success: true, transcriptionError })
+  return NextResponse.json({ success: true })
 }

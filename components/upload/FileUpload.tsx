@@ -111,13 +111,6 @@ export default function FileUpload({ userPlan = 'free', onClose, projectName = '
       })
       if (!confirmRes.ok) throw new Error('Failed to finalize upload')
 
-      const confirmData = await confirmRes.json() as { success: boolean; transcriptionError?: string | null }
-      if (confirmData.transcriptionError) {
-        setError(`[DEBUG] Transcription failed: ${confirmData.transcriptionError}`)
-        setStatus('idle')
-        return
-      }
-
       setStatus('done')
       onClose?.()
       router.push(`/projects/${projectId}`)
