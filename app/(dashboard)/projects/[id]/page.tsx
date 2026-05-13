@@ -5,6 +5,7 @@ import ProjectHeader from '@/components/project/ProjectHeader'
 import VideoPlayer from '@/components/project/VideoPlayer'
 import ClipsGrid from '@/components/project/ClipsGrid'
 import TranscriptPanel from '@/components/project/TranscriptPanel'
+import StatusPoller from '@/components/project/StatusPoller'
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return '—'
@@ -69,6 +70,7 @@ export default async function ProjectDetailPage({
         ← Back to Dashboard
       </Link>
 
+      <StatusPoller status={project.status} />
       <ProjectHeader id={project.id} title={project.title} status={project.status} />
 
       <VideoPlayer fileUrl={project.file_url ?? ''} status={project.status} />

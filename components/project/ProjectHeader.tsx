@@ -185,23 +185,40 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowDeleteModal(true)}
-          style={{
-            background: 'rgba(239,68,68,0.08)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            borderRadius: 8,
-            padding: '8px 14px',
-            color: '#F87171',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
-        >
-          Delete
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            style={{
+              background: 'rgba(168,85,247,0.08)',
+              border: '1px solid rgba(168,85,247,0.2)',
+              borderRadius: 8,
+              padding: '8px 14px',
+              color: '#C084FC',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            ✏️ Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            style={{
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.2)',
+              borderRadius: 8,
+              padding: '8px 14px',
+              color: '#F87171',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            Delete
+          </button>
+        </div>
       </div>
 
       <DeleteConfirmModal
