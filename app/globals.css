@@ -241,6 +241,9 @@ body {
   .sidebar-close-btn {
     display: flex;
   }
+  .clips-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
 @keyframes spin {
