@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import StatsCard from '@/components/dashboard/StatsCard'
 import PageHeader from '@/components/dashboard/PageHeader'
 import EmptyState from '@/components/dashboard/EmptyState'
@@ -56,8 +57,9 @@ export default async function DashboardPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {projects.map((p) => (
-              <div
+              <Link
                 key={p.id}
+                href={`/projects/${p.id}`}
                 style={{
                   background: 'rgba(255,255,255,0.02)',
                   border: '1px solid rgba(168,85,247,0.1)',
@@ -66,6 +68,8 @@ export default async function DashboardPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  textDecoration: 'none',
+                  transition: 'border-color 0.15s',
                 }}
               >
                 <div>
@@ -86,7 +90,7 @@ export default async function DashboardPage() {
                 }}>
                   {p.status}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         )}

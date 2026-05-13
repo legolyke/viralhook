@@ -1,23 +1,70 @@
-import PageHeader from '@/components/dashboard/PageHeader'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import EmptyState from '@/components/dashboard/EmptyState'
+import PageHeader from '@/components/dashboard/PageHeader'
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, title, status, created_at, source')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
   return (
-    <div style={{ padding: '28px 28px 40px' }}>
-      <PageHeader
-        title="Projects"
-        breadcrumb="Dashboard / Projects"
-        description="All your video projects and generated clips."
-      />
-      <EmptyState
-        icon={
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.6)" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
-          </svg>
-        }
-        title="Coming soon"
-        description="Your processed videos and generated clips will appear here."
-      />
+    <div className="dashboard-content" style={{ maxWidth: 1200 }}>
+      <PageHeader breadcrumb="Projects" title="Projects" description="All your video projects." />
+
+      {!projects || projects.length === 0 ? (
+        <EmptyState
+          icon={<span style={{ fontSize: 20 }}>🎬</span>}
+          title="No projects yet"
+          description="Upload your first video to get started."
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {projects.map((p) => (
+            <Link
+              key={p.id}
+              href={`/projects/${p.id}`}
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(168,85,247,0.1)',
+                borderRadius: 12,
+                padding: '16px 20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                textDecoration: 'none',
+                transition: 'border-color 0.15s',
+              }}
+            >
+              <div>
+                <p style={{ color: '#E9D5FF', fontWeight: 500, margin: 0 }}>{p.title}</p>
+                <p style={{ color: '#6B7280', fontSize: 12, margin: '4px 0 0' }}>
+                  {p.source === 'youtube' ? '📺 YouTube' : p.source === 'tiktok' ? '🎵 TikTok' : '📁 File'} ·{' '}
+                  {new Date(p.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <span style={{
+                fontSize: 12,
+                padding: '4px 10px',
+                borderRadius: 20,
+                background: p.status === 'ready' ? 'rgba(34,197,94,0.1)' :
+                             p.status === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
+                color: p.status === 'ready' ? '#4ADE80' :
+                       p.status === 'error' ? '#F87171' : '#C084FC',
+              }}>
+                {p.status}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
