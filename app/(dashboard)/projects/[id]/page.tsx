@@ -53,6 +53,12 @@ export default async function ProjectDetailPage({
     .eq('project_id', project.id)
     .maybeSingle()
 
+  const { data: clips } = await supabase
+    .from('clips')
+    .select('id, title, start_ms, end_ms, score')
+    .eq('project_id', project.id)
+    .order('score', { ascending: false })
+
   return (
     <div className="dashboard-content" style={{ maxWidth: 900 }}>
       <Link
@@ -108,7 +114,7 @@ export default async function ProjectDetailPage({
 
       <TranscriptPanel status={project.status} transcript={transcript} />
 
-      <ClipsGrid projectStatus={project.status} />
+      <ClipsGrid projectStatus={project.status} projectId={project.id} clips={clips ?? []} />
     </div>
   )
 }
