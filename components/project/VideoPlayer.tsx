@@ -76,12 +76,12 @@ export default function VideoPlayer({ fileUrl, status, projectId }: VideoPlayerP
         </p>
         {SPINNER_HINTS[status] && (
           <p style={{
-            color: 'rgba(255,255,255,0.25)',
-            fontSize: 13,
+            color: 'rgba(255,255,255,0.4)',
+            fontSize: 15,
             margin: 0,
             textAlign: 'center',
-            maxWidth: 380,
-            lineHeight: 1.6,
+            maxWidth: 420,
+            lineHeight: 1.7,
           }}>
             {SPINNER_HINTS[status]}
           </p>
