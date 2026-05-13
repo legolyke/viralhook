@@ -99,6 +99,7 @@ describe('POST /api/clips/[id]/export', () => {
     expect(workerBody.crop_x).toBe(0.5)
     expect(workerBody.start_time).toBe(5000)
     expect(workerBody.end_time).toBe(35000)
+    expect(workerBody.source_key).toBe('uploads/proj-1/video.mp4')
   })
 
   it('returns 400 when crop_x is missing', async () => {
