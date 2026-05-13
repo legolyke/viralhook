@@ -3,8 +3,14 @@ interface VideoPlayerProps {
   status: string
 }
 
+const SPINNER_STATUSES: Record<string, string> = {
+  uploading: 'Uploading video...',
+  processing: 'Processing video...',
+  transcribing: 'Transcribing audio...',
+}
+
 export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
-  if (status === 'uploading' || status === 'processing') {
+  if (status in SPINNER_STATUSES) {
     return (
       <div
         style={{
@@ -31,7 +37,7 @@ export default function VideoPlayer({ fileUrl, status }: VideoPlayerProps) {
           }}
         />
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, margin: 0 }}>
-          {status === 'uploading' ? 'Uploading video...' : 'Processing video...'}
+          {SPINNER_STATUSES[status]}
         </p>
       </div>
     )
