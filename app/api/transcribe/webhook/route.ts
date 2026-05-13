@@ -21,13 +21,17 @@ export async function POST(request: Request) {
   }
 
   const { transcript_id, status } = payload
+  if (typeof transcript_id !== 'string' || !transcript_id.trim()) {
+    return NextResponse.json({ error: 'Invalid transcript_id' }, { status: 400 })
+  }
   const supabase = createServiceClient()
 
   if (status === 'error') {
-    await supabase
+    const { error: updateErr } = await supabase
       .from('projects')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('transcript_job_id', transcript_id)
+    if (updateErr) console.error('Failed to set project error status:', updateErr)
     return NextResponse.json({ ok: true })
   }
 
@@ -70,10 +74,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to save transcript' }, { status: 500 })
   }
 
-  await supabase
+  const { error: readyErr } = await supabase
     .from('projects')
     .update({ status: 'ready', updated_at: new Date().toISOString() })
     .eq('id', project.id)
+
+  if (readyErr) {
+    console.error('Failed to set project ready status:', readyErr)
+    return NextResponse.json({ error: 'Failed to update project status' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }
