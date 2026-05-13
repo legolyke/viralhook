@@ -25,7 +25,6 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Pause video at clip start when in crop state
@@ -53,14 +52,22 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   useEffect(() => {
     if (state !== 'processing') return
 
+    let cancelled = false
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    let currentController: AbortController | null = null
+
     const poll = async () => {
+      if (cancelled) return
+      currentController = new AbortController()
       try {
-        const res = await fetch(`/api/clips/${clipId}/status`)
+        const res = await fetch(`/api/clips/${clipId}/status`, { signal: currentController.signal })
+        if (cancelled) return
         if (!res.ok) {
-          pollTimeoutRef.current = setTimeout(poll, 2000)
+          if (!cancelled) timeoutId = setTimeout(poll, 2000)
           return
         }
         const data = await res.json() as { status: string; file_url: string | null }
+        if (cancelled) return
         if (data.status === 'ready') {
           if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
           setProgress(100)
@@ -71,15 +78,19 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
           setErrorMsg('Processing failed on the server.')
           setState('error')
         } else {
-          pollTimeoutRef.current = setTimeout(poll, 2000)
+          if (!cancelled) timeoutId = setTimeout(poll, 2000)
         }
       } catch {
-        pollTimeoutRef.current = setTimeout(poll, 2000)
+        if (!cancelled) timeoutId = setTimeout(poll, 2000)
       }
     }
 
-    pollTimeoutRef.current = setTimeout(poll, 2000)
-    return () => { if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current) }
+    timeoutId = setTimeout(poll, 2000)
+    return () => {
+      cancelled = true
+      currentController?.abort()
+      if (timeoutId) clearTimeout(timeoutId)
+    }
   }, [state, clipId])
 
   // Drag: mousemove + mouseup on window
