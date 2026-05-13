@@ -1,3 +1,5 @@
+import { timingSafeEqual } from 'crypto'
+
 const ASSEMBLYAI_BASE = 'https://api.assemblyai.com/v2'
 
 export interface AssemblyAIWord {
@@ -26,6 +28,8 @@ export async function startTranscription(
   audioUrl: string,
   webhookUrl: string
 ): Promise<string> {
+  if (!process.env.ASSEMBLYAI_API_KEY) throw new Error('ASSEMBLYAI_API_KEY is not set')
+  if (!process.env.ASSEMBLYAI_WEBHOOK_SECRET) throw new Error('ASSEMBLYAI_WEBHOOK_SECRET is not set')
   const res = await fetch(`${ASSEMBLYAI_BASE}/transcript`, {
     method: 'POST',
     headers: {
@@ -61,5 +65,8 @@ export async function getTranscript(transcriptId: string): Promise<AssemblyAITra
 
 export function verifyWebhookSecret(provided: string | null, expected: string): boolean {
   if (!provided || !expected) return false
-  return provided === expected
+  const a = Buffer.from(provided)
+  const b = Buffer.from(expected)
+  if (a.length !== b.length) return false
+  return timingSafeEqual(a, b)
 }
