@@ -38,7 +38,7 @@ export default async function ProjectDetailPage({
 
   const { data: project } = await supabase
     .from('projects')
-    .select('*')
+    .select('id, title, status, file_url, source, duration_seconds, file_size')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()

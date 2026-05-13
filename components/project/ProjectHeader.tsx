@@ -47,6 +47,7 @@ export default function ProjectHeader({ id, title, status }: ProjectHeaderProps)
         const data = await res.json()
         setCurrentTitle(data.title)
         setEditValue(data.title)
+        router.refresh()
       } else {
         setError('Failed to save title. Please try again.')
         setEditValue(currentTitle)
