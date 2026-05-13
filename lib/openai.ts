@@ -17,34 +17,40 @@ export async function detectViralClips(
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
 
   const truncatedText = fullText.slice(0, 8000)
-  const wordsCompact = words.slice(0, 500).map(w => ({ t: w.text, s: w.start, e: w.end }))
+  const wordsCompact = words.slice(0, 500).map(w => ({ word: w.text, start_ms: w.start, end_ms: w.end }))
   const highlightsCompact = highlights.slice(0, 20).map(h => ({ text: h.text, rank: h.rank }))
+
+  const videoDurationMs = words.length > 0 ? words[words.length - 1].end : 0
 
   const systemPrompt = `You are a viral content expert. Analyze video transcripts to identify the most engaging moments for TikTok, Reels, and YouTube Shorts. Return ONLY valid JSON.`
 
-  const userPrompt = `Analyze this video transcript and identify 3-5 viral clip moments.
+  const userPrompt = `Analyze this video transcript and identify viral clip moments.
 
-Full text:
+Full transcript text:
 ${truncatedText}
 
-Word timestamps (t=text, s=start_ms, e=end_ms):
+Word-level timestamps (each word has start_ms and end_ms in milliseconds):
 ${JSON.stringify(wordsCompact)}
 
-Viral phrases detected (hints, ranked 0-1):
+Total video duration: ${videoDurationMs}ms
+
+Viral phrases (hints):
 ${JSON.stringify(highlightsCompact)}
 
 Return a JSON object: {"clips": [...]}
 
 Each clip must have:
 - "title": catchy title, max 60 chars
-- "start_ms": clip start in milliseconds (use a real "s" value from word timestamps)
-- "end_ms": clip end in milliseconds (use a real "e" value from word timestamps)
+- "start_ms": start of the clip in milliseconds — must be the start_ms of the FIRST word in the clip segment
+- "end_ms": end of the clip in milliseconds — must be the end_ms of the LAST word in the clip segment
 - "score": virality score 0.0-1.0
 
-Rules:
-- 3-5 clips total
-- Each clip duration: 15000-60000ms
+IMPORTANT rules:
+- start_ms MUST be less than end_ms
+- end_ms - start_ms MUST be between 15000ms and 60000ms (15 to 60 seconds)
+- Each clip spans a continuous segment of many words, NOT a single word
 - No overlapping clips
+- Return 1-5 clips (fewer is fine for short videos)
 - Prioritize: emotional moments, humor, surprise, quotable phrases`
 
   const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
@@ -86,17 +92,26 @@ Rules:
 
   console.log('[detectViralClips] raw clips from GPT:', JSON.stringify(parsed.clips))
 
-  const filtered = parsed.clips.filter(
-    (clip) =>
-      typeof clip.title === 'string' &&
-      typeof clip.start_ms === 'number' &&
-      typeof clip.end_ms === 'number' &&
-      typeof clip.score === 'number' &&
-      clip.score >= 0 && clip.score <= 1 &&
-      clip.end_ms - clip.start_ms >= 15000 &&
-      clip.end_ms - clip.start_ms <= 60000
-  )
+  const normalized = parsed.clips
+    .filter(
+      (clip) =>
+        typeof clip.title === 'string' &&
+        typeof clip.start_ms === 'number' &&
+        typeof clip.end_ms === 'number' &&
+        typeof clip.score === 'number' &&
+        clip.score >= 0 && clip.score <= 1
+    )
+    .map((clip) => ({
+      ...clip,
+      start_ms: Math.min(clip.start_ms, clip.end_ms),
+      end_ms: Math.max(clip.start_ms, clip.end_ms),
+    }))
+    .filter(
+      (clip) =>
+        clip.end_ms - clip.start_ms >= 15000 &&
+        clip.end_ms - clip.start_ms <= 60000
+    )
 
-  console.log('[detectViralClips] filtered count:', filtered.length)
-  return filtered
+  console.log('[detectViralClips] filtered count:', normalized.length)
+  return normalized
 }
