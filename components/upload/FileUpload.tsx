@@ -52,6 +52,7 @@ export default function FileUpload({ userPlan = 'free', onClose }: FileUploadPro
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<number | null>(null)
   const [status, setStatus] = useState<UploadStatus>('idle')
+  const [projectName, setProjectName] = useState('')
 
   const handleFile = useCallback(async (file: File) => {
     setError(null)
@@ -83,7 +84,7 @@ export default function FileUpload({ userPlan = 'free', onClose }: FileUploadPro
           fileName: file.name,
           fileType: file.type || 'video/mp4',
           durationSeconds,
-          title: file.name.replace(/\.[^/.]+$/, ''),
+          title: projectName.trim() || file.name.replace(/\.[^/.]+$/, ''),
         }),
       })
       if (!presignRes.ok) {
@@ -135,6 +136,31 @@ export default function FileUpload({ userPlan = 'free', onClose }: FileUploadPro
 
   return (
     <div>
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6 }}>
+          Project name <span style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span>
+        </label>
+        <input
+          type="text"
+          placeholder="My awesome video"
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          disabled={status !== 'idle'}
+          style={{
+            width: '100%',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 8,
+            padding: '8px 12px',
+            color: '#E9D5FF',
+            fontSize: 14,
+            outline: 'none',
+            boxSizing: 'border-box',
+            opacity: status !== 'idle' ? 0.5 : 1,
+          }}
+        />
+      </div>
+
       <div
         onDrop={onDrop}
         onDragOver={onDragOver}
