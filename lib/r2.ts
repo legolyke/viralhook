@@ -1,3 +1,4 @@
+// lib/r2.ts
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
@@ -31,7 +32,11 @@ export function getPublicUrl(key: string): string {
 }
 
 export function getR2KeyFromUrl(fileUrl: string): string {
-  return fileUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
+  const prefix = `${process.env.R2_PUBLIC_URL}/`
+  if (!fileUrl.startsWith(prefix)) {
+    throw new Error(`URL does not belong to this R2 bucket: ${fileUrl}`)
+  }
+  return fileUrl.slice(prefix.length)
 }
 
 export async function deleteObject(key: string): Promise<void> {
