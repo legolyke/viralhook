@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import UploadModal from '@/components/upload/UploadModal'
 
 interface SidebarProps {
   email: string
@@ -67,6 +68,7 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [isUploadOpen, setIsUploadOpen] = useState(false)
   const supabase = useMemo(() => createClient(), [])
 
   const initial = email ? email[0].toUpperCase() : 'U'
@@ -114,12 +116,15 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
             </Link>
           ))}
 
-          <Link href="/dashboard" onClick={() => setOpen(false)} className="dashboard-nav-new">
+          <button
+            onClick={() => { setOpen(false); setIsUploadOpen(true) }}
+            className="dashboard-nav-new"
+          >
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             New Project
-          </Link>
+          </button>
 
           <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '6px 0' }} />
 
@@ -168,6 +173,8 @@ export default function Sidebar({ email, plan = 'FREE' }: SidebarProps) {
           </div>
         </div>
       </aside>
+
+      <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
     </>
   )
 }
