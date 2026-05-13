@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 
+const mockSend = vi.hoisted(() => vi.fn())
+
 // Mock env vars before importing r2
 vi.stubEnv('CLOUDFLARE_ACCOUNT_ID', 'test-account-id')
 vi.stubEnv('R2_ACCESS_KEY_ID', 'test-key')
@@ -9,7 +11,6 @@ vi.stubEnv('R2_PUBLIC_URL', 'https://pub-abc123.r2.dev')
 
 // Mock the S3Client to avoid real AWS calls
 vi.mock('@aws-sdk/client-s3', () => {
-  const mockSend = vi.fn()
   class MockS3Client {
     send = mockSend
     constructor(_config: unknown) {}
@@ -54,5 +55,7 @@ describe('deleteObject', () => {
       Bucket: 'test-bucket',
       Key: 'some/key.mp4',
     })
+    expect(mockSend).toHaveBeenCalledTimes(1)
+    expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({}))
   })
 })
