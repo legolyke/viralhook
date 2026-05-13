@@ -1,44 +1,88 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import UploadZone from '@/components/dashboard/UploadZone'
 import StatsCard from '@/components/dashboard/StatsCard'
+import PageHeader from '@/components/dashboard/PageHeader'
 import EmptyState from '@/components/dashboard/EmptyState'
+import DashboardUploadTrigger from '@/components/dashboard/DashboardUploadTrigger'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, title, status, created_at, source')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  const firstName = user.email?.split('@')[0] ?? 'there'
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div style={{ padding: '28px 28px 40px', maxWidth: 1100, display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>{greeting}! 👋</h1>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Ready to create something viral today?</p>
+    <div style={{ padding: '32px 40px', maxWidth: 1200 }}>
+      <PageHeader
+        title={`${greeting}, ${firstName} 👋`}
+        description="Create viral shorts from your long-form content."
+      />
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, margin: '32px 0' }}>
+        <StatsCard label="Exports used" value={0} limit={3} unit="exports" />
+        <StatsCard label="Video processed" value={0} limit={30} unit="min" />
+        <StatsCard label="Projects" value={projects?.length ?? 0} />
+        <StatsCard label="Plan" value="FREE" />
       </div>
 
-      <UploadZone />
+      <DashboardUploadTrigger />
 
-      <div className="dashboard-stats-grid">
-        <StatsCard label="Exports left" value={3} limit={3} />
-        <StatsCard label="Minutes left" value={30} limit={30} unit="min" />
-        <StatsCard label="Clips created" value={0} />
-        <StatsCard label="Videos uploaded" value={0} />
-      </div>
-
-      <div>
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)', margin: '0 0 10px' }}>Recent projects</p>
-        <EmptyState
-          icon={
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.6)" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
-            </svg>
-          }
-          title="No projects yet"
-          description="Upload your first video above to get started"
-        />
+      <div style={{ marginTop: 40 }}>
+        <h3 style={{ color: '#E9D5FF', fontWeight: 600, fontSize: 16, marginBottom: 16 }}>
+          Recent Projects
+        </h3>
+        {!projects || projects.length === 0 ? (
+          <EmptyState
+            title="No projects yet"
+            description="Upload your first video to get started."
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {projects.map((p) => (
+              <div
+                key={p.id}
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(168,85,247,0.1)',
+                  borderRadius: 12,
+                  padding: '16px 20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <p style={{ color: '#E9D5FF', fontWeight: 500, margin: 0 }}>{p.title}</p>
+                  <p style={{ color: '#6B7280', fontSize: 12, margin: '4px 0 0' }}>
+                    {p.source === 'youtube' ? '📺 YouTube' : p.source === 'tiktok' ? '🎵 TikTok' : '📁 File'} ·{' '}
+                    {new Date(p.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <span style={{
+                  fontSize: 12,
+                  padding: '4px 10px',
+                  borderRadius: 20,
+                  background: p.status === 'ready' ? 'rgba(34,197,94,0.1)' :
+                               p.status === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
+                  color: p.status === 'ready' ? '#4ADE80' :
+                         p.status === 'error' ? '#F87171' : '#C084FC',
+                }}>
+                  {p.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
