@@ -1,5 +1,4 @@
-// lib/r2.ts
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 const r2 = new S3Client({
@@ -29,4 +28,16 @@ export async function generatePresignedUploadUrl(
 
 export function getPublicUrl(key: string): string {
   return `${process.env.R2_PUBLIC_URL}/${key}`
+}
+
+export function getR2KeyFromUrl(fileUrl: string): string {
+  return fileUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '')
+}
+
+export async function deleteObject(key: string): Promise<void> {
+  const command = new DeleteObjectCommand({
+    Bucket: process.env.R2_BUCKET_NAME!,
+    Key: key,
+  })
+  await r2.send(command)
 }
