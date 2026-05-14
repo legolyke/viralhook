@@ -539,7 +539,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Size</span>
                     <select value={subtitleFontSize} onChange={e => setSubtitleFontSize(Number(e.target.value))} style={SELECT_STYLE}>
-                      {Array.from({ length: 35 }, (_, i) => 4 + i * 2).map(s => (
+                      {Array.from({ length: 74 }, (_, i) => 4 + i * 2).map(s => (
                         <option key={s} value={s}>{s}px</option>
                       ))}
                     </select>
