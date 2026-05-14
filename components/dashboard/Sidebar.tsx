@@ -187,9 +187,9 @@ export default function Sidebar({ email, fullName, plan = 'FREE' }: SidebarProps
       <aside className={`dashboard-sidebar${open ? ' open' : ''}`}>
         {/* Logo */}
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
+          <Link href="/" style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', textDecoration: 'none' }}>
             Viral<span style={{ background: 'linear-gradient(90deg,#7C3AED,#C026D3)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Hook</span>
-          </span>
+          </Link>
           <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close menu">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
