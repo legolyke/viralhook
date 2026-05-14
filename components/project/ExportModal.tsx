@@ -28,6 +28,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [videoNaturalWidth, setVideoNaturalWidth] = useState(1920)
   const [videoNaturalHeight, setVideoNaturalHeight] = useState(1080)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -189,6 +190,13 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
     }
   }
 
+  const toggleMute = () => {
+    if (!videoRef.current) return
+    const next = !isMuted
+    videoRef.current.muted = next
+    setIsMuted(next)
+  }
+
   const aspectRatio = videoNaturalWidth / videoNaturalHeight
   const cropBoxWidthRatio = (9 / 16) / aspectRatio
   const canDrag = cropBoxWidthRatio < 0.99
@@ -254,7 +262,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               <video
                 ref={videoRef}
                 src={projectFileUrl}
-                muted
+                muted={isMuted}
                 playsInline
                 preload="metadata"
                 onLoadedMetadata={(e) => {
@@ -327,27 +335,41 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                 }}
               />
 
-              {/* Play / Pause button */}
-              <button
-                type="button"
-                onClick={togglePlay}
-                style={{
-                  position: 'absolute',
-                  bottom: 12,
-                  left: 12,
-                  zIndex: 10,
-                  background: 'rgba(0,0,0,0.72)',
-                  border: '1px solid rgba(255,255,255,0.18)',
-                  borderRadius: 8,
-                  color: '#fff',
-                  cursor: 'pointer',
-                  padding: '5px 12px',
-                  fontSize: 16,
-                  lineHeight: 1,
-                }}
-              >
-                {isPlaying ? '⏸' : '▶'}
-              </button>
+              {/* Play / Pause + Mute buttons */}
+              <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 10, display: 'flex', gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  style={{
+                    background: 'rgba(0,0,0,0.72)',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    borderRadius: 8,
+                    color: '#fff',
+                    cursor: 'pointer',
+                    padding: '5px 12px',
+                    fontSize: 16,
+                    lineHeight: 1,
+                  }}
+                >
+                  {isPlaying ? '⏸' : '▶'}
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  style={{
+                    background: 'rgba(0,0,0,0.72)',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    borderRadius: 8,
+                    color: '#fff',
+                    cursor: 'pointer',
+                    padding: '5px 12px',
+                    fontSize: 16,
+                    lineHeight: 1,
+                  }}
+                >
+                  {isMuted ? '🔇' : '🔊'}
+                </button>
+              </div>
 
               {/* Clip time label */}
               <div
