@@ -182,7 +182,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
     borderRadius: 16,
     padding: 24,
     width: '100%',
-    maxWidth: 560,
+    maxWidth: 640,
     display: 'flex',
     flexDirection: 'column',
     gap: 20,
@@ -218,7 +218,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               style={{
                 position: 'relative',
                 width: '100%',
-                height: 240,
+                height: 360,
                 borderRadius: 8,
                 overflow: 'hidden',
                 background: '#000',
@@ -256,13 +256,14 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               {/* Crop box (draggable) */}
               <div
                 onMouseDown={(e) => {
+                  if (cropBoxWidthRatio >= 0.99) return
                   e.preventDefault()
                   setIsDragging(true)
                   setDragStartX(e.clientX)
                   setDragStartCropX(cropX)
                 }}
                 onTouchStart={(e) => {
-                  if (!e.touches[0]) return
+                  if (cropBoxWidthRatio >= 0.99 || !e.touches[0]) return
                   setIsDragging(true)
                   setDragStartX(e.touches[0].clientX)
                   setDragStartCropX(cropX)
@@ -275,7 +276,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   height: '100%',
                   border: '2px solid #A855F7',
                   boxSizing: 'border-box',
-                  cursor: 'ew-resize',
+                  cursor: cropBoxWidthRatio < 0.99 ? 'ew-resize' : 'default',
                 }}
               />
 
