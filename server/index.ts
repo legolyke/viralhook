@@ -2,6 +2,7 @@ import express from 'express'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
+import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
@@ -12,6 +13,12 @@ if (resolvedFfmpegPath) ffmpeg.setFfmpegPath(resolvedFfmpegPath)
 
 const app = express()
 app.use(express.json({ limit: '1mb' }))
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
+)
 
 const r2 = new S3Client({
   region: 'auto',
@@ -53,20 +60,11 @@ async function uploadToR2(localPath: string, key: string): Promise<void> {
 }
 
 async function patchClip(clipId: string, fields: Record<string, unknown>): Promise<void> {
-  const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/clips?id=eq.${clipId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() }),
-  })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Supabase PATCH failed: ${res.status} ${text}`)
-  }
+  const { error } = await supabase
+    .from('clips')
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq('id', clipId)
+  if (error) throw new Error(`Supabase PATCH failed: ${error.message}`)
 }
 
 function buildCropFilter(cropX: number): string {
