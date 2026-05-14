@@ -59,12 +59,22 @@ async function uploadToR2(localPath: string, key: string): Promise<void> {
 }
 
 async function patchClip(clipId: string, fields: Record<string, unknown>): Promise<void> {
-  const { error, count } = await supabase
-    .from('clips')
-    .update({ ...fields, updated_at: new Date().toISOString() })
-    .eq('id', clipId)
-  if (error) throw new Error(`Supabase PATCH failed: ${error.message}`)
-  console.log(`[patchClip] rows updated: ${count ?? 'unknown'} for clip ${clipId}`)
+  const url = `${process.env.SUPABASE_URL}/rest/v1/clips?id=eq.${clipId}`
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() }),
+  })
+  const text = await res.text()
+  if (!res.ok) throw new Error(`Supabase PATCH ${res.status}: ${text}`)
+  const rows = JSON.parse(text)
+  console.log(`[patchClip] updated ${Array.isArray(rows) ? rows.length : '?'} rows for clip ${clipId}`)
 }
 
 function buildCropFilter(cropX: number): string {
