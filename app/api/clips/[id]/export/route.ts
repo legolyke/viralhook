@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getR2KeyFromUrl } from '@/lib/r2'
+
+export const maxDuration = 55
 
 export async function POST(
   request: Request,
@@ -24,19 +26,18 @@ export async function POST(
 
   const { id } = await params
 
-  const { data: clip } = await supabase
+  const service = createServiceClient()
+
+  const { data: clip } = await service
     .from('clips')
-    .select('id, project_id, user_id, start_time, end_time, status, updated_at')
+    .select('id, project_id, user_id, start_time, end_time')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
   if (!clip) return NextResponse.json({ error: 'Clip not found' }, { status: 404 })
 
-  // Allow retry always — Railway handles idempotency
-
-
-  const { data: project } = await supabase
+  const { data: project } = await service
     .from('projects')
     .select('file_url')
     .eq('id', clip.project_id)
@@ -46,7 +47,7 @@ export async function POST(
     return NextResponse.json({ error: 'Source video not found' }, { status: 404 })
   }
 
-  await supabase
+  await service
     .from('clips')
     .update({ status: 'processing', updated_at: new Date().toISOString() })
     .eq('id', id)
@@ -60,7 +61,7 @@ export async function POST(
 
   if (!process.env.WORKER_URL || !process.env.WORKER_SECRET) {
     console.error('[export] WORKER_URL or WORKER_SECRET not configured')
-    await supabase
+    await service
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -85,7 +86,7 @@ export async function POST(
     })
   } catch (err) {
     console.error('[export] Worker unreachable', err)
-    await supabase
+    await service
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -93,13 +94,21 @@ export async function POST(
   }
 
   if (!workerRes.ok) {
-    console.error('[export] Worker returned', workerRes.status, 'for clip', id)
-    await supabase
+    const errBody = await workerRes.text().catch(() => '')
+    console.error('[export] Worker returned', workerRes.status, errBody)
+    await service
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('id', id)
-    return NextResponse.json({ error: 'Worker failed to start' }, { status: 500 })
+    return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true })
+  const workerData = await workerRes.json() as { ok: boolean; file_url?: string }
+
+  await service
+    .from('clips')
+    .update({ status: 'ready', file_url: workerData.file_url ?? null, updated_at: new Date().toISOString() })
+    .eq('id', id)
+
+  return NextResponse.json({ ok: true, file_url: workerData.file_url ?? null })
 }

@@ -33,7 +33,6 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const pollStartRef = useRef<number>(0)
 
   // Seek to clip start when entering crop state
   useEffect(() => {
@@ -58,59 +57,6 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
     return () => { if (progressIntervalRef.current) clearInterval(progressIntervalRef.current) }
   }, [state, startTime, endTime])
 
-  // Poll for clip status — with 5-minute timeout
-  useEffect(() => {
-    if (state !== 'processing') return
-    pollStartRef.current = Date.now()
-
-    let cancelled = false
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
-    let currentController: AbortController | null = null
-
-    const poll = async () => {
-      if (cancelled) return
-
-      if (Date.now() - pollStartRef.current > 5 * 60 * 1000) {
-        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
-        setErrorMsg('Processing timed out. The server took too long to respond.')
-        setState('error')
-        return
-      }
-
-      currentController = new AbortController()
-      try {
-        const res = await fetch(`/api/clips/${clipId}/status`, { signal: currentController.signal, cache: 'no-store' })
-        if (cancelled) return
-        if (!res.ok) {
-          if (!cancelled) timeoutId = setTimeout(poll, 2000)
-          return
-        }
-        const data = await res.json() as { status: string; file_url: string | null }
-        if (cancelled) return
-        if (data.status === 'ready') {
-          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
-          setProgress(100)
-          setFileUrl(data.file_url)
-          setState('done')
-        } else if (data.status === 'error') {
-          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
-          setErrorMsg('Processing failed on the server.')
-          setState('error')
-        } else {
-          if (!cancelled) timeoutId = setTimeout(poll, 2000)
-        }
-      } catch {
-        if (!cancelled) timeoutId = setTimeout(poll, 2000)
-      }
-    }
-
-    timeoutId = setTimeout(poll, 2000)
-    return () => {
-      cancelled = true
-      currentController?.abort()
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [state, clipId])
 
   // Drag: mousemove + mouseup on window
   useEffect(() => {
@@ -153,20 +99,26 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   }, [isDragging, dragStartX, dragStartCropX, videoNaturalWidth, videoNaturalHeight])
 
   const handleGenerate = async () => {
+    setState('processing')
     try {
       const res = await fetch(`/api/clips/${clipId}/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ crop_x: cropX }),
       })
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        setErrorMsg(data.error ?? 'Failed to start generation.')
+        setErrorMsg(data.error ?? 'Processing failed.')
         setState('error')
         return
       }
-      setState('processing')
+      const data = await res.json() as { ok: boolean; file_url?: string | null }
+      setProgress(100)
+      setFileUrl(data.file_url ?? null)
+      setState('done')
     } catch (err) {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
       setErrorMsg(err instanceof Error ? err.message : 'Network error')
       setState('error')
     }

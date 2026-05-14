@@ -38,7 +38,6 @@ async function downloadFromR2(key: string, destPath: string): Promise<void> {
   }))
   if (!res.Body) throw new Error('Empty body from R2')
 
-  // Use async iteration — more reliable than pipeline on all Node versions
   const chunks: Uint8Array[] = []
   for await (const chunk of res.Body as AsyncIterable<Uint8Array>) {
     chunks.push(chunk)
@@ -77,7 +76,7 @@ async function processClip(
   startMs: number,
   endMs: number,
   cropX: number,
-): Promise<void> {
+): Promise<string> {
   const inputPath = path.join(os.tmpdir(), `vh_in_${clipId}.mp4`)
   const outputPath = path.join(os.tmpdir(), `vh_out_${clipId}.mp4`)
 
@@ -97,7 +96,6 @@ async function processClip(
         .outputOption('-movflags', 'faststart')
         .save(outputPath)
         .on('start', (cmd) => console.log(`[ffmpeg] cmd: ${cmd}`))
-        .on('progress', (p) => console.log(`[ffmpeg] progress: ${p.percent?.toFixed(1)}%`))
         .on('end', () => resolve())
         .on('error', (err: Error) => reject(new Error(`FFmpeg error: ${err.message}`)))
     })
@@ -107,16 +105,15 @@ async function processClip(
     await uploadToR2(outputPath, outputKey)
 
     const fileUrl = `${process.env.R2_PUBLIC_URL}/${outputKey}`
-    await patchClip(clipId, { file_url: fileUrl, status: 'ready' })
-    console.log(`[process] clip ${clipId} → ready ✓`)
-  } catch (err) {
-    console.error(`[process] FAILED clip ${clipId}:`, err)
+
     try {
-      await patchClip(clipId, { status: 'error' })
-      console.log(`[process] clip ${clipId} → error (patched)`)
-    } catch (e2) {
-      console.error(`[process] failed to patch error status:`, e2)
+      await patchClip(clipId, { file_url: fileUrl, status: 'ready' })
+      console.log(`[process] clip ${clipId} → ready ✓`)
+    } catch (patchErr) {
+      console.error(`[process] patchClip failed (non-fatal):`, patchErr)
     }
+
+    return fileUrl
   } finally {
     for (const p of [inputPath, outputPath]) {
       try { if (fs.existsSync(p)) fs.unlinkSync(p) } catch {}
@@ -128,7 +125,7 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, ffmpeg: resolvedFfmpegPath ?? 'missing' })
 })
 
-app.post('/process', (req, res) => {
+app.post('/process', async (req, res) => {
   if (req.headers.authorization !== `Bearer ${process.env.WORKER_SECRET}`) {
     res.status(401).json({ error: 'Unauthorized' })
     return
@@ -153,10 +150,17 @@ app.post('/process', (req, res) => {
   }
 
   console.log(`[request] /process clip=${clip_id} key=${source_key}`)
-  res.json({ ok: true })
-  processClip(clip_id, source_key, start_time, end_time, crop_x).catch(
-    (err) => console.error('[unhandled]', err)
-  )
+
+  try {
+    const fileUrl = await processClip(clip_id, source_key, start_time, end_time, crop_x)
+    res.json({ ok: true, file_url: fileUrl })
+  } catch (err) {
+    console.error(`[process] FAILED clip ${clip_id}:`, err)
+    try {
+      await patchClip(clip_id, { status: 'error' })
+    } catch {}
+    res.status(500).json({ ok: false, error: err instanceof Error ? err.message : 'Processing failed' })
+  }
 })
 
 const PORT = process.env.PORT ?? 3001
