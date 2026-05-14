@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getR2KeyFromUrl } from '@/lib/r2'
-import { buildSubtitleBlocks, blocksToAss } from '@/lib/subtitles'
+import { buildSubtitleBlocks } from '@/lib/subtitles'
 import type { AssemblyAIWord } from '@/lib/assemblyai'
 import type { SubtitleStyle } from '@/lib/subtitles'
 
@@ -63,8 +63,14 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid source video URL' }, { status: 500 })
   }
 
-  // Build subtitle ASS content if requested
-  let subtitleAss: string | null = null
+  // Build subtitle data if requested (sent as JSON blocks, not ASS)
+  let subtitleData: {
+    blocks: { start: number; end: number; text: string }[]
+    font_size: number
+    color: string
+    position: string
+  } | null = null
+
   if (subtitleEnabled && subtitleStyleRaw) {
     const { data: transcript } = await supabase
       .from('transcripts')
@@ -74,13 +80,14 @@ export async function POST(
 
     const words = (transcript?.content as { words?: AssemblyAIWord[] } | null)?.words ?? []
     const blocks = buildSubtitleBlocks(words, clip.start_time, clip.end_time)
+
     if (blocks.length > 0) {
-      subtitleAss = blocksToAss(blocks, {
-        position: subtitleStyleRaw.position ?? 'bottom',
+      subtitleData = {
+        blocks: blocks.map(b => ({ start: b.start, end: b.end, text: b.text })),
         font_size: typeof subtitleStyleRaw.font_size === 'number' ? subtitleStyleRaw.font_size : 40,
         color: subtitleStyleRaw.color ?? '#FFFFFF',
-        font: subtitleStyleRaw.font ?? 'arial',
-      })
+        position: subtitleStyleRaw.position ?? 'bottom',
+      }
     }
   }
 
@@ -107,7 +114,7 @@ export async function POST(
         start_time: clip.start_time,
         end_time: clip.end_time,
         crop_x: cropX,
-        subtitle_ass: subtitleAss,
+        subtitle_data: subtitleData,
       }),
     })
   } catch (err) {
