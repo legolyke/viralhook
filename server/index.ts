@@ -112,7 +112,7 @@ function buildVideoFilter(
         `:fontsize=${subtitleData.font_size}` +
         `:fontcolor=white` +
         `:borderw=3:bordercolor=black` +
-        `:enable='between(t\\,${startS}\\,${endS})'`
+        `:enable='between(t,${startS},${endS})'`
       )
     }).filter(Boolean) as string[]
 
@@ -165,10 +165,7 @@ async function processClip(
         .save(outputPath)
         .on('start', (cmd) => console.log(`[ffmpeg] cmd: ${cmd.slice(0, 200)}`))
         .on('end', () => resolve())
-        .on('error', (err: Error, _stdout: string, stderr: string) => {
-          console.error(`[ffmpeg] stderr: ${stderr?.slice(-800) ?? 'none'}`)
-          reject(new Error(`FFmpeg error: ${err.message}`))
-        })
+        .on('error', (err: Error) => reject(new Error(`FFmpeg error: ${err.message}`)))
     })
     console.log(`[process] ffmpeg done for ${clipId}`)
 
