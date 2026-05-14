@@ -59,22 +59,25 @@ async function uploadToR2(localPath: string, key: string): Promise<void> {
 }
 
 async function patchClip(clipId: string, fields: Record<string, unknown>): Promise<void> {
-  const url = `${process.env.SUPABASE_URL}/rest/v1/clips?id=eq.${clipId}`
+  const url = `${process.env.SUPABASE_URL}/rest/v1/rpc/update_clip_status`
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const body = {
+    p_clip_id: clipId,
+    p_status: fields.status,
+    p_file_url: (fields.file_url as string | undefined) ?? null,
+  }
   const res = await fetch(url, {
-    method: 'PATCH',
+    method: 'POST',
     headers: {
       apikey: key,
       Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json',
-      Prefer: 'return=representation',
     },
-    body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() }),
+    body: JSON.stringify(body),
   })
   const text = await res.text()
-  if (!res.ok) throw new Error(`Supabase PATCH ${res.status}: ${text}`)
-  const rows = JSON.parse(text)
-  console.log(`[patchClip] updated ${Array.isArray(rows) ? rows.length : '?'} rows for clip ${clipId}`)
+  if (!res.ok) throw new Error(`Supabase RPC failed ${res.status}: ${text}`)
+  console.log(`[patchClip] RPC ok → status=${fields.status} clip=${clipId}`)
 }
 
 function buildCropFilter(cropX: number): string {
