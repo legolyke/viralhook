@@ -59,11 +59,12 @@ async function uploadToR2(localPath: string, key: string): Promise<void> {
 }
 
 async function patchClip(clipId: string, fields: Record<string, unknown>): Promise<void> {
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from('clips')
     .update({ ...fields, updated_at: new Date().toISOString() })
     .eq('id', clipId)
   if (error) throw new Error(`Supabase PATCH failed: ${error.message}`)
+  console.log(`[patchClip] rows updated: ${count ?? 'unknown'} for clip ${clipId}`)
 }
 
 function buildCropFilter(cropX: number): string {
