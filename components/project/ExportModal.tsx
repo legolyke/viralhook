@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 interface ExportModalProps {
   clipId: string
@@ -58,13 +59,14 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
     return () => { if (progressIntervalRef.current) clearInterval(progressIntervalRef.current) }
   }, [state, startTime, endTime])
 
-  // Poll Supabase for clip status
+  // Poll Supabase directly from browser (bypasses Next.js status route)
   useEffect(() => {
     if (state !== 'processing') return
     pollStartRef.current = Date.now()
 
     let cancelled = false
     let timeoutId: ReturnType<typeof setTimeout> | null = null
+    const supabase = createClient()
 
     const poll = async () => {
       if (cancelled) return
@@ -77,33 +79,25 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
       }
 
       try {
-        const res = await fetch(`/api/clips/${clipId}/status`, {
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' },
-        })
+        const { data: clip, error } = await supabase
+          .from('clips')
+          .select('status, file_url')
+          .eq('id', clipId)
+          .single()
+
         if (cancelled) return
 
-        if (res.status === 401) {
-          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
-          setErrorMsg('Session expired. Please refresh the page.')
-          setState('error')
-          return
-        }
-
-        if (!res.ok) {
+        if (error || !clip) {
           if (!cancelled) timeoutId = setTimeout(poll, 3000)
           return
         }
 
-        const data = await res.json() as { status: string; file_url: string | null }
-        if (cancelled) return
-
-        if (data.status === 'ready') {
+        if (clip.status === 'ready') {
           if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
           setProgress(100)
-          setFileUrl(data.file_url)
+          setFileUrl((clip.file_url as string | null) ?? null)
           setState('done')
-        } else if (data.status === 'error') {
+        } else if (clip.status === 'error') {
           if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
           setErrorMsg('Processing failed on the server.')
           setState('error')
