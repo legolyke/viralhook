@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getR2KeyFromUrl } from '@/lib/r2'
+import { buildSubtitleBlocks, blocksToAss } from '@/lib/subtitles'
+import type { AssemblyAIWord } from '@/lib/assemblyai'
+import type { SubtitleStyle } from '@/lib/subtitles'
 
 export async function POST(
   request: Request,
@@ -17,10 +20,15 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const cropX = (body as Record<string, unknown>)?.crop_x
+  const b = body as Record<string, unknown>
+
+  const cropX = b?.crop_x
   if (typeof cropX !== 'number' || cropX < 0 || cropX > 1) {
     return NextResponse.json({ error: 'crop_x must be a number between 0 and 1' }, { status: 400 })
   }
+
+  const subtitleStyleRaw = b?.subtitle_style as (SubtitleStyle & { enabled?: boolean }) | null | undefined
+  const subtitleEnabled = subtitleStyleRaw?.enabled === true
 
   const { id } = await params
 
@@ -55,6 +63,26 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid source video URL' }, { status: 500 })
   }
 
+  // Build subtitle ASS content if requested
+  let subtitleAss: string | null = null
+  if (subtitleEnabled && subtitleStyleRaw) {
+    const { data: transcript } = await supabase
+      .from('transcripts')
+      .select('content')
+      .eq('project_id', clip.project_id)
+      .single()
+
+    const words = (transcript?.content as { words?: AssemblyAIWord[] } | null)?.words ?? []
+    const blocks = buildSubtitleBlocks(words, clip.start_time, clip.end_time)
+    if (blocks.length > 0) {
+      subtitleAss = blocksToAss(blocks, {
+        position: subtitleStyleRaw.position ?? 'bottom',
+        font_size: subtitleStyleRaw.font_size ?? 'medium',
+        color: subtitleStyleRaw.color ?? 'white',
+      })
+    }
+  }
+
   if (!process.env.WORKER_URL || !process.env.WORKER_SECRET) {
     console.error('[export] WORKER_URL or WORKER_SECRET not configured')
     await supabase
@@ -78,6 +106,7 @@ export async function POST(
         start_time: clip.start_time,
         end_time: clip.end_time,
         crop_x: cropX,
+        subtitle_ass: subtitleAss,
       }),
     })
   } catch (err) {

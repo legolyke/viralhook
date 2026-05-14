@@ -2,7 +2,6 @@ import express from 'express'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
-import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
@@ -12,13 +11,7 @@ console.log('[startup] ffmpeg path:', resolvedFfmpegPath ?? 'NOT FOUND')
 if (resolvedFfmpegPath) ffmpeg.setFfmpegPath(resolvedFfmpegPath)
 
 const app = express()
-app.use(express.json({ limit: '1mb' }))
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-)
+app.use(express.json({ limit: '2mb' }))
 
 const r2 = new S3Client({
   region: 'auto',
@@ -80,8 +73,13 @@ async function patchClip(clipId: string, fields: Record<string, unknown>): Promi
   console.log(`[patchClip] RPC ok → status=${fields.status} clip=${clipId}`)
 }
 
-function buildCropFilter(cropX: number): string {
-  return `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=1080:1920`
+function buildVideoFilter(cropX: number, subtitlePath?: string): string {
+  let filter = `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=1080:1920`
+  if (subtitlePath) {
+    const escaped = subtitlePath.replace(/\\/g, '/').replace(/'/g, "\\'")
+    filter += `,subtitles='${escaped}'`
+  }
+  return filter
 }
 
 async function processClip(
@@ -90,21 +88,28 @@ async function processClip(
   startMs: number,
   endMs: number,
   cropX: number,
+  subtitleAss: string | null,
 ): Promise<void> {
   const inputPath = path.join(os.tmpdir(), `vh_in_${clipId}.mp4`)
   const outputPath = path.join(os.tmpdir(), `vh_out_${clipId}.mp4`)
+  const subtitlePath = subtitleAss ? path.join(os.tmpdir(), `vh_sub_${clipId}.ass`) : null
 
   try {
-    console.log(`[process] starting clip ${clipId} | ${startMs}ms-${endMs}ms cropX=${cropX}`)
+    console.log(`[process] starting clip ${clipId} | ${startMs}ms-${endMs}ms cropX=${cropX} subtitles=${subtitleAss ? 'yes' : 'no'}`)
 
     await downloadFromR2(sourceKey, inputPath)
+
+    if (subtitlePath && subtitleAss) {
+      fs.writeFileSync(subtitlePath, subtitleAss, 'utf8')
+      console.log(`[process] wrote subtitle file: ${subtitlePath}`)
+    }
 
     console.log(`[process] running ffmpeg on ${clipId}`)
     await new Promise<void>((resolve, reject) => {
       ffmpeg(inputPath)
         .setStartTime((startMs / 1000).toFixed(3))
         .setDuration(((endMs - startMs) / 1000).toFixed(3))
-        .videoFilter(buildCropFilter(cropX))
+        .videoFilter(buildVideoFilter(cropX, subtitlePath ?? undefined))
         .videoCodec('libx264')
         .audioCodec('aac')
         .outputOption('-movflags', 'faststart')
@@ -129,8 +134,8 @@ async function processClip(
       console.error(`[process] failed to patch error status:`, e2)
     }
   } finally {
-    for (const p of [inputPath, outputPath]) {
-      try { if (fs.existsSync(p)) fs.unlinkSync(p) } catch {}
+    for (const p of [inputPath, outputPath, subtitlePath]) {
+      try { if (p && fs.existsSync(p)) fs.unlinkSync(p) } catch {}
     }
   }
 }
@@ -145,7 +150,7 @@ app.post('/process', (req, res) => {
     return
   }
 
-  const { clip_id, source_key, start_time, end_time, crop_x } = req.body as Record<string, unknown>
+  const { clip_id, source_key, start_time, end_time, crop_x, subtitle_ass } = req.body as Record<string, unknown>
 
   if (typeof clip_id !== 'string' || !/^[0-9a-f-]{36}$/.test(clip_id)) {
     res.status(400).json({ error: 'Invalid clip_id' }); return
@@ -162,10 +167,13 @@ app.post('/process', (req, res) => {
   if (crop_x < 0 || crop_x > 1) {
     res.status(400).json({ error: 'crop_x must be between 0 and 1' }); return
   }
+  if (subtitle_ass !== undefined && subtitle_ass !== null && typeof subtitle_ass !== 'string') {
+    res.status(400).json({ error: 'Invalid subtitle_ass' }); return
+  }
 
-  console.log(`[request] /process clip=${clip_id} key=${source_key}`)
+  console.log(`[request] /process clip=${clip_id} key=${source_key} subtitles=${subtitle_ass ? 'yes' : 'no'}`)
   res.json({ ok: true })
-  processClip(clip_id, source_key, start_time, end_time, crop_x).catch(
+  processClip(clip_id, source_key, start_time, end_time, crop_x, typeof subtitle_ass === 'string' ? subtitle_ass : null).catch(
     (err) => console.error('[unhandled]', err)
   )
 })

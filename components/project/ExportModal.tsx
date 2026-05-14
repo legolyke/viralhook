@@ -31,6 +31,10 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [subtitleEnabled, setSubtitleEnabled] = useState(false)
+  const [subtitlePosition, setSubtitlePosition] = useState<'bottom' | 'top'>('bottom')
+  const [subtitleFontSize, setSubtitleFontSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [subtitleColor, setSubtitleColor] = useState<'white' | 'yellow'>('white')
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -163,7 +167,15 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
       const res = await fetch(`/api/clips/${clipId}/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ crop_x: cropX }),
+        body: JSON.stringify({
+          crop_x: cropX,
+          subtitle_style: subtitleEnabled ? {
+            enabled: true,
+            position: subtitlePosition,
+            font_size: subtitleFontSize,
+            color: subtitleColor,
+          } : null,
+        }),
       })
       if (!res.ok) {
         if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
@@ -386,6 +398,44 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               </div>
             </div>
 
+            {/* Subtitle options */}
+            <div style={{ borderTop: '1px solid rgba(168,85,247,0.12)', paddingTop: 14 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                <input
+                  type="checkbox"
+                  checked={subtitleEnabled}
+                  onChange={e => setSubtitleEnabled(e.target.checked)}
+                  style={{ width: 15, height: 15, accentColor: '#A855F7', cursor: 'pointer' }}
+                />
+                <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, fontWeight: 500 }}>
+                  Burn subtitles into video
+                </span>
+              </label>
+              {subtitleEnabled && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                  {([
+                    { label: 'Position', value: subtitlePosition, set: setSubtitlePosition, opts: [['bottom','Bottom'],['top','Top']] },
+                    { label: 'Size', value: subtitleFontSize, set: setSubtitleFontSize, opts: [['small','Small'],['medium','Medium'],['large','Large']] },
+                    { label: 'Color', value: subtitleColor, set: setSubtitleColor, opts: [['white','White'],['yellow','Yellow']] },
+                  ] as const).map(({ label, value, set, opts }) => (
+                    <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>{label}</span>
+                      <select
+                        value={value}
+                        onChange={e => (set as (v: string) => void)(e.target.value)}
+                        style={{
+                          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(168,85,247,0.25)',
+                          borderRadius: 6, color: '#E9D5FF', fontSize: 12, padding: '4px 8px', cursor: 'pointer',
+                        }}
+                      >
+                        {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={handleGenerate}
@@ -448,6 +498,16 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
             >
               {isDownloading ? 'Downloading...' : 'Download'}
             </button>
+            <a
+              href={`/api/clips/${clipId}/subtitles/srt`}
+              style={{
+                display: 'block', width: '100%', padding: '10px', borderRadius: 10,
+                background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)',
+                textAlign: 'center', color: '#C084FC', fontWeight: 600, fontSize: 13, textDecoration: 'none',
+              }}
+            >
+              Download SRT
+            </a>
             <button
               type="button"
               onClick={handleReset}
