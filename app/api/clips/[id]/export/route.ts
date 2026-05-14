@@ -33,13 +33,8 @@ export async function POST(
 
   if (!clip) return NextResponse.json({ error: 'Clip not found' }, { status: 404 })
 
-  if (clip.status === 'processing') {
-    const stuckMs = Date.now() - new Date(clip.updated_at).getTime()
-    if (stuckMs < 10 * 60 * 1000) {
-      return NextResponse.json({ error: 'Export already in progress' }, { status: 409 })
-    }
-    // Stuck for 10+ minutes — allow retry
-  }
+  // Allow retry always — Railway handles idempotency
+
 
   const { data: project } = await supabase
     .from('projects')
