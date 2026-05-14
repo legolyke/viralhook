@@ -112,7 +112,7 @@ export default async function ProjectDetailPage({
         ))}
       </div>
 
-      <TranscriptPanel status={project.status} transcript={transcript} />
+      <TranscriptPanel status={project.status} transcript={transcript} projectId={project.id} />
 
       <ClipsGrid
           projectStatus={project.status}
