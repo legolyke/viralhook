@@ -56,6 +56,13 @@ function ClipCard({
             {clip.title}
           </p>
           <span
+            title={
+              clip.virality_score >= 0.8
+                ? 'Viral Score: High — AI-ul consideră că acest clip are șanse mari să devină viral pe TikTok/Reels/Shorts'
+                : clip.virality_score >= 0.6
+                ? 'Viral Score: Mediu — clip cu potențial viral moderat'
+                : 'Viral Score: Scăzut — clip mai puțin probabil să devină viral'
+            }
             style={{
               flexShrink: 0,
               fontSize: 12,
@@ -64,6 +71,7 @@ function ClipCard({
               background: clip.virality_score >= 0.8 ? 'rgba(34,197,94,0.1)' : clip.virality_score >= 0.6 ? 'rgba(234,179,8,0.1)' : 'rgba(168,85,247,0.1)',
               padding: '2px 8px',
               borderRadius: 20,
+              cursor: 'help',
             }}
           >
             {Math.round(clip.virality_score * 100)}%
