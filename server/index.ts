@@ -76,7 +76,7 @@ async function processClip(
   startMs: number,
   endMs: number,
   cropX: number,
-): Promise<string> {
+): Promise<void> {
   const inputPath = path.join(os.tmpdir(), `vh_in_${clipId}.mp4`)
   const outputPath = path.join(os.tmpdir(), `vh_out_${clipId}.mp4`)
 
@@ -105,15 +105,15 @@ async function processClip(
     await uploadToR2(outputPath, outputKey)
 
     const fileUrl = `${process.env.R2_PUBLIC_URL}/${outputKey}`
-
+    await patchClip(clipId, { file_url: fileUrl, status: 'ready' })
+    console.log(`[process] clip ${clipId} → ready ✓`)
+  } catch (err) {
+    console.error(`[process] FAILED clip ${clipId}:`, err)
     try {
-      await patchClip(clipId, { file_url: fileUrl, status: 'ready' })
-      console.log(`[process] clip ${clipId} → ready ✓`)
-    } catch (patchErr) {
-      console.error(`[process] patchClip failed (non-fatal):`, patchErr)
+      await patchClip(clipId, { status: 'error' })
+    } catch (e2) {
+      console.error(`[process] failed to patch error status:`, e2)
     }
-
-    return fileUrl
   } finally {
     for (const p of [inputPath, outputPath]) {
       try { if (fs.existsSync(p)) fs.unlinkSync(p) } catch {}
@@ -125,7 +125,7 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, ffmpeg: resolvedFfmpegPath ?? 'missing' })
 })
 
-app.post('/process', async (req, res) => {
+app.post('/process', (req, res) => {
   if (req.headers.authorization !== `Bearer ${process.env.WORKER_SECRET}`) {
     res.status(401).json({ error: 'Unauthorized' })
     return
@@ -150,17 +150,10 @@ app.post('/process', async (req, res) => {
   }
 
   console.log(`[request] /process clip=${clip_id} key=${source_key}`)
-
-  try {
-    const fileUrl = await processClip(clip_id, source_key, start_time, end_time, crop_x)
-    res.json({ ok: true, file_url: fileUrl })
-  } catch (err) {
-    console.error(`[process] FAILED clip ${clip_id}:`, err)
-    try {
-      await patchClip(clip_id, { status: 'error' })
-    } catch {}
-    res.status(500).json({ ok: false, error: err instanceof Error ? err.message : 'Processing failed' })
-  }
+  res.json({ ok: true })
+  processClip(clip_id, source_key, start_time, end_time, crop_x).catch(
+    (err) => console.error('[unhandled]', err)
+  )
 })
 
 const PORT = process.env.PORT ?? 3001

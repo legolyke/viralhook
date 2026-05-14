@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getR2KeyFromUrl } from '@/lib/r2'
 
-export const maxDuration = 55
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -92,21 +90,13 @@ export async function POST(
   }
 
   if (!workerRes.ok) {
-    const errBody = await workerRes.text().catch(() => '')
-    console.error('[export] Worker returned', workerRes.status, errBody)
+    console.error('[export] Worker returned', workerRes.status, 'for clip', id)
     await supabase
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('id', id)
-    return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Worker failed to start' }, { status: 500 })
   }
 
-  const workerData = await workerRes.json() as { ok: boolean; file_url?: string | null }
-
-  await supabase
-    .from('clips')
-    .update({ status: 'ready', file_url: workerData.file_url ?? null, updated_at: new Date().toISOString() })
-    .eq('id', id)
-
-  return NextResponse.json({ ok: true, file_url: workerData.file_url ?? null })
+  return NextResponse.json({ ok: true })
 }

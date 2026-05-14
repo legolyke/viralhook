@@ -33,6 +33,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollStartRef = useRef<number>(0)
 
   // Seek to clip start when entering crop state
   useEffect(() => {
@@ -47,16 +48,79 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   useEffect(() => {
     if (state !== 'processing') return
     const durationMs = endTime - startTime
-    const estimatedMs = Math.max(5000, durationMs / 1000 * 2 * 1000)
-    const intervalMs = 100
-    const step = (intervalMs / estimatedMs) * 100
+    const estimatedMs = Math.max(10000, durationMs * 1.5)
+    const intervalMs = 200
+    const step = (intervalMs / estimatedMs) * 90
     setProgress(0)
     progressIntervalRef.current = setInterval(() => {
-      setProgress(p => Math.min(p + step, 95))
+      setProgress(p => Math.min(p + step, 90))
     }, intervalMs)
     return () => { if (progressIntervalRef.current) clearInterval(progressIntervalRef.current) }
   }, [state, startTime, endTime])
 
+  // Poll Supabase for clip status
+  useEffect(() => {
+    if (state !== 'processing') return
+    pollStartRef.current = Date.now()
+
+    let cancelled = false
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+    const poll = async () => {
+      if (cancelled) return
+
+      if (Date.now() - pollStartRef.current > 5 * 60 * 1000) {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+        setErrorMsg('Processing timed out after 5 minutes.')
+        setState('error')
+        return
+      }
+
+      try {
+        const res = await fetch(`/api/clips/${clipId}/status`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        })
+        if (cancelled) return
+
+        if (res.status === 401) {
+          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+          setErrorMsg('Session expired. Please refresh the page.')
+          setState('error')
+          return
+        }
+
+        if (!res.ok) {
+          if (!cancelled) timeoutId = setTimeout(poll, 3000)
+          return
+        }
+
+        const data = await res.json() as { status: string; file_url: string | null }
+        if (cancelled) return
+
+        if (data.status === 'ready') {
+          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+          setProgress(100)
+          setFileUrl(data.file_url)
+          setState('done')
+        } else if (data.status === 'error') {
+          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+          setErrorMsg('Processing failed on the server.')
+          setState('error')
+        } else {
+          if (!cancelled) timeoutId = setTimeout(poll, 3000)
+        }
+      } catch {
+        if (!cancelled) timeoutId = setTimeout(poll, 3000)
+      }
+    }
+
+    timeoutId = setTimeout(poll, 3000)
+    return () => {
+      cancelled = true
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [state, clipId])
 
   // Drag: mousemove + mouseup on window
   useEffect(() => {
@@ -106,17 +170,13 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ crop_x: cropX }),
       })
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
       if (!res.ok) {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
         const data = await res.json() as { error?: string }
-        setErrorMsg(data.error ?? 'Processing failed.')
+        setErrorMsg(data.error ?? 'Failed to start generation.')
         setState('error')
-        return
       }
-      const data = await res.json() as { ok: boolean; file_url?: string | null }
-      setProgress(100)
-      setFileUrl(data.file_url ?? null)
-      setState('done')
+      // if ok: polling useEffect takes over
     } catch (err) {
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
       setErrorMsg(err instanceof Error ? err.message : 'Network error')
@@ -198,7 +258,6 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               {canDrag ? 'Drag to position the crop area for your 9:16 clip' : 'Video is already 9:16 — full width will be used'}
             </p>
 
-            {/* Video + overlay container */}
             <div
               ref={containerRef}
               style={{
@@ -234,20 +293,14 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
 
-              {/* Dark overlay: left of crop box */}
               <div
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
+                  position: 'absolute', top: 0, left: 0,
                   width: `${cropX * (1 - cropBoxWidthRatio) * 100}%`,
-                  height: '100%',
-                  background: 'rgba(0,0,0,0.55)',
-                  pointerEvents: 'none',
+                  height: '100%', background: 'rgba(0,0,0,0.55)', pointerEvents: 'none',
                 }}
               />
 
-              {/* Crop box (draggable) */}
               <div
                 onMouseDown={(e) => {
                   if (!canDrag) return
@@ -263,8 +316,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   setDragStartCropX(cropX)
                 }}
                 style={{
-                  position: 'absolute',
-                  top: 0,
+                  position: 'absolute', top: 0,
                   left: `${cropX * (1 - cropBoxWidthRatio) * 100}%`,
                   width: `${cropBoxWidthRatio * 100}%`,
                   height: '100%',
@@ -274,33 +326,21 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                 }}
               />
 
-              {/* Dark overlay: right of crop box */}
               <div
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
+                  position: 'absolute', top: 0, right: 0,
                   width: `${(1 - cropX * (1 - cropBoxWidthRatio) - cropBoxWidthRatio) * 100}%`,
-                  height: '100%',
-                  background: 'rgba(0,0,0,0.55)',
-                  pointerEvents: 'none',
+                  height: '100%', background: 'rgba(0,0,0,0.55)', pointerEvents: 'none',
                 }}
               />
 
-              {/* Play / Pause + Mute buttons */}
               <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 10, display: 'flex', gap: 6 }}>
                 <button
                   type="button"
                   onClick={togglePlay}
                   style={{
-                    background: 'rgba(0,0,0,0.72)',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    borderRadius: 8,
-                    color: '#fff',
-                    cursor: 'pointer',
-                    padding: '5px 12px',
-                    fontSize: 16,
-                    lineHeight: 1,
+                    background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)',
+                    borderRadius: 8, color: '#fff', cursor: 'pointer', padding: '5px 12px', fontSize: 16, lineHeight: 1,
                   }}
                 >
                   {isPlaying ? '⏸' : '▶'}
@@ -309,34 +349,20 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   type="button"
                   onClick={toggleMute}
                   style={{
-                    background: 'rgba(0,0,0,0.72)',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    borderRadius: 8,
-                    color: '#fff',
-                    cursor: 'pointer',
-                    padding: '5px 12px',
-                    fontSize: 16,
-                    lineHeight: 1,
+                    background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.18)',
+                    borderRadius: 8, color: '#fff', cursor: 'pointer', padding: '5px 12px', fontSize: 16, lineHeight: 1,
                   }}
                 >
                   {isMuted ? '🔇' : '🔊'}
                 </button>
               </div>
 
-              {/* Clip time label */}
               <div
                 style={{
-                  position: 'absolute',
-                  bottom: 12,
-                  right: 12,
-                  zIndex: 10,
-                  background: 'rgba(0,0,0,0.72)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 6,
-                  padding: '4px 10px',
-                  fontSize: 12,
-                  color: 'rgba(255,255,255,0.75)',
-                  pointerEvents: 'none',
+                  position: 'absolute', bottom: 12, right: 12, zIndex: 10,
+                  background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 6, padding: '4px 10px', fontSize: 12,
+                  color: 'rgba(255,255,255,0.75)', pointerEvents: 'none',
                 }}
               >
                 {formatTime(startTime)} → {formatTime(endTime)}
@@ -347,15 +373,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               type="button"
               onClick={handleGenerate}
               style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: 10,
+                width: '100%', padding: '12px', borderRadius: 10,
                 background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
-                border: 'none',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: 15,
-                cursor: 'pointer',
+                border: 'none', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
               }}
             >
               Generate Clip
@@ -377,7 +397,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                     width: `${progress}%`,
                     background: 'linear-gradient(90deg, #7C3AED, #C026D3)',
                     borderRadius: 8,
-                    transition: 'width 0.2s linear',
+                    transition: 'width 0.3s linear',
                   }}
                 />
               </div>
@@ -386,7 +406,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               </p>
             </div>
             <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: 0, textAlign: 'center' }}>
-              This usually takes {Math.round((endTime - startTime) / 1000 * 2)} seconds
+              This usually takes {Math.round((endTime - startTime) / 1000 * 1.5)} seconds
             </p>
           </div>
         )}
@@ -402,16 +422,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                display: 'block',
-                width: '100%',
-                padding: '12px',
-                borderRadius: 10,
+                display: 'block', width: '100%', padding: '12px', borderRadius: 10,
                 background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
-                textAlign: 'center',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: 15,
-                textDecoration: 'none',
+                textAlign: 'center', color: '#fff', fontWeight: 700, fontSize: 15, textDecoration: 'none',
               }}
             >
               Download
@@ -420,13 +433,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               type="button"
               onClick={handleReset}
               style={{
-                background: 'none',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 8,
-                color: 'rgba(255,255,255,0.4)',
-                fontSize: 13,
-                padding: '8px 16px',
-                cursor: 'pointer',
+                background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: 13,
+                padding: '8px 16px', cursor: 'pointer',
               }}
             >
               Re-generate
@@ -449,14 +458,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               type="button"
               onClick={handleReset}
               style={{
-                padding: '10px 24px',
-                borderRadius: 8,
-                background: 'rgba(168,85,247,0.1)',
-                border: '1px solid rgba(168,85,247,0.3)',
-                color: '#C084FC',
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: 'pointer',
+                padding: '10px 24px', borderRadius: 8,
+                background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)',
+                color: '#C084FC', fontWeight: 600, fontSize: 14, cursor: 'pointer',
               }}
             >
               Try again
