@@ -396,6 +396,27 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               >
                 {formatTime(startTime)} → {formatTime(endTime)}
               </div>
+
+              {/* Subtitle preview overlay */}
+              {subtitleEnabled && (
+                <div style={{
+                  position: 'absolute',
+                  ...(subtitlePosition === 'top' ? { top: 28 } : { bottom: 44 }),
+                  left: 0, right: 0, zIndex: 15,
+                  textAlign: 'center', pointerEvents: 'none', padding: '0 16px',
+                }}>
+                  <span style={{
+                    color: subtitleColor,
+                    fontSize: subtitleFontSize === 'small' ? 14 : subtitleFontSize === 'medium' ? 19 : 25,
+                    fontWeight: 800,
+                    fontFamily: 'Arial, sans-serif',
+                    textShadow: '0 0 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                    lineHeight: 1.3,
+                  }}>
+                    Sample subtitle text
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Subtitle options */}
