@@ -1,14 +1,15 @@
 name = "viralhook-clip-processor"
 main = "index.ts"
 compatibility_date = "2025-05-13"
+account_id = "f35e3b7479c86455c6d551f7c05a4abc"
 
 [[r2_buckets]]
 binding = "R2"
-bucket_name = "viralhook"
+bucket_name = "viralhook-videos"
 
 [vars]
-SUPABASE_URL = ""
-R2_PUBLIC_URL = ""
+SUPABASE_URL = "https://qkkltpkbfsotgxcgkbme.supabase.co"
+R2_PUBLIC_URL = "https://pub-e32273dccd82471a8c76567658c9b2a7.r2.dev"
 
 # Secrets — set via: wrangler secret put <NAME>
 # SUPABASE_SERVICE_ROLE_KEY

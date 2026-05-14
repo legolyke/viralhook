@@ -207,13 +207,23 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
         {state === 'crop' && (
           <>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, margin: 0 }}>
-              Position the crop area for your 9:16 clip
+              {cropBoxWidthRatio >= 0.99
+                ? 'Video is already 9:16 — full width will be used'
+                : 'Drag to position the crop area for your 9:16 clip'}
             </p>
 
             {/* Video + overlay container */}
             <div
               ref={containerRef}
-              style={{ position: 'relative', width: '100%', borderRadius: 8, overflow: 'hidden', background: '#000', cursor: 'ew-resize' }}
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: 240,
+                borderRadius: 8,
+                overflow: 'hidden',
+                background: '#000',
+                cursor: cropBoxWidthRatio < 0.99 ? 'ew-resize' : 'default',
+              }}
             >
               <video
                 ref={videoRef}
@@ -227,7 +237,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   setVideoNaturalHeight(v.videoHeight || 1080)
                   v.currentTime = startTime / 1000
                 }}
-                style={{ width: '100%', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
 
               {/* Dark overlay: left of crop box */}
