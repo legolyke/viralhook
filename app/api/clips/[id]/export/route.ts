@@ -77,7 +77,7 @@ export async function POST(
     if (blocks.length > 0) {
       subtitleAss = blocksToAss(blocks, {
         position: subtitleStyleRaw.position ?? 'bottom',
-        font_size: subtitleStyleRaw.font_size ?? 'medium',
+        font_size: typeof subtitleStyleRaw.font_size === 'number' ? subtitleStyleRaw.font_size : 40,
         color: subtitleStyleRaw.color ?? '#FFFFFF',
         font: subtitleStyleRaw.font ?? 'arial',
       })

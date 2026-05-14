@@ -7,26 +7,40 @@ export interface SubBlock {
 }
 
 export type SubtitlePosition = 'bottom' | 'top'
-export type SubtitleFontSize = 'small' | 'medium' | 'large'
 
 export interface SubtitleStyle {
   position: SubtitlePosition
-  font_size: SubtitleFontSize
-  color: string  // hex e.g. '#FFFFFF'
-  font: string   // key: 'arial' | 'roboto' | 'ubuntu' | 'oswald'
+  font_size: number  // px value 4-72
+  color: string      // hex e.g. '#FFFFFF'
+  font: string       // font key e.g. 'roboto'
 }
 
+// Maps font key → ASS font name (must match what's installed on the server)
 const FONT_ASS_MAP: Record<string, string> = {
-  arial:  'Liberation Sans',
-  roboto: 'Roboto',
-  ubuntu: 'Ubuntu',
-  oswald: 'Oswald',
-}
-
-const FONT_SIZE_MAP: Record<SubtitleFontSize, number> = {
-  small: 44,
-  medium: 56,
-  large: 68,
+  'arial':             'Liberation Sans',
+  'roboto':            'Roboto',
+  'open-sans':         'Open Sans',
+  'lato':              'Lato',
+  'montserrat':        'Montserrat',
+  'poppins':           'Poppins',
+  'nunito':            'Nunito',
+  'ubuntu':            'Ubuntu',
+  'raleway':           'Raleway',
+  'inter':             'Inter',
+  'oswald':            'Oswald',
+  'anton':             'Anton',
+  'bebas-neue':        'Bebas Neue',
+  'russo-one':         'Russo One',
+  'teko':              'Teko',
+  'barlow-condensed':  'Barlow Condensed',
+  'righteous':         'Righteous',
+  'fredoka-one':       'Fredoka One',
+  'playfair':          'Playfair Display',
+  'merriweather':      'Merriweather',
+  'pacifico':          'Pacifico',
+  'dancing-script':    'Dancing Script',
+  'permanent-marker':  'Permanent Marker',
+  'bangers':           'Bangers',
 }
 
 // ASS uses &H00BBGGRR (alpha=00, then BGR order)
@@ -79,7 +93,6 @@ export function blocksToSrt(blocks: SubBlock[]): string {
 }
 
 export function blocksToAss(blocks: SubBlock[], style: SubtitleStyle): string {
-  const fontSize = FONT_SIZE_MAP[style.font_size]
   const alignment = style.position === 'top' ? 8 : 2
   const color = hexToAss(style.color)
   const fontName = FONT_ASS_MAP[style.font] ?? 'Liberation Sans'
@@ -92,7 +105,7 @@ WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,${fontName},${fontSize},${color},&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,3,1,${alignment},20,20,80,1
+Style: Default,${fontName},${style.font_size},${color},&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,3,1,${alignment},20,20,80,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text`

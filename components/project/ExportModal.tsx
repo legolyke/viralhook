@@ -3,11 +3,55 @@ import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 const SUBTITLE_FONTS = [
-  { key: 'arial',  name: 'Arial',   css: 'Arial, sans-serif' },
-  { key: 'roboto', name: 'Roboto',  css: "'Roboto', sans-serif" },
-  { key: 'ubuntu', name: 'Ubuntu',  css: "'Ubuntu', sans-serif" },
-  { key: 'oswald', name: 'Oswald',  css: "'Oswald', sans-serif" },
-] as const
+  { key: 'arial',            name: 'Arial',             css: 'Arial, sans-serif' },
+  { key: 'roboto',           name: 'Roboto',            css: "'Roboto', sans-serif" },
+  { key: 'open-sans',        name: 'Open Sans',         css: "'Open Sans', sans-serif" },
+  { key: 'lato',             name: 'Lato',              css: "'Lato', sans-serif" },
+  { key: 'montserrat',       name: 'Montserrat',        css: "'Montserrat', sans-serif" },
+  { key: 'poppins',          name: 'Poppins',           css: "'Poppins', sans-serif" },
+  { key: 'nunito',           name: 'Nunito',            css: "'Nunito', sans-serif" },
+  { key: 'ubuntu',           name: 'Ubuntu',            css: "'Ubuntu', sans-serif" },
+  { key: 'raleway',          name: 'Raleway',           css: "'Raleway', sans-serif" },
+  { key: 'inter',            name: 'Inter',             css: "'Inter', sans-serif" },
+  { key: 'oswald',           name: 'Oswald',            css: "'Oswald', sans-serif" },
+  { key: 'anton',            name: 'Anton',             css: "'Anton', sans-serif" },
+  { key: 'bebas-neue',       name: 'Bebas Neue',        css: "'Bebas Neue', sans-serif" },
+  { key: 'russo-one',        name: 'Russo One',         css: "'Russo One', sans-serif" },
+  { key: 'teko',             name: 'Teko',              css: "'Teko', sans-serif" },
+  { key: 'barlow-condensed', name: 'Barlow Condensed',  css: "'Barlow Condensed', sans-serif" },
+  { key: 'righteous',        name: 'Righteous',         css: "'Righteous', sans-serif" },
+  { key: 'fredoka-one',      name: 'Fredoka One',       css: "'Fredoka One', sans-serif" },
+  { key: 'playfair',         name: 'Playfair Display',  css: "'Playfair Display', serif" },
+  { key: 'merriweather',     name: 'Merriweather',      css: "'Merriweather', serif" },
+  { key: 'pacifico',         name: 'Pacifico',          css: "'Pacifico', cursive" },
+  { key: 'dancing-script',   name: 'Dancing Script',    css: "'Dancing Script', cursive" },
+  { key: 'permanent-marker', name: 'Permanent Marker',  css: "'Permanent Marker', cursive" },
+  { key: 'bangers',          name: 'Bangers',           css: "'Bangers', cursive" },
+]
+
+const GOOGLE_FONTS_URL = [
+  'Roboto:wght@700', 'Open+Sans:wght@700', 'Lato:wght@700', 'Montserrat:wght@700',
+  'Poppins:wght@700', 'Nunito:wght@800', 'Ubuntu:wght@700', 'Raleway:wght@700',
+  'Inter:wght@700', 'Oswald:wght@700', 'Anton', 'Bebas+Neue', 'Russo+One',
+  'Teko:wght@700', 'Barlow+Condensed:wght@700', 'Righteous', 'Fredoka+One',
+  'Playfair+Display:wght@700', 'Merriweather:wght@700', 'Pacifico',
+  'Dancing+Script:wght@700', 'Permanent+Marker', 'Bangers',
+].map(f => `family=${f}`).join('&')
+
+const SELECT_STYLE: React.CSSProperties = {
+  background: 'rgba(15,15,26,0.9)',
+  border: '1px solid rgba(168,85,247,0.3)',
+  borderRadius: 8,
+  color: '#E9D5FF',
+  fontSize: 13,
+  padding: '6px 28px 6px 10px',
+  cursor: 'pointer',
+  outline: 'none',
+  appearance: 'none' as const,
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23A855F7'/%3E%3C/svg%3E\")",
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 10px center',
+}
 
 interface ExportModalProps {
   clipId: string
@@ -40,9 +84,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [isDownloading, setIsDownloading] = useState(false)
   const [subtitleEnabled, setSubtitleEnabled] = useState(false)
   const [subtitlePosition, setSubtitlePosition] = useState<'bottom' | 'top'>('bottom')
-  const [subtitleFontSize, setSubtitleFontSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [subtitleFontSize, setSubtitleFontSize] = useState(40)
   const [subtitleColor, setSubtitleColor] = useState('#FFFFFF')
-  const [subtitleFont, setSubtitleFont] = useState<'arial' | 'roboto' | 'ubuntu' | 'oswald'>('arial')
+  const [subtitleFont, setSubtitleFont] = useState('arial')
 
   // Load Google Fonts for preview
   useEffect(() => {
@@ -51,7 +95,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
     const link = document.createElement('link')
     link.id = id
     link.rel = 'stylesheet'
-    link.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Ubuntu:wght@700&family=Oswald:wght@700&display=swap'
+    link.href = `https://fonts.googleapis.com/css2?${GOOGLE_FONTS_URL}&display=swap`
     document.head.appendChild(link)
   }, [])
 
@@ -191,7 +235,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
           subtitle_style: subtitleEnabled ? {
             enabled: true,
             position: subtitlePosition,
-            font_size: subtitleFontSize,
+            font_size: subtitleFontSize,  // number
             color: subtitleColor,
             font: subtitleFont,
           } : null,
@@ -427,7 +471,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                 }}>
                   <span style={{
                     color: subtitleColor,
-                    fontSize: subtitleFontSize === 'small' ? 14 : subtitleFontSize === 'medium' ? 19 : 25,
+                    fontSize: Math.max(8, Math.round(subtitleFontSize * 0.35)),
                     fontWeight: 700,
                     fontFamily: SUBTITLE_FONTS.find(f => f.key === subtitleFont)?.css ?? 'Arial, sans-serif',
                     textShadow: '0 0 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
@@ -471,53 +515,34 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
 
               {subtitleEnabled && (
                 <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {([
-                    { label: 'Position', state: subtitlePosition, set: setSubtitlePosition, opts: [['bottom','Bottom'],['top','Top']] },
-                    { label: 'Size',     state: subtitleFontSize, set: setSubtitleFontSize, opts: [['small','S'],['medium','M'],['large','L']] },
-                  ] as const).map(({ label, state, set, opts }) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>{label}</span>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        {opts.map(([v, l]) => (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => (set as (x: string) => void)(v)}
-                            style={{
-                              padding: '4px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                              background: state === v ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)',
-                              border: state === v ? '1px solid rgba(168,85,247,0.7)' : '1px solid rgba(255,255,255,0.1)',
-                              color: state === v ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
-                            }}
-                          >
-                            {l}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
 
-                  {/* Font picker */}
+                  {/* Position */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Position</span>
+                    <select value={subtitlePosition} onChange={e => setSubtitlePosition(e.target.value as 'bottom' | 'top')} style={SELECT_STYLE}>
+                      <option value="bottom">Bottom</option>
+                      <option value="top">Top</option>
+                    </select>
+                  </div>
+
+                  {/* Font */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Font</span>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <select value={subtitleFont} onChange={e => setSubtitleFont(e.target.value)} style={{ ...SELECT_STYLE, flex: 1 }}>
                       {SUBTITLE_FONTS.map(f => (
-                        <button
-                          key={f.key}
-                          type="button"
-                          onClick={() => setSubtitleFont(f.key)}
-                          style={{
-                            padding: '4px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
-                            fontFamily: f.css, fontWeight: 700,
-                            background: subtitleFont === f.key ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)',
-                            border: subtitleFont === f.key ? '1px solid rgba(168,85,247,0.7)' : '1px solid rgba(255,255,255,0.1)',
-                            color: subtitleFont === f.key ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
-                          }}
-                        >
-                          {f.name}
-                        </button>
+                        <option key={f.key} value={f.key}>{f.name}</option>
                       ))}
-                    </div>
+                    </select>
+                  </div>
+
+                  {/* Size */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Size</span>
+                    <select value={subtitleFontSize} onChange={e => setSubtitleFontSize(Number(e.target.value))} style={SELECT_STYLE}>
+                      {Array.from({ length: 35 }, (_, i) => 4 + i * 2).map(s => (
+                        <option key={s} value={s}>{s}px</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Color picker */}
