@@ -459,32 +459,27 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   {/* Color picker */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Color</span>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                      {['#FFFFFF', '#FFFF00', '#00FFFF', '#FF6B6B', '#A855F7', '#4ADE80', '#FB923C'].map(c => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => setSubtitleColor(c)}
-                          title={c}
-                          style={{
-                            width: 22, height: 22, borderRadius: '50%', background: c, cursor: 'pointer', padding: 0,
-                            border: subtitleColor === c ? '2px solid #E9D5FF' : '2px solid rgba(255,255,255,0.15)',
-                            flexShrink: 0,
-                          }}
-                        />
-                      ))}
+                    <div style={{ position: 'relative', width: 28, height: 28, flexShrink: 0 }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: '50%', cursor: 'pointer',
+                        background: 'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)',
+                        border: '2px solid rgba(255,255,255,0.2)',
+                      }} />
                       <input
                         type="color"
                         value={subtitleColor}
                         onChange={e => setSubtitleColor(e.target.value)}
-                        title="Custom color"
                         style={{
-                          width: 22, height: 22, borderRadius: '50%', cursor: 'pointer',
-                          border: '2px solid rgba(255,255,255,0.15)', padding: 0,
-                          background: 'none', flexShrink: 0,
+                          position: 'absolute', inset: 0, opacity: 0,
+                          width: '100%', height: '100%', cursor: 'pointer', padding: 0, border: 'none',
                         }}
                       />
                     </div>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                      background: subtitleColor, border: '2px solid rgba(255,255,255,0.25)',
+                    }} />
+                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{subtitleColor}</span>
                   </div>
                 </div>
               )}
