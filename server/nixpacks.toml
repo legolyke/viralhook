@@ -1,0 +1,5 @@
+[phases.setup]
+nixPkgs = ["liberation_ttf", "roboto", "ubuntu_font_family"]
+
+[phases.build]
+cmds = ["npm install", "npm run build", "fc-cache -f"]

@@ -2,6 +2,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+const SUBTITLE_FONTS = [
+  { key: 'arial',  name: 'Arial',   css: 'Arial, sans-serif' },
+  { key: 'roboto', name: 'Roboto',  css: "'Roboto', sans-serif" },
+  { key: 'ubuntu', name: 'Ubuntu',  css: "'Ubuntu', sans-serif" },
+  { key: 'oswald', name: 'Oswald',  css: "'Oswald', sans-serif" },
+] as const
+
 interface ExportModalProps {
   clipId: string
   startTime: number
@@ -35,6 +42,18 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [subtitlePosition, setSubtitlePosition] = useState<'bottom' | 'top'>('bottom')
   const [subtitleFontSize, setSubtitleFontSize] = useState<'small' | 'medium' | 'large'>('medium')
   const [subtitleColor, setSubtitleColor] = useState('#FFFFFF')
+  const [subtitleFont, setSubtitleFont] = useState<'arial' | 'roboto' | 'ubuntu' | 'oswald'>('arial')
+
+  // Load Google Fonts for preview
+  useEffect(() => {
+    const id = 'vh-subtitle-fonts'
+    if (document.getElementById(id)) return
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Ubuntu:wght@700&family=Oswald:wght@700&display=swap'
+    document.head.appendChild(link)
+  }, [])
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -174,6 +193,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
             position: subtitlePosition,
             font_size: subtitleFontSize,
             color: subtitleColor,
+            font: subtitleFont,
           } : null,
         }),
       })
@@ -408,8 +428,8 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   <span style={{
                     color: subtitleColor,
                     fontSize: subtitleFontSize === 'small' ? 14 : subtitleFontSize === 'medium' ? 19 : 25,
-                    fontWeight: 800,
-                    fontFamily: 'Arial, sans-serif',
+                    fontWeight: 700,
+                    fontFamily: SUBTITLE_FONTS.find(f => f.key === subtitleFont)?.css ?? 'Arial, sans-serif',
                     textShadow: '0 0 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
                     lineHeight: 1.3,
                   }}>
@@ -476,6 +496,29 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                       </div>
                     </div>
                   ))}
+
+                  {/* Font picker */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Font</span>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {SUBTITLE_FONTS.map(f => (
+                        <button
+                          key={f.key}
+                          type="button"
+                          onClick={() => setSubtitleFont(f.key)}
+                          style={{
+                            padding: '4px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
+                            fontFamily: f.css, fontWeight: 700,
+                            background: subtitleFont === f.key ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)',
+                            border: subtitleFont === f.key ? '1px solid rgba(168,85,247,0.7)' : '1px solid rgba(255,255,255,0.1)',
+                            color: subtitleFont === f.key ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
+                          }}
+                        >
+                          {f.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* Color picker */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
