@@ -39,6 +39,14 @@ interface SubtitleData {
   position: string // 'bottom' | 'top'
 }
 
+type Resolution = '720p' | '1080p' | '4k'
+
+const RESOLUTION_DIMS: Record<Resolution, { w: number; h: number }> = {
+  '720p':  { w: 720,  h: 1280  },
+  '1080p': { w: 1080, h: 1920  },
+  '4k':    { w: 2160, h: 3840  },
+}
+
 async function downloadFromR2(key: string, destPath: string): Promise<void> {
   console.log(`[r2] downloading key: ${key}`)
   const res = await r2.send(new GetObjectCommand({
@@ -91,8 +99,10 @@ function buildVideoFilter(
   cropX: number,
   subtitleData: SubtitleData | null,
   textFiles: string[],
+  resolution: Resolution = '1080p',
 ): string {
-  let filter = `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=1080:1920`
+  const { w, h } = RESOLUTION_DIMS[resolution]
+  let filter = `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`
 
   if (subtitleData && textFiles.length > 0) {
     const colorHex = subtitleData.color.replace('#', '')
@@ -131,6 +141,7 @@ async function processClip(
   endMs: number,
   cropX: number,
   subtitleData: SubtitleData | null,
+  resolution: Resolution = '1080p',
 ): Promise<void> {
   const inputPath  = path.join(os.tmpdir(), `vh_in_${clipId}.mp4`)
   const outputPath = path.join(os.tmpdir(), `vh_out_${clipId}.mp4`)
@@ -151,8 +162,8 @@ async function processClip(
       console.log(`[process] wrote ${textFiles.length} subtitle text files`)
     }
 
-    const videoFilter = buildVideoFilter(cropX, subtitleData, textFiles)
-    console.log(`[process] filter: ${videoFilter.slice(0, 120)}...`)
+    const videoFilter = buildVideoFilter(cropX, subtitleData, textFiles, resolution)
+    console.log(`[process] filter: ${videoFilter.slice(0, 120)}... resolution=${resolution}`)
 
     await new Promise<void>((resolve, reject) => {
       ffmpeg(inputPath)
@@ -194,7 +205,7 @@ app.post('/process', (req, res) => {
     res.status(401).json({ error: 'Unauthorized' }); return
   }
 
-  const { clip_id, source_key, start_time, end_time, crop_x, subtitle_data } =
+  const { clip_id, source_key, start_time, end_time, crop_x, subtitle_data, resolution } =
     req.body as Record<string, unknown>
 
   if (typeof clip_id !== 'string' || !/^[0-9a-f-]{36}$/.test(clip_id)) {
@@ -217,10 +228,13 @@ app.post('/process', (req, res) => {
     ? subtitle_data as SubtitleData
     : null
 
-  console.log(`[request] /process clip=${clip_id} subs=${parsedSubtitleData ? 'yes' : 'no'}`)
+  const parsedResolution: Resolution =
+    resolution === '720p' || resolution === '4k' ? resolution : '1080p'
+
+  console.log(`[request] /process clip=${clip_id} subs=${parsedSubtitleData ? 'yes' : 'no'} res=${parsedResolution}`)
   res.json({ ok: true })
 
-  processClip(clip_id, source_key, start_time, end_time, crop_x, parsedSubtitleData)
+  processClip(clip_id, source_key, start_time, end_time, crop_x, parsedSubtitleData, parsedResolution)
     .catch((err) => console.error('[unhandled]', err))
 })
 

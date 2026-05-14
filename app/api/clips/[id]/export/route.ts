@@ -122,6 +122,7 @@ export async function POST(
         end_time: clip.end_time,
         crop_x: cropX,
         subtitle_data: subtitleData,
+        resolution: '1080p', // TODO: pass from user plan when resolution tiers are activated
       }),
     })
   } catch (err) {
