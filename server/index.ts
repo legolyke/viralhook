@@ -85,8 +85,8 @@ async function processClip(
         .audioCodec('aac')
         .outputOption('-movflags', 'faststart')
         .save(outputPath)
-        .on('end', resolve)
-        .on('error', (err) => reject(new Error(`FFmpeg error: ${err.message}`)))
+        .on('end', () => resolve())
+        .on('error', (err: Error) => reject(new Error(`FFmpeg error: ${err.message}`)))
     })
     console.log(`[clip-processor] ffmpeg done for ${clipId}`)
 
