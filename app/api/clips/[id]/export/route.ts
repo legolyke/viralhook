@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { getR2KeyFromUrl } from '@/lib/r2'
 
 export const maxDuration = 55
@@ -26,9 +26,7 @@ export async function POST(
 
   const { id } = await params
 
-  const service = createServiceClient()
-
-  const { data: clip } = await service
+  const { data: clip } = await supabase
     .from('clips')
     .select('id, project_id, user_id, start_time, end_time')
     .eq('id', id)
@@ -37,7 +35,7 @@ export async function POST(
 
   if (!clip) return NextResponse.json({ error: 'Clip not found' }, { status: 404 })
 
-  const { data: project } = await service
+  const { data: project } = await supabase
     .from('projects')
     .select('file_url')
     .eq('id', clip.project_id)
@@ -47,7 +45,7 @@ export async function POST(
     return NextResponse.json({ error: 'Source video not found' }, { status: 404 })
   }
 
-  await service
+  await supabase
     .from('clips')
     .update({ status: 'processing', updated_at: new Date().toISOString() })
     .eq('id', id)
@@ -61,7 +59,7 @@ export async function POST(
 
   if (!process.env.WORKER_URL || !process.env.WORKER_SECRET) {
     console.error('[export] WORKER_URL or WORKER_SECRET not configured')
-    await service
+    await supabase
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -86,7 +84,7 @@ export async function POST(
     })
   } catch (err) {
     console.error('[export] Worker unreachable', err)
-    await service
+    await supabase
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -96,16 +94,16 @@ export async function POST(
   if (!workerRes.ok) {
     const errBody = await workerRes.text().catch(() => '')
     console.error('[export] Worker returned', workerRes.status, errBody)
-    await service
+    await supabase
       .from('clips')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('id', id)
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
   }
 
-  const workerData = await workerRes.json() as { ok: boolean; file_url?: string }
+  const workerData = await workerRes.json() as { ok: boolean; file_url?: string | null }
 
-  await service
+  await supabase
     .from('clips')
     .update({ status: 'ready', file_url: workerData.file_url ?? null, updated_at: new Date().toISOString() })
     .eq('id', id)
