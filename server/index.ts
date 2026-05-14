@@ -107,7 +107,7 @@ function buildVideoFilter(
       const tf = textFiles[i].replace(/\\/g, '/')
       return (
         `drawtext=textfile='${tf}'` +
-        `:fontfile='/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'` +
+        `:fontfile='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'` +
         `:x=(w-text_w)/2:y=${y}` +
         `:fontsize=${subtitleData.font_size}` +
         `:fontcolor=white` +
