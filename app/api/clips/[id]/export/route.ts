@@ -26,7 +26,7 @@ export async function POST(
 
   const { data: clip } = await supabase
     .from('clips')
-    .select('id, project_id, user_id, start_time, end_time, status')
+    .select('id, project_id, user_id, start_time, end_time, status, updated_at')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
@@ -34,7 +34,11 @@ export async function POST(
   if (!clip) return NextResponse.json({ error: 'Clip not found' }, { status: 404 })
 
   if (clip.status === 'processing') {
-    return NextResponse.json({ error: 'Export already in progress' }, { status: 409 })
+    const stuckMs = Date.now() - new Date(clip.updated_at).getTime()
+    if (stuckMs < 10 * 60 * 1000) {
+      return NextResponse.json({ error: 'Export already in progress' }, { status: 409 })
+    }
+    // Stuck for 10+ minutes — allow retry
   }
 
   const { data: project } = await supabase
