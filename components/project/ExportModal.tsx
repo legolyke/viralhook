@@ -30,6 +30,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [videoNaturalHeight, setVideoNaturalHeight] = useState(1080)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [debugInfo, setDebugInfo] = useState('')
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -86,6 +87,8 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
           .single()
 
         if (cancelled) return
+
+        setDebugInfo(`status=${clip?.status ?? 'null'} err=${error?.message ?? 'none'}`)
 
         if (error || !clip) {
           if (!cancelled) timeoutId = setTimeout(poll, 3000)
@@ -402,6 +405,11 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
             <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: 0, textAlign: 'center' }}>
               This usually takes {Math.round((endTime - startTime) / 1000 * 1.5)} seconds
             </p>
+            {debugInfo && (
+              <p style={{ color: 'rgba(255,165,0,0.8)', fontSize: 10, margin: 0, textAlign: 'center', fontFamily: 'monospace' }}>
+                {debugInfo}
+              </p>
+            )}
           </div>
         )}
 
