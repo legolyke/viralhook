@@ -2,11 +2,20 @@ import express from 'express'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
+import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
 
-const resolvedFfmpegPath = ffmpegPath ?? null
+function detectFfmpeg(): string | null {
+  try {
+    const p = execSync('which ffmpeg', { encoding: 'utf8' }).trim()
+    if (p) return p
+  } catch {}
+  return ffmpegPath ?? null
+}
+
+const resolvedFfmpegPath = detectFfmpeg()
 console.log('[startup] ffmpeg path:', resolvedFfmpegPath ?? 'NOT FOUND')
 if (resolvedFfmpegPath) ffmpeg.setFfmpegPath(resolvedFfmpegPath)
 
