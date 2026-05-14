@@ -30,6 +30,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [videoNaturalHeight, setVideoNaturalHeight] = useState(1080)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -175,6 +176,28 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
       setErrorMsg(err instanceof Error ? err.message : 'Network error')
       setState('error')
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!fileUrl || isDownloading) return
+    setIsDownloading(true)
+    try {
+      const res = await fetch(fileUrl)
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `clip-${clipId}.mp4`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      // fallback: open in new tab
+      window.open(fileUrl, '_blank')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -412,18 +435,19 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
             <p style={{ color: '#4ADE80', fontSize: 18, fontWeight: 700, margin: 0 }}>
               Your clip is ready!
             </p>
-            <a
-              href={fileUrl ?? '#'}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => void handleDownload()}
+              disabled={isDownloading}
               style={{
                 display: 'block', width: '100%', padding: '12px', borderRadius: 10,
                 background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
-                textAlign: 'center', color: '#fff', fontWeight: 700, fontSize: 15, textDecoration: 'none',
+                border: 'none', color: '#fff', fontWeight: 700, fontSize: 15,
+                cursor: isDownloading ? 'wait' : 'pointer', opacity: isDownloading ? 0.7 : 1,
               }}
             >
-              Download
-            </a>
+              {isDownloading ? 'Downloading...' : 'Download'}
+            </button>
             <button
               type="button"
               onClick={handleReset}
