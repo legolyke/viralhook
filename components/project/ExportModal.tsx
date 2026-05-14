@@ -34,7 +34,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [subtitleEnabled, setSubtitleEnabled] = useState(false)
   const [subtitlePosition, setSubtitlePosition] = useState<'bottom' | 'top'>('bottom')
   const [subtitleFontSize, setSubtitleFontSize] = useState<'small' | 'medium' | 'large'>('medium')
-  const [subtitleColor, setSubtitleColor] = useState<'white' | 'yellow'>('white')
+  const [subtitleColor, setSubtitleColor] = useState('#FFFFFF')
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -404,53 +404,88 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                 Subtitles
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setSubtitleEnabled(false)}
-                  style={{
-                    padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13,
-                    background: !subtitleEnabled ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.04)',
-                    border: !subtitleEnabled ? '1px solid rgba(168,85,247,0.6)' : '1px solid rgba(255,255,255,0.1)',
-                    color: !subtitleEnabled ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
-                  }}
-                >
-                  No subtitles
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSubtitleEnabled(true)}
-                  style={{
-                    padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13,
-                    background: subtitleEnabled ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.04)',
-                    border: subtitleEnabled ? '1px solid rgba(168,85,247,0.6)' : '1px solid rgba(255,255,255,0.1)',
-                    color: subtitleEnabled ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
-                  }}
-                >
-                  Burn into video
-                </button>
+                {[
+                  { value: false, title: 'SRT file only', desc: 'Download .srt after export' },
+                  { value: true,  title: 'Burn into video', desc: 'Embed subtitles in the clip' },
+                ].map(opt => (
+                  <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => setSubtitleEnabled(opt.value)}
+                    style={{
+                      padding: '12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                      background: subtitleEnabled === opt.value ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.04)',
+                      border: subtitleEnabled === opt.value ? '1px solid rgba(168,85,247,0.6)' : '1px solid rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: 13, color: subtitleEnabled === opt.value ? '#E9D5FF' : 'rgba(255,255,255,0.5)', marginBottom: 3 }}>
+                      {opt.title}
+                    </div>
+                    <div style={{ fontSize: 11, color: subtitleEnabled === opt.value ? 'rgba(233,213,255,0.55)' : 'rgba(255,255,255,0.25)', lineHeight: 1.4 }}>
+                      {opt.desc}
+                    </div>
+                  </button>
+                ))}
               </div>
 
               {subtitleEnabled && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {([
-                    { label: 'Position', value: subtitlePosition, set: setSubtitlePosition, opts: [['bottom','Bottom'],['top','Top']] },
-                    { label: 'Size', value: subtitleFontSize, set: setSubtitleFontSize, opts: [['small','Small'],['medium','Medium'],['large','Large']] },
-                    { label: 'Color', value: subtitleColor, set: setSubtitleColor, opts: [['white','White'],['yellow','Yellow']] },
-                  ] as const).map(({ label, value, set, opts }) => (
-                    <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>{label}</span>
-                      <select
-                        value={value}
-                        onChange={e => (set as (v: string) => void)(e.target.value)}
-                        style={{
-                          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(168,85,247,0.25)',
-                          borderRadius: 6, color: '#E9D5FF', fontSize: 12, padding: '5px 8px', cursor: 'pointer',
-                        }}
-                      >
-                        {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                      </select>
+                    { label: 'Position', state: subtitlePosition, set: setSubtitlePosition, opts: [['bottom','Bottom'],['top','Top']] },
+                    { label: 'Size',     state: subtitleFontSize, set: setSubtitleFontSize, opts: [['small','S'],['medium','M'],['large','L']] },
+                  ] as const).map(({ label, state, set, opts }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>{label}</span>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {opts.map(([v, l]) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => (set as (x: string) => void)(v)}
+                            style={{
+                              padding: '4px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                              background: state === v ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)',
+                              border: state === v ? '1px solid rgba(168,85,247,0.7)' : '1px solid rgba(255,255,255,0.1)',
+                              color: state === v ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
+                            }}
+                          >
+                            {l}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   ))}
+
+                  {/* Color picker */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Color</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {['#FFFFFF', '#FFFF00', '#00FFFF', '#FF6B6B', '#A855F7', '#4ADE80', '#FB923C'].map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setSubtitleColor(c)}
+                          title={c}
+                          style={{
+                            width: 22, height: 22, borderRadius: '50%', background: c, cursor: 'pointer', padding: 0,
+                            border: subtitleColor === c ? '2px solid #E9D5FF' : '2px solid rgba(255,255,255,0.15)',
+                            flexShrink: 0,
+                          }}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={subtitleColor}
+                        onChange={e => setSubtitleColor(e.target.value)}
+                        title="Custom color"
+                        style={{
+                          width: 22, height: 22, borderRadius: '50%', cursor: 'pointer',
+                          border: '2px solid rgba(255,255,255,0.15)', padding: 0,
+                          background: 'none', flexShrink: 0,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

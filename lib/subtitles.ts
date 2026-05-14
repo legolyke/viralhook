@@ -8,12 +8,11 @@ export interface SubBlock {
 
 export type SubtitlePosition = 'bottom' | 'top'
 export type SubtitleFontSize = 'small' | 'medium' | 'large'
-export type SubtitleColor = 'white' | 'yellow'
 
 export interface SubtitleStyle {
   position: SubtitlePosition
   font_size: SubtitleFontSize
-  color: SubtitleColor
+  color: string  // hex e.g. '#FFFFFF'
 }
 
 const FONT_SIZE_MAP: Record<SubtitleFontSize, number> = {
@@ -22,10 +21,13 @@ const FONT_SIZE_MAP: Record<SubtitleFontSize, number> = {
   large: 68,
 }
 
-// ASS uses AABBGGRR (alpha, blue, green, red)
-const COLOR_MAP: Record<SubtitleColor, string> = {
-  white: '&H00FFFFFF',
-  yellow: '&H0000FFFF',
+// ASS uses &H00BBGGRR (alpha=00, then BGR order)
+function hexToAss(hex: string): string {
+  const h = hex.replace('#', '').padEnd(6, 'F')
+  const r = h.slice(0, 2)
+  const g = h.slice(2, 4)
+  const b = h.slice(4, 6)
+  return `&H00${b}${g}${r}`.toUpperCase()
 }
 
 export function buildSubtitleBlocks(
@@ -71,7 +73,7 @@ export function blocksToSrt(blocks: SubBlock[]): string {
 export function blocksToAss(blocks: SubBlock[], style: SubtitleStyle): string {
   const fontSize = FONT_SIZE_MAP[style.font_size]
   const alignment = style.position === 'top' ? 8 : 2
-  const color = COLOR_MAP[style.color]
+  const color = hexToAss(style.color)
 
   const header = `[Script Info]
 ScriptType: v4.00+

@@ -27,7 +27,7 @@ export async function POST(
     return NextResponse.json({ error: 'crop_x must be a number between 0 and 1' }, { status: 400 })
   }
 
-  const subtitleStyleRaw = b?.subtitle_style as (SubtitleStyle & { enabled?: boolean }) | null | undefined
+  const subtitleStyleRaw = b?.subtitle_style as (Partial<SubtitleStyle> & { enabled?: boolean }) | null | undefined
   const subtitleEnabled = subtitleStyleRaw?.enabled === true
 
   const { id } = await params
