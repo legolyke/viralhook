@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getR2KeyFromUrl } from '@/lib/r2'
 import { buildSubtitleBlocks } from '@/lib/subtitles'
 import type { AssemblyAIWord } from '@/lib/assemblyai'
@@ -72,14 +72,19 @@ export async function POST(
   } | null = null
 
   if (subtitleEnabled && subtitleStyleRaw) {
-    const { data: transcript } = await supabase
+    // Use service client to bypass RLS on transcripts table
+    const svc = createServiceClient()
+    const { data: transcript, error: tErr } = await svc
       .from('transcripts')
       .select('content')
       .eq('project_id', clip.project_id)
       .single()
 
     const words = (transcript?.content as { words?: AssemblyAIWord[] } | null)?.words ?? []
+    console.log(`[export] subtitle: transcript=${transcript ? 'found' : 'null'} err=${tErr?.message ?? 'none'} words=${words.length} clip=${clip.start_time}-${clip.end_time}ms`)
+
     const blocks = buildSubtitleBlocks(words, clip.start_time, clip.end_time)
+    console.log(`[export] subtitle blocks generated: ${blocks.length}`)
 
     if (blocks.length > 0) {
       subtitleData = {
@@ -88,6 +93,8 @@ export async function POST(
         color: subtitleStyleRaw.color ?? '#FFFFFF',
         position: subtitleStyleRaw.position ?? 'bottom',
       }
+    } else {
+      console.warn('[export] no subtitle blocks — subtitles will be skipped')
     }
   }
 
