@@ -221,4 +221,5 @@ app.listen(Number(PORT), () => {
   console.log(`[startup] R2_ACCOUNT_ID=${process.env.R2_ACCOUNT_ID ? 'SET' : 'MISSING'}`)
   console.log(`[startup] SUPABASE_URL=${process.env.SUPABASE_URL ? 'SET' : 'MISSING'}`)
   console.log(`[startup] WORKER_SECRET=${process.env.WORKER_SECRET ? 'SET' : 'MISSING'}`)
+  console.log(`[startup] subtitle engine: drawtext`)
 })
