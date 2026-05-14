@@ -107,12 +107,12 @@ function buildVideoFilter(
       const tf = textFiles[i].replace(/\\/g, '/')
       return (
         `drawtext=textfile='${tf}'` +
+        `:fontfile='/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'` +
         `:x=(w-text_w)/2:y=${y}` +
         `:fontsize=${subtitleData.font_size}` +
-        `:fontcolor=0x${colorHex}` +
-        `:borderw=3:bordercolor=0x000000` +
-        `:bold=1` +
-        `:enable='between(t,${startS},${endS})'`
+        `:fontcolor=white` +
+        `:borderw=3:bordercolor=black` +
+        `:enable='between(t\\,${startS}\\,${endS})'`
       )
     }).filter(Boolean) as string[]
 
@@ -165,7 +165,10 @@ async function processClip(
         .save(outputPath)
         .on('start', (cmd) => console.log(`[ffmpeg] cmd: ${cmd.slice(0, 200)}`))
         .on('end', () => resolve())
-        .on('error', (err: Error) => reject(new Error(`FFmpeg error: ${err.message}`)))
+        .on('error', (err: Error, _stdout: string, stderr: string) => {
+          console.error(`[ffmpeg] stderr: ${stderr?.slice(-800) ?? 'none'}`)
+          reject(new Error(`FFmpeg error: ${err.message}`))
+        })
     })
     console.log(`[process] ffmpeg done for ${clipId}`)
 
