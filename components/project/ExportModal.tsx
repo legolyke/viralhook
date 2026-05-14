@@ -11,6 +11,11 @@ interface ExportModalProps {
 
 type ModalState = 'crop' | 'processing' | 'done' | 'error'
 
+function formatTime(ms: number): string {
+  const s = Math.floor(ms / 1000)
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
+}
+
 export default function ExportModal({ clipId, startTime, endTime, projectFileUrl, onClose }: ExportModalProps) {
   const [state, setState] = useState<ModalState>('crop')
   const [cropX, setCropX] = useState(0.5)
@@ -22,15 +27,19 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [dragStartCropX, setDragStartCropX] = useState(0.5)
   const [videoNaturalWidth, setVideoNaturalWidth] = useState(1920)
   const [videoNaturalHeight, setVideoNaturalHeight] = useState(1080)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollStartRef = useRef<number>(0)
 
-  // Pause video at clip start when in crop state
+  // Seek to clip start when entering crop state
   useEffect(() => {
     if (state === 'crop' && videoRef.current) {
+      videoRef.current.pause()
       videoRef.current.currentTime = startTime / 1000
+      setIsPlaying(false)
     }
   }, [state, startTime])
 
@@ -48,9 +57,10 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
     return () => { if (progressIntervalRef.current) clearInterval(progressIntervalRef.current) }
   }, [state, startTime, endTime])
 
-  // Poll for clip status during processing
+  // Poll for clip status — with 5-minute timeout
   useEffect(() => {
     if (state !== 'processing') return
+    pollStartRef.current = Date.now()
 
     let cancelled = false
     let timeoutId: ReturnType<typeof setTimeout> | null = null
@@ -58,6 +68,14 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
 
     const poll = async () => {
       if (cancelled) return
+
+      if (Date.now() - pollStartRef.current > 5 * 60 * 1000) {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+        setErrorMsg('Processing timed out. The server took too long to respond.')
+        setState('error')
+        return
+      }
+
       currentController = new AbortController()
       try {
         const res = await fetch(`/api/clips/${clipId}/status`, { signal: currentController.signal })
@@ -161,9 +179,19 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
     setFileUrl(null)
   }
 
-  // Crop box dimensions in display space
+  const togglePlay = () => {
+    if (!videoRef.current) return
+    if (isPlaying) {
+      videoRef.current.pause()
+    } else {
+      videoRef.current.currentTime = startTime / 1000
+      void videoRef.current.play()
+    }
+  }
+
   const aspectRatio = videoNaturalWidth / videoNaturalHeight
-  const cropBoxWidthRatio = (9 / 16) / aspectRatio // fraction of container width
+  const cropBoxWidthRatio = (9 / 16) / aspectRatio
+  const canDrag = cropBoxWidthRatio < 0.99
 
   const overlayStyle: React.CSSProperties = {
     position: 'absolute',
@@ -207,9 +235,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
         {state === 'crop' && (
           <>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, margin: 0 }}>
-              {cropBoxWidthRatio >= 0.99
-                ? 'Video is already 9:16 — full width will be used'
-                : 'Drag to position the crop area for your 9:16 clip'}
+              {canDrag ? 'Drag to position the crop area for your 9:16 clip' : 'Video is already 9:16 — full width will be used'}
             </p>
 
             {/* Video + overlay container */}
@@ -222,7 +248,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                 borderRadius: 8,
                 overflow: 'hidden',
                 background: '#000',
-                cursor: cropBoxWidthRatio < 0.99 ? 'ew-resize' : 'default',
+                cursor: canDrag ? 'ew-resize' : 'default',
               }}
             >
               <video
@@ -237,6 +263,14 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   setVideoNaturalHeight(v.videoHeight || 1080)
                   v.currentTime = startTime / 1000
                 }}
+                onTimeUpdate={(e) => {
+                  if (e.currentTarget.currentTime >= endTime / 1000) {
+                    e.currentTarget.pause()
+                    e.currentTarget.currentTime = startTime / 1000
+                  }
+                }}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
 
@@ -256,14 +290,14 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               {/* Crop box (draggable) */}
               <div
                 onMouseDown={(e) => {
-                  if (cropBoxWidthRatio >= 0.99) return
+                  if (!canDrag) return
                   e.preventDefault()
                   setIsDragging(true)
                   setDragStartX(e.clientX)
                   setDragStartCropX(cropX)
                 }}
                 onTouchStart={(e) => {
-                  if (cropBoxWidthRatio >= 0.99 || !e.touches[0]) return
+                  if (!canDrag || !e.touches[0]) return
                   setIsDragging(true)
                   setDragStartX(e.touches[0].clientX)
                   setDragStartCropX(cropX)
@@ -276,7 +310,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   height: '100%',
                   border: '2px solid #A855F7',
                   boxSizing: 'border-box',
-                  cursor: cropBoxWidthRatio < 0.99 ? 'ew-resize' : 'default',
+                  cursor: canDrag ? 'ew-resize' : 'default',
                 }}
               />
 
@@ -292,6 +326,47 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   pointerEvents: 'none',
                 }}
               />
+
+              {/* Play / Pause button */}
+              <button
+                type="button"
+                onClick={togglePlay}
+                style={{
+                  position: 'absolute',
+                  bottom: 12,
+                  left: 12,
+                  zIndex: 10,
+                  background: 'rgba(0,0,0,0.72)',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  borderRadius: 8,
+                  color: '#fff',
+                  cursor: 'pointer',
+                  padding: '5px 12px',
+                  fontSize: 16,
+                  lineHeight: 1,
+                }}
+              >
+                {isPlaying ? '⏸' : '▶'}
+              </button>
+
+              {/* Clip time label */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 12,
+                  right: 12,
+                  zIndex: 10,
+                  background: 'rgba(0,0,0,0.72)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 12,
+                  color: 'rgba(255,255,255,0.75)',
+                  pointerEvents: 'none',
+                }}
+              >
+                {formatTime(startTime)} → {formatTime(endTime)}
+              </div>
             </div>
 
             <button
