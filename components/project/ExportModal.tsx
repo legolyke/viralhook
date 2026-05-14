@@ -399,18 +399,37 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
             </div>
 
             {/* Subtitle options */}
-            <div style={{ borderTop: '1px solid rgba(168,85,247,0.12)', paddingTop: 14 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
-                <input
-                  type="checkbox"
-                  checked={subtitleEnabled}
-                  onChange={e => setSubtitleEnabled(e.target.checked)}
-                  style={{ width: 15, height: 15, accentColor: '#A855F7', cursor: 'pointer' }}
-                />
-                <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, fontWeight: 500 }}>
-                  Burn subtitles into video
-                </span>
-              </label>
+            <div>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, margin: '0 0 8px' }}>
+                Subtitles
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setSubtitleEnabled(false)}
+                  style={{
+                    padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13,
+                    background: !subtitleEnabled ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.04)',
+                    border: !subtitleEnabled ? '1px solid rgba(168,85,247,0.6)' : '1px solid rgba(255,255,255,0.1)',
+                    color: !subtitleEnabled ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
+                  }}
+                >
+                  No subtitles
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSubtitleEnabled(true)}
+                  style={{
+                    padding: '10px 12px', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13,
+                    background: subtitleEnabled ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.04)',
+                    border: subtitleEnabled ? '1px solid rgba(168,85,247,0.6)' : '1px solid rgba(255,255,255,0.1)',
+                    color: subtitleEnabled ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
+                  }}
+                >
+                  Burn into video
+                </button>
+              </div>
+
               {subtitleEnabled && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                   {([
@@ -425,7 +444,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                         onChange={e => (set as (v: string) => void)(e.target.value)}
                         style={{
                           background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(168,85,247,0.25)',
-                          borderRadius: 6, color: '#E9D5FF', fontSize: 12, padding: '4px 8px', cursor: 'pointer',
+                          borderRadius: 6, color: '#E9D5FF', fontSize: 12, padding: '5px 8px', cursor: 'pointer',
                         }}
                       >
                         {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -481,8 +500,8 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
 
         {/* State: done */}
         {state === 'done' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', padding: '16px 0' }}>
-            <p style={{ color: '#4ADE80', fontSize: 18, fontWeight: 700, margin: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '8px 0' }}>
+            <p style={{ color: '#4ADE80', fontSize: 18, fontWeight: 700, margin: 0, textAlign: 'center' }}>
               Your clip is ready!
             </p>
             <button
@@ -490,20 +509,20 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               onClick={() => void handleDownload()}
               disabled={isDownloading}
               style={{
-                display: 'block', width: '100%', padding: '12px', borderRadius: 10,
+                width: '100%', padding: '13px', borderRadius: 10,
                 background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
                 border: 'none', color: '#fff', fontWeight: 700, fontSize: 15,
                 cursor: isDownloading ? 'wait' : 'pointer', opacity: isDownloading ? 0.7 : 1,
               }}
             >
-              {isDownloading ? 'Downloading...' : 'Download'}
+              {isDownloading ? 'Downloading...' : 'Download Video'}
             </button>
             <a
               href={`/api/clips/${clipId}/subtitles/srt`}
               style={{
-                display: 'block', width: '100%', padding: '10px', borderRadius: 10,
-                background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)',
-                textAlign: 'center', color: '#C084FC', fontWeight: 600, fontSize: 13, textDecoration: 'none',
+                display: 'block', width: '100%', padding: '13px', borderRadius: 10, boxSizing: 'border-box',
+                background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.35)',
+                textAlign: 'center', color: '#C084FC', fontWeight: 700, fontSize: 15, textDecoration: 'none',
               }}
             >
               Download SRT
@@ -512,9 +531,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               type="button"
               onClick={handleReset}
               style={{
-                background: 'none', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: 13,
-                padding: '8px 16px', cursor: 'pointer',
+                background: 'none', border: 'none',
+                color: 'rgba(255,255,255,0.3)', fontSize: 12,
+                padding: '4px', cursor: 'pointer', textDecoration: 'underline',
               }}
             >
               Re-generate
