@@ -247,6 +247,9 @@ body {
   .project-meta-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+  .project-two-col {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @keyframes spin {

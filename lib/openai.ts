@@ -2,6 +2,57 @@ import type { AssemblyAIWord, AssemblyAIHighlight } from '@/lib/assemblyai'
 
 const OPENAI_BASE = 'https://api.openai.com/v1'
 
+export type CaptionPlatform = 'tiktok' | 'reels' | 'shorts' | 'youtube'
+
+export async function generateCaption(
+  clipText: string,
+  platform: CaptionPlatform,
+  language = 'en'
+): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
+
+  const platformGuides: Record<CaptionPlatform, string> = {
+    tiktok: 'TikTok — casual, trendy tone, start with a hook (POV:, Nobody:, etc.), 3–5 trending hashtags, keep caption punchy and under 200 chars',
+    reels: 'Instagram Reels — visually descriptive, use 2–3 emojis naturally, engaging CTA, 3–5 relevant hashtags at the end',
+    shorts: 'YouTube Shorts — punchy title-style caption, include #Shorts plus 2–3 topic hashtags',
+    youtube: 'YouTube — SEO-optimized description, put keywords in the first 2 lines, add 3–5 hashtags at the very end',
+  }
+
+  const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
+    method: 'POST',
+    signal: AbortSignal.timeout(15000),
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a social media expert who writes viral captions. Always write in the same language as the transcript (language code: ${language}). Return ONLY the caption — no explanations, no quotes around it.`,
+        },
+        {
+          role: 'user',
+          content: `Write a caption for this video clip to post on ${platformGuides[platform]}.\n\nClip transcript:\n${clipText.slice(0, 3000)}`,
+        },
+      ],
+      temperature: 0.75,
+      max_tokens: 300,
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`OpenAI error ${res.status}: ${text}`)
+  }
+
+  const data = await res.json() as { choices: Array<{ message: { content: string } }> }
+  const content = data.choices[0]?.message?.content?.trim()
+  if (!content) throw new Error('OpenAI returned empty response')
+  return content
+}
+
 export interface DetectedClip {
   title: string
   start_ms: number

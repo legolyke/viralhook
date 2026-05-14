@@ -95,6 +95,26 @@ async function patchClip(clipId: string, fields: Record<string, unknown>): Promi
   console.log(`[patchClip] RPC ok → status=${fields.status} clip=${clipId}`)
 }
 
+function wrapText(text: string, videoWidth: number, fontSize: number): string {
+  // Estimate chars per line: DejaVuSans-Bold avg char width ≈ 0.58 × fontSize
+  const charsPerLine = Math.max(10, Math.floor(videoWidth / (fontSize * 0.58)))
+  if (text.length <= charsPerLine) return text
+  const words = text.split(' ')
+  const lines: string[] = []
+  let current = ''
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word
+    if (candidate.length > charsPerLine && current) {
+      lines.push(current)
+      current = word
+    } else {
+      current = candidate
+    }
+  }
+  if (current) lines.push(current)
+  return lines.join('\n')
+}
+
 function buildVideoFilter(
   cropX: number,
   subtitleData: SubtitleData | null,
@@ -108,7 +128,7 @@ function buildVideoFilter(
     const colorHex = subtitleData.color.replace('#', '')
     const y = subtitleData.position === 'top'
       ? `${subtitleData.font_size}`
-      : `h-th-${Math.round(subtitleData.font_size * 1.5)}`
+      : `h-th-${Math.round(subtitleData.font_size * 2)}`
 
     const filters = subtitleData.blocks.map((block, i) => {
       if (!textFiles[i]) return null
@@ -120,7 +140,7 @@ function buildVideoFilter(
         `:fontfile='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'` +
         `:x=(w-text_w)/2:y=${y}` +
         `:fontsize=${subtitleData.font_size}` +
-        `:fontcolor=white` +
+        `:fontcolor=0x${colorHex}` +
         `:borderw=3:bordercolor=black` +
         `:enable='between(t,${startS},${endS})'`
       )
@@ -152,11 +172,13 @@ async function processClip(
 
     await downloadFromR2(sourceKey, inputPath)
 
-    // Write one text file per subtitle block
+    // Write one text file per subtitle block (with word-wrap for large fonts)
     if (subtitleData) {
+      const { w: vw } = RESOLUTION_DIMS[resolution]
       for (let i = 0; i < subtitleData.blocks.length; i++) {
         const tf = path.join(os.tmpdir(), `vh_txt_${clipId}_${i}.txt`)
-        fs.writeFileSync(tf, subtitleData.blocks[i].text, 'utf8')
+        const wrapped = wrapText(subtitleData.blocks[i].text, vw, subtitleData.font_size)
+        fs.writeFileSync(tf, wrapped, 'utf8')
         textFiles.push(tf)
       }
       console.log(`[process] wrote ${textFiles.length} subtitle text files`)

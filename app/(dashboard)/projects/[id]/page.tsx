@@ -60,7 +60,7 @@ export default async function ProjectDetailPage({
     .order('virality_score', { ascending: false })
 
   return (
-    <div className="dashboard-content" style={{ maxWidth: 900 }}>
+    <div className="dashboard-content" style={{ maxWidth: 1600 }}>
       <Link
         href="/dashboard"
         style={{
@@ -79,47 +79,62 @@ export default async function ProjectDetailPage({
       <StatusPoller status={project.status} />
       <ProjectHeader id={project.id} title={project.title} status={project.status} />
 
-      <VideoPlayer fileUrl={project.file_url ?? ''} status={project.status} projectId={project.id} durationSeconds={project.duration_seconds ?? 60} />
-
+      {/* Two-column layout */}
       <div
+        className="project-two-col"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 12,
-          marginTop: 16,
+          gridTemplateColumns: '1fr 1.4fr',
+          gap: 24,
+          alignItems: 'start',
         }}
-        className="project-meta-grid"
       >
-        {[
-          { label: 'Source', value: SOURCE_LABEL[project.source] ?? project.source },
-          { label: 'Duration', value: formatDuration(project.duration_seconds) },
-          { label: 'File size', value: formatSize(project.file_size) },
-        ].map(({ label, value }) => (
+        {/* Left column: video + metadata */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <VideoPlayer fileUrl={project.file_url ?? ''} status={project.status} projectId={project.id} durationSeconds={project.duration_seconds ?? 60} />
+
           <div
-            key={label}
             style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: 10,
-              padding: '12px 14px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 12,
             }}
+            className="project-meta-grid"
           >
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
-              {label}
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#E9D5FF' }}>{value}</div>
+            {[
+              { label: 'Source', value: SOURCE_LABEL[project.source] ?? project.source },
+              { label: 'Duration', value: formatDuration(project.duration_seconds) },
+              { label: 'File size', value: formatSize(project.file_size) },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                }}
+              >
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+                  {label}
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#E9D5FF' }}>{value}</div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Right column: transcript + clips */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <TranscriptPanel status={project.status} transcript={transcript} projectId={project.id} />
+          <ClipsGrid
+            projectStatus={project.status}
+            projectId={project.id}
+            projectFileUrl={project.file_url ?? ''}
+            clips={clips ?? []}
+          />
+        </div>
       </div>
-
-      <TranscriptPanel status={project.status} transcript={transcript} projectId={project.id} />
-
-      <ClipsGrid
-          projectStatus={project.status}
-          projectId={project.id}
-          projectFileUrl={project.file_url ?? ''}
-          clips={clips ?? []}
-        />
     </div>
   )
 }
