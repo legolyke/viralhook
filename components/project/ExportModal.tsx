@@ -82,6 +82,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [resolution, setResolution] = useState<'720p' | '1080p' | '4k'>('1080p')
   const [subtitleEnabled, setSubtitleEnabled] = useState(false)
   const [subtitlePosition, setSubtitlePosition] = useState<'bottom' | 'top'>('bottom')
   const [subtitleFontSize, setSubtitleFontSize] = useState(40)
@@ -232,10 +233,11 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           crop_x: cropX,
+          resolution,
           subtitle_style: subtitleEnabled ? {
             enabled: true,
             position: subtitlePosition,
-            font_size: subtitleFontSize,  // number
+            font_size: subtitleFontSize,
             color: subtitleColor,
             font: subtitleFont,
           } : null,
@@ -481,6 +483,38 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   </span>
                 </div>
               )}
+            </div>
+
+            {/* Resolution */}
+            <div>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, margin: '0 0 8px' }}>
+                Resolution
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {([
+                  { value: '720p',  label: '720p',  desc: 'HD' },
+                  { value: '1080p', label: '1080p', desc: 'Full HD' },
+                  { value: '4k',    label: '4K',    desc: 'Ultra HD' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setResolution(opt.value)}
+                    style={{
+                      padding: '10px 8px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
+                      background: resolution === opt.value ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.04)',
+                      border: resolution === opt.value ? '1px solid rgba(168,85,247,0.6)' : '1px solid rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: 13, color: resolution === opt.value ? '#E9D5FF' : 'rgba(255,255,255,0.5)' }}>
+                      {opt.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: resolution === opt.value ? 'rgba(233,213,255,0.55)' : 'rgba(255,255,255,0.25)', marginTop: 2 }}>
+                      {opt.desc}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Subtitle options */}

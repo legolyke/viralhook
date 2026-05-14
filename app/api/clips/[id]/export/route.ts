@@ -30,6 +30,9 @@ export async function POST(
   const subtitleStyleRaw = b?.subtitle_style as (Partial<SubtitleStyle> & { enabled?: boolean }) | null | undefined
   const subtitleEnabled = subtitleStyleRaw?.enabled === true
 
+  const resolutionRaw = b?.resolution
+  const resolution = resolutionRaw === '720p' || resolutionRaw === '4k' ? resolutionRaw : '1080p'
+
   const { id } = await params
 
   const { data: clip } = await supabase
@@ -122,7 +125,7 @@ export async function POST(
         end_time: clip.end_time,
         crop_x: cropX,
         subtitle_data: subtitleData,
-        resolution: '1080p', // TODO: pass from user plan when resolution tiers are activated
+        resolution,
       }),
     })
   } catch (err) {
