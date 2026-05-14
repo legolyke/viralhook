@@ -58,10 +58,10 @@ function ClipCard({
           <span
             title={
               clip.virality_score >= 0.8
-                ? 'Viral Score: High — AI-ul consideră că acest clip are șanse mari să devină viral pe TikTok/Reels/Shorts'
+                ? 'Viral Score: High — AI predicts strong viral potential on TikTok, Reels & Shorts'
                 : clip.virality_score >= 0.6
-                ? 'Viral Score: Mediu — clip cu potențial viral moderat'
-                : 'Viral Score: Scăzut — clip mai puțin probabil să devină viral'
+                ? 'Viral Score: Medium — moderate viral potential'
+                : 'Viral Score: Low — less likely to go viral'
             }
             style={{
               flexShrink: 0,
