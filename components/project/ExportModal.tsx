@@ -79,7 +79,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
 
       currentController = new AbortController()
       try {
-        const res = await fetch(`/api/clips/${clipId}/status`, { signal: currentController.signal })
+        const res = await fetch(`/api/clips/${clipId}/status`, { signal: currentController.signal, cache: 'no-store' })
         if (cancelled) return
         if (!res.ok) {
           if (!cancelled) timeoutId = setTimeout(poll, 2000)
