@@ -4,6 +4,7 @@ import { getR2KeyFromUrl } from '@/lib/r2'
 import { buildSubtitleBlocks } from '@/lib/subtitles'
 import type { AssemblyAIWord } from '@/lib/assemblyai'
 import type { SubtitleStyle } from '@/lib/subtitles'
+import { isAtLimit, getPlanLimit, type PlanName } from '@/lib/plans'
 
 export async function POST(
   request: Request,
@@ -12,6 +13,30 @@ export async function POST(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Phone verification check
+  if (!user.phone_confirmed_at) {
+    return NextResponse.json({ error: 'phone_required' }, { status: 403 })
+  }
+
+  // Plan limit check
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('plan, exports_used')
+    .eq('user_id', user.id)
+    .single()
+
+  const plan = (sub?.plan ?? 'free') as PlanName
+  const exportsUsed = sub?.exports_used ?? 0
+
+  if (isAtLimit(plan, exportsUsed)) {
+    return NextResponse.json({
+      error: 'limit_reached',
+      plan,
+      exports_used: exportsUsed,
+      limit: getPlanLimit(plan),
+    }, { status: 403 })
+  }
 
   let body: unknown
   try {
@@ -145,6 +170,13 @@ export async function POST(
       .eq('id', id)
     return NextResponse.json({ error: 'Worker failed to start' }, { status: 500 })
   }
+
+  // Increment export counter
+  const svcCounter = createServiceClient()
+  await svcCounter
+    .from('subscriptions')
+    .update({ exports_used: exportsUsed + 1, updated_at: new Date().toISOString() })
+    .eq('user_id', user.id)
 
   return NextResponse.json({ ok: true })
 }
