@@ -12,12 +12,20 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/login')
 
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('plan')
+    .eq('user_id', user.id)
+    .single()
+
+  const plan = (sub?.plan ?? 'free') as import('@/lib/plans').PlanName
+
   return (
     <div className="dashboard-layout">
       <Sidebar
           email={user.email ?? ''}
           fullName={user.user_metadata?.full_name ?? user.user_metadata?.name}
-          plan="FREE"
+          plan={plan}
         />
       <main className="dashboard-main">
         {children}

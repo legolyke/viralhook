@@ -121,7 +121,7 @@ function NavLink({
   )
 }
 
-export default function Sidebar({ email, fullName, plan = 'FREE' }: SidebarProps) {
+export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -257,11 +257,21 @@ export default function Sidebar({ email, fullName, plan = 'FREE' }: SidebarProps
           <div style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.15)', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Plan</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#A855F7' }}>{plan}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                <span style={{
+                  background: 'rgba(168,85,247,0.15)', color: '#A855F7',
+                  fontSize: '10px', fontWeight: 700, padding: '2px 8px',
+                  borderRadius: '20px', letterSpacing: '0.08em',
+                }}>
+                  {plan.toUpperCase()}
+                </span>
+              </div>
             </div>
-            <Link href="/billing" style={{ fontSize: 11, padding: '3px 8px', borderRadius: 5, background: 'linear-gradient(90deg,#7C3AED,#C026D3)', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>
-              Upgrade
-            </Link>
+            {plan === 'free' && (
+              <Link href="/billing" style={{ fontSize: 11, padding: '3px 8px', borderRadius: 5, background: 'linear-gradient(90deg,#7C3AED,#C026D3)', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>
+                Upgrade
+              </Link>
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
