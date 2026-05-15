@@ -10,7 +10,7 @@ RUN npm install
 COPY . .
 
 RUN mkdir -p /usr/share/fonts/truetype/google && \
-    cp server/fonts/*.ttf /usr/share/fonts/truetype/google/ && \
+    cp fonts/*.ttf /usr/share/fonts/truetype/google/ && \
     fc-cache -f
 
 RUN npm run build
