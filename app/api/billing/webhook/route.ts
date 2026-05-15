@@ -63,6 +63,11 @@ export async function POST(request: Request) {
     price_agency: process.env.STRIPE_PRICE_AGENCY ?? '',
   }
 
+  if (!prices.price_creator || !prices.price_pro || !prices.price_agency) {
+    console.error('[webhook] price env vars missing')
+    return NextResponse.json({ error: 'Price configuration missing' }, { status: 500 })
+  }
+
   try {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session
@@ -81,7 +86,9 @@ export async function POST(request: Request) {
       const plan = priceId ? resolveWebhookPlan(priceId, prices) : null
       const customerId = sub.customer as string
 
-      if (plan) {
+      if (!plan) {
+        console.error('[webhook] unknown price_id', priceId, 'for customer', customerId)
+      } else {
         const svc = createServiceClient()
         await svc
           .from('subscriptions')
