@@ -23,3 +23,47 @@ export function buildFadeFilters(durationSec: number): { video: string; audio: s
     audio: `afade=t=in:st=0:d=${d},afade=t=out:st=${outStart}:d=${d}`,
   }
 }
+
+export function parseSilenceOutput(
+  stderr: string,
+  clipDurationSec: number,
+): SilenceSegment[] {
+  const silenceStarts: number[] = []
+  const silenceEnds: number[] = []
+
+  for (const line of stderr.split('\n')) {
+    const startMatch = line.match(/silence_start:\s*([\d.]+)/)
+    const endMatch   = line.match(/silence_end:\s*([\d.]+)/)
+    if (startMatch) silenceStarts.push(parseFloat(startMatch[1]))
+    if (endMatch)   silenceEnds.push(parseFloat(endMatch[1]))
+  }
+
+  // Unclosed silence at end of clip
+  if (silenceStarts.length > silenceEnds.length) {
+    silenceEnds.push(clipDurationSec)
+  }
+
+  // Build non-silent segments
+  const kept: SilenceSegment[] = []
+  let cursor = 0
+
+  for (let i = 0; i < silenceStarts.length; i++) {
+    const silStart = silenceStarts[i]
+    const silEnd   = silenceEnds[i]
+    if (silStart > cursor + 0.05) {
+      kept.push({ start: cursor, end: silStart })
+    }
+    cursor = silEnd
+  }
+  if (cursor < clipDurationSec - 0.05) {
+    kept.push({ start: cursor, end: clipDurationSec })
+  }
+
+  if (kept.length === 0) return [{ start: 0, end: clipDurationSec }]
+
+  // Safety: if total kept < 5s, skip silence removal
+  const totalKept = kept.reduce((sum, s) => sum + s.end - s.start, 0)
+  if (totalKept < 5) return [{ start: 0, end: clipDurationSec }]
+
+  return kept
+}

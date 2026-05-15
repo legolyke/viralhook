@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildZoomFilter, buildFadeFilters } from '../../server/filters'
+import { buildZoomFilter, buildFadeFilters, parseSilenceOutput } from '../../server/filters'
 
 describe('buildZoomFilter', () => {
   it('returns zoompan expression with correct dimensions', () => {
@@ -26,5 +26,64 @@ describe('buildFadeFilters', () => {
     const result = buildFadeFilters(0.3)
     expect(result.video).toContain('st=0.000')
     expect(result.audio).toContain('st=0.000')
+  })
+})
+
+describe('parseSilenceOutput', () => {
+  it('returns full clip as single segment when no silence detected', () => {
+    const result = parseSilenceOutput('', 10)
+    expect(result).toEqual([{ start: 0, end: 10 }])
+  })
+
+  it('splits clip around a single silence period', () => {
+    const stderr = [
+      '[silencedetect @ 0x1] silence_start: 3.5',
+      '[silencedetect @ 0x1] silence_end: 6.2 | silence_duration: 2.7',
+    ].join('\n')
+    const result = parseSilenceOutput(stderr, 10)
+    expect(result).toEqual([
+      { start: 0, end: 3.5 },
+      { start: 6.2, end: 10 },
+    ])
+  })
+
+  it('handles two silence periods', () => {
+    const stderr = [
+      '[silencedetect @ 0x1] silence_start: 2',
+      '[silencedetect @ 0x1] silence_end: 4 | silence_duration: 2',
+      '[silencedetect @ 0x1] silence_start: 8',
+      '[silencedetect @ 0x1] silence_end: 10.5 | silence_duration: 2.5',
+    ].join('\n')
+    const result = parseSilenceOutput(stderr, 15)
+    expect(result).toEqual([
+      { start: 0, end: 2 },
+      { start: 4, end: 8 },
+      { start: 10.5, end: 15 },
+    ])
+  })
+
+  it('handles silence that starts at clip beginning', () => {
+    const stderr = [
+      '[silencedetect @ 0x1] silence_start: 0',
+      '[silencedetect @ 0x1] silence_end: 2.5 | silence_duration: 2.5',
+    ].join('\n')
+    const result = parseSilenceOutput(stderr, 10)
+    expect(result).toEqual([{ start: 2.5, end: 10 }])
+  })
+
+  it('handles unclosed silence at end of clip', () => {
+    const stderr = '[silencedetect @ 0x1] silence_start: 7'
+    const result = parseSilenceOutput(stderr, 10)
+    expect(result).toEqual([{ start: 0, end: 7 }])
+  })
+
+  it('returns full clip when total kept duration would be less than 5s', () => {
+    // Only 1s of non-silence in a 10s clip — safety fallback
+    const stderr = [
+      '[silencedetect @ 0x1] silence_start: 1',
+      '[silencedetect @ 0x1] silence_end: 10 | silence_duration: 9',
+    ].join('\n')
+    const result = parseSilenceOutput(stderr, 10)
+    expect(result).toEqual([{ start: 0, end: 10 }])
   })
 })
