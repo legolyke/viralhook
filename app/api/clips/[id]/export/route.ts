@@ -56,7 +56,7 @@ export async function POST(
   const subtitleEnabled = subtitleStyleRaw?.enabled === true
 
   const resolutionRaw = b?.resolution
-  const resolution = resolutionRaw === '720p' || resolutionRaw === '4k' ? resolutionRaw : '1080p'
+  const resolution = resolutionRaw === '720p' ? '720p' : '1080p'
 
   const { id } = await params
 

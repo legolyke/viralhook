@@ -56,7 +56,7 @@ export function buildSubtitleBlocks(
   words: AssemblyAIWord[],
   clipStartMs: number,
   clipEndMs: number,
-  wordsPerBlock = 4,
+  wordsPerBlock = 3,
 ): SubBlock[] {
   const clipped = words.filter(w => w.start >= clipStartMs && w.start < clipEndMs)
   const blocks: SubBlock[] = []
@@ -65,7 +65,7 @@ export function buildSubtitleBlocks(
   for (const word of clipped) {
     current.push(word)
     const duration = word.end - current[0].start
-    if (current.length >= wordsPerBlock || duration >= 3000) {
+    if (current.length >= wordsPerBlock || duration >= 2000) {
       blocks.push({
         start: Math.max(0, current[0].start - clipStartMs),
         end: Math.max(0, word.end - clipStartMs),

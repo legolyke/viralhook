@@ -39,12 +39,11 @@ interface SubtitleData {
   position: string // 'bottom' | 'top'
 }
 
-type Resolution = '720p' | '1080p' | '4k'
+type Resolution = '720p' | '1080p'
 
 const RESOLUTION_DIMS: Record<Resolution, { w: number; h: number }> = {
   '720p':  { w: 720,  h: 1280  },
   '1080p': { w: 1080, h: 1920  },
-  '4k':    { w: 2160, h: 3840  },
 }
 
 async function downloadFromR2(key: string, destPath: string): Promise<void> {
@@ -251,7 +250,7 @@ app.post('/process', (req, res) => {
     : null
 
   const parsedResolution: Resolution =
-    resolution === '720p' || resolution === '4k' ? resolution : '1080p'
+    resolution === '720p' ? '720p' : '1080p'
 
   console.log(`[request] /process clip=${clip_id} subs=${parsedSubtitleData ? 'yes' : 'no'} res=${parsedResolution}`)
   res.json({ ok: true })

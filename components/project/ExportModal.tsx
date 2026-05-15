@@ -86,7 +86,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [resolution, setResolution] = useState<'720p' | '1080p' | '4k'>('1080p')
+  const [resolution, setResolution] = useState<'720p' | '1080p'>('1080p')
   const [subtitleEnabled, setSubtitleEnabled] = useState(false)
   const [subtitlePosition, setSubtitlePosition] = useState<'bottom' | 'top'>('bottom')
   const [subtitleFontSize, setSubtitleFontSize] = useState(40)
@@ -330,42 +330,77 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const canDrag = cropBoxWidthRatio < 0.99
 
   const overlayStyle: React.CSSProperties = {
-    position: 'absolute',
+    position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.5)',
+    background: 'rgba(0,0,0,0.6)',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     zIndex: 50,
     padding: 16,
+    overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch',
   }
 
   const modalStyle: React.CSSProperties = {
     background: '#0F0F1A',
     border: '1px solid rgba(168,85,247,0.2)',
     borderRadius: 16,
-    padding: 24,
     width: '100%',
     maxWidth: 640,
     display: 'flex',
     flexDirection: 'column',
-    gap: 20,
+    flexShrink: 0,
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    overflow: 'hidden',
   }
 
   return (
     <div style={overlayStyle} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={modalStyle}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Sticky header — always visible */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '16px 24px 12px',
+          borderBottom: '1px solid rgba(168,85,247,0.1)',
+          background: '#0F0F1A',
+          flexShrink: 0,
+        }}>
           <h3 style={{ color: '#E9D5FF', fontWeight: 700, fontSize: 16, margin: 0 }}>Export Clip</h3>
           <button
             type="button"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }}
+            aria-label="Close"
+            style={{
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 8,
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: 18,
+              cursor: 'pointer',
+              lineHeight: 1,
+              padding: '6px 10px',
+              minWidth: 36,
+              minHeight: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            ×
+            ✕
           </button>
         </div>
+
+        {/* Scrollable body */}
+        <div style={{
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          padding: '20px 24px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+        }}>
 
         {/* State: crop selector */}
         {state === 'crop' && (
@@ -379,7 +414,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               style={{
                 position: 'relative',
                 width: '100%',
-                height: 360,
+                height: 'clamp(200px, 55vw, 320px)',
                 borderRadius: 8,
                 overflow: 'hidden',
                 background: '#000',
@@ -511,11 +546,10 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, margin: '0 0 8px' }}>
                 Resolution
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 {([
                   { value: '720p',  label: '720p',  desc: 'HD' },
                   { value: '1080p', label: '1080p', desc: 'Full HD' },
-                  { value: '4k',    label: '4K',    desc: 'Ultra HD' },
                 ] as const).map(opt => (
                   <button
                     key={opt.value}
@@ -739,6 +773,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
             </button>
           </div>
         )}
+        </div>{/* end scrollable body */}
       </div>
       {showPhone && (
         <PhoneVerifyModal
