@@ -603,62 +603,63 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
               </div>
 
               {subtitleEnabled && (
-                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
 
-                  {/* Position */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Position</span>
-                    <select value={subtitlePosition} onChange={e => setSubtitlePosition(e.target.value as 'bottom' | 'top')} style={SELECT_STYLE}>
-                      <option value="bottom">Bottom</option>
-                      <option value="top">Top</option>
-                    </select>
-                  </div>
-
-                  {/* Font */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Font</span>
-                    <select value={subtitleFont} onChange={e => setSubtitleFont(e.target.value)} style={{ ...SELECT_STYLE, flex: 1 }}>
-                      {SUBTITLE_FONTS.map(f => (
-                        <option key={f.key} value={f.key}>{f.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Size */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Size</span>
-                    <select value={subtitleFontSize} onChange={e => setSubtitleFontSize(Number(e.target.value))} style={SELECT_STYLE}>
-                      {Array.from({ length: 34 }, (_, i) => 4 + i * 2).map(s => (
-                        <option key={s} value={s}>{s}px</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Color picker */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Color</span>
-                    <div style={{ position: 'relative', width: 28, height: 28, flexShrink: 0 }}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: '50%', cursor: 'pointer',
-                        background: 'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)',
-                        border: '2px solid rgba(255,255,255,0.2)',
-                      }} />
-                      <input
-                        type="color"
-                        value={subtitleColor}
-                        onChange={e => setSubtitleColor(e.target.value)}
-                        style={{
-                          position: 'absolute', inset: 0, opacity: 0,
-                          width: '100%', height: '100%', cursor: 'pointer', padding: 0, border: 'none',
-                        }}
-                      />
+                  {/* Row 1: Position + Font */}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, flexShrink: 0 }}>Position</span>
+                      <select value={subtitlePosition} onChange={e => setSubtitlePosition(e.target.value as 'bottom' | 'top')} style={SELECT_STYLE}>
+                        <option value="bottom">Bottom</option>
+                        <option value="top">Top</option>
+                      </select>
                     </div>
-                    <div style={{
-                      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                      background: subtitleColor, border: '2px solid rgba(255,255,255,0.25)',
-                    }} />
-                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{subtitleColor}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, flexShrink: 0 }}>Font</span>
+                      <select value={subtitleFont} onChange={e => setSubtitleFont(e.target.value)} style={{ ...SELECT_STYLE, flex: 1, minWidth: 0 }}>
+                        {SUBTITLE_FONTS.map(f => (
+                          <option key={f.key} value={f.key}>{f.name}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+
+                  {/* Row 2: Size + Color */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, flexShrink: 0 }}>Size</span>
+                      <select value={subtitleFontSize} onChange={e => setSubtitleFontSize(Number(e.target.value))} style={SELECT_STYLE}>
+                        {Array.from({ length: 34 }, (_, i) => 4 + i * 2).map(s => (
+                          <option key={s} value={s}>{s}px</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, flexShrink: 0 }}>Color</span>
+                      <div style={{ position: 'relative', width: 28, height: 28, flexShrink: 0 }}>
+                        <div style={{
+                          width: 28, height: 28, borderRadius: '50%', cursor: 'pointer',
+                          background: 'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)',
+                          border: '2px solid rgba(255,255,255,0.2)',
+                        }} />
+                        <input
+                          type="color"
+                          value={subtitleColor}
+                          onChange={e => setSubtitleColor(e.target.value)}
+                          style={{
+                            position: 'absolute', inset: 0, opacity: 0,
+                            width: '100%', height: '100%', cursor: 'pointer', padding: 0, border: 'none',
+                          }}
+                        />
+                      </div>
+                      <div style={{
+                        width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                        background: subtitleColor, border: '2px solid rgba(255,255,255,0.25)',
+                      }} />
+                      <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{subtitleColor}</span>
+                    </div>
+                  </div>
+
                 </div>
               )}
             </div>
