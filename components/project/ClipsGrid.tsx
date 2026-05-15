@@ -354,7 +354,7 @@ function ClipCard({
                 borderRadius: 8,
               }}>
                 <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, margin: '0 0 4px', lineHeight: 1.4 }}>
-                  {BREAKDOWN_DEFS[activeBreakdown]}
+                  <strong style={{ color: 'rgba(255,255,255,0.5)' }}>{BREAKDOWN_LABELS[activeBreakdown]}</strong> — {BREAKDOWN_DEFS[activeBreakdown]}
                 </p>
                 <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 11, margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
                   &ldquo;{clip.score_breakdown[activeBreakdown as keyof ScoreBreakdown].reason}&rdquo;
