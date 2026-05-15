@@ -9,12 +9,14 @@ export const RESOLUTION_DIMS: Record<Resolution, { w: number; h: number }> = {
   '1080p': { w: 1080, h: 1920 },
 }
 
+export const FADE_DURATION_SEC = 0.5
+
 export function buildZoomFilter(w: number, h: number): string {
   return `zoompan=z='1+0.05*sin(2*PI*t/6)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${w}x${h}`
 }
 
 export function buildFadeFilters(durationSec: number): { video: string; audio: string } {
-  const d = 0.5
+  const d = FADE_DURATION_SEC
   const outStart = Math.max(0, durationSec - d).toFixed(3)
   return {
     video: `fade=t=in:st=0:d=${d},fade=t=out:st=${outStart}:d=${d}`,
