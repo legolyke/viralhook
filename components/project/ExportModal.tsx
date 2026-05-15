@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import PhoneVerifyModal from '@/components/phone/PhoneVerifyModal'
+import UpsellModal from '@/components/billing/UpsellModal'
 
 const SUBTITLE_FONTS = [
   { key: 'arial',            name: 'Arial',             css: 'Arial, sans-serif' },
@@ -70,6 +72,8 @@ function formatTime(ms: number): string {
 
 export default function ExportModal({ clipId, startTime, endTime, projectFileUrl, onClose }: ExportModalProps) {
   const [state, setState] = useState<ModalState>('crop')
+  const [showPhone, setShowPhone] = useState(false)
+  const [upsellData, setUpsellData] = useState<{ plan: string; exports_used: number; limit: number } | null>(null)
   const [cropX, setCropX] = useState(0.5)
   const [progress, setProgress] = useState(0)
   const [fileUrl, setFileUrl] = useState<string | null>(null)
@@ -243,6 +247,23 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
           } : null,
         }),
       })
+      if (res.status === 403) {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
+        const data = await res.json() as { error?: string; plan?: string; exports_used?: number; limit?: number }
+        if (data.error === 'phone_required') {
+          setState('crop')
+          setShowPhone(true)
+          return
+        }
+        if (data.error === 'limit_reached') {
+          setState('crop')
+          setUpsellData({ plan: data.plan ?? '', exports_used: data.exports_used ?? 0, limit: data.limit ?? 0 })
+          return
+        }
+        setErrorMsg(data.error ?? 'Access denied.')
+        setState('error')
+        return
+      }
       if (!res.ok) {
         if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
         const data = await res.json() as { error?: string }
@@ -573,7 +594,7 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, width: 52, flexShrink: 0 }}>Size</span>
                     <select value={subtitleFontSize} onChange={e => setSubtitleFontSize(Number(e.target.value))} style={SELECT_STYLE}>
-                      {Array.from({ length: 74 }, (_, i) => 4 + i * 2).map(s => (
+                      {Array.from({ length: 34 }, (_, i) => 4 + i * 2).map(s => (
                         <option key={s} value={s}>{s}px</option>
                       ))}
                     </select>
@@ -719,6 +740,20 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
           </div>
         )}
       </div>
+      {showPhone && (
+        <PhoneVerifyModal
+          onVerified={() => { setShowPhone(false); void handleGenerate() }}
+          onClose={() => setShowPhone(false)}
+        />
+      )}
+      {upsellData && (
+        <UpsellModal
+          plan={upsellData.plan}
+          exportsUsed={upsellData.exports_used}
+          limit={upsellData.limit}
+          onClose={() => setUpsellData(null)}
+        />
+      )}
     </div>
   )
 }
