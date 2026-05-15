@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ReanalyzeButton from './ReanalyzeButton'
 import ExportModal from './ExportModal'
 
@@ -46,6 +46,22 @@ function ClipCard({
   const [showExport, setShowExport] = useState(false)
   const [showCaption, setShowCaption] = useState(false)
   const [showScoreTooltip, setShowScoreTooltip] = useState(false)
+  const scoreRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showScoreTooltip) return
+    const close = (e: MouseEvent | TouchEvent) => {
+      if (scoreRef.current && !scoreRef.current.contains(e.target as Node)) {
+        setShowScoreTooltip(false)
+      }
+    }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('touchstart', close)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('touchstart', close)
+    }
+  }, [showScoreTooltip])
   const [platform, setPlatform] = useState<CaptionPlatform>('tiktok')
   const [caption, setCaption] = useState<string | null>(null)
   const [captionLoading, setCaptionLoading] = useState(false)
@@ -224,60 +240,47 @@ function ClipCard({
               </button>
             </div>
           )}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <span
-              title={
-                clip.virality_score >= 0.8
-                  ? 'Viral Score: High — AI predicts strong viral potential on TikTok, Reels & Shorts'
-                  : clip.virality_score >= 0.6
-                  ? 'Viral Score: Medium — moderate viral potential'
-                  : 'Viral Score: Low — less likely to go viral'
-              }
+          <div ref={scoreRef} style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              type="button"
               onClick={() => setShowScoreTooltip(v => !v)}
               style={{
-                display: 'inline-block',
+                background: clip.virality_score >= 0.8 ? 'rgba(34,197,94,0.1)' : clip.virality_score >= 0.6 ? 'rgba(234,179,8,0.1)' : 'rgba(168,85,247,0.1)',
+                border: 'none',
+                borderRadius: 20,
+                color: clip.virality_score >= 0.8 ? '#4ADE80' : clip.virality_score >= 0.6 ? '#FCD34D' : '#C084FC',
+                cursor: 'pointer',
                 fontSize: 12,
                 fontWeight: 700,
-                color: clip.virality_score >= 0.8 ? '#4ADE80' : clip.virality_score >= 0.6 ? '#FCD34D' : '#C084FC',
-                background: clip.virality_score >= 0.8 ? 'rgba(34,197,94,0.1)' : clip.virality_score >= 0.6 ? 'rgba(234,179,8,0.1)' : 'rgba(168,85,247,0.1)',
                 padding: '2px 8px',
-                borderRadius: 20,
-                cursor: 'pointer',
-                userSelect: 'none',
               }}
             >
               {Math.round(clip.virality_score * 100)}%
-            </span>
+            </button>
             {showScoreTooltip && (
-              <>
-                <div
-                  style={{ position: 'fixed', inset: 0, zIndex: 10 }}
-                  onClick={() => setShowScoreTooltip(false)}
-                />
-                <div style={{
-                  position: 'absolute',
-                  bottom: 'calc(100% + 6px)',
-                  right: 0,
-                  zIndex: 11,
-                  background: '#1A1A2E',
-                  border: '1px solid rgba(168,85,247,0.3)',
-                  borderRadius: 8,
-                  padding: '8px 10px',
-                  width: 200,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
-                }}>
-                  <p style={{ color: '#E9D5FF', fontSize: 12, fontWeight: 700, margin: '0 0 4px' }}>
-                    {clip.virality_score >= 0.8 ? 'High Viral Potential' : clip.virality_score >= 0.6 ? 'Medium Viral Potential' : 'Low Viral Potential'}
-                  </p>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, margin: 0, lineHeight: 1.5 }}>
-                    {clip.virality_score >= 0.8
-                      ? 'AI predicts strong viral potential on TikTok, Reels & Shorts.'
-                      : clip.virality_score >= 0.6
-                      ? 'Moderate viral potential — worth testing on social media.'
-                      : 'Lower viral potential based on AI analysis.'}
-                  </p>
-                </div>
-              </>
+              <div style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 6px)',
+                right: 0,
+                zIndex: 100,
+                background: '#1A1A2E',
+                border: '1px solid rgba(168,85,247,0.3)',
+                borderRadius: 8,
+                padding: '8px 10px',
+                width: 200,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.6)',
+              }}>
+                <p style={{ color: '#E9D5FF', fontSize: 12, fontWeight: 700, margin: '0 0 4px' }}>
+                  {clip.virality_score >= 0.8 ? 'High Viral Potential' : clip.virality_score >= 0.6 ? 'Medium Viral Potential' : 'Low Viral Potential'}
+                </p>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, margin: 0, lineHeight: 1.5 }}>
+                  {clip.virality_score >= 0.8
+                    ? 'AI predicts strong viral potential on TikTok, Reels & Shorts.'
+                    : clip.virality_score >= 0.6
+                    ? 'Moderate viral potential — worth testing on social media.'
+                    : 'Lower viral potential based on AI analysis.'}
+                </p>
+              </div>
             )}
           </div>
         </div>
