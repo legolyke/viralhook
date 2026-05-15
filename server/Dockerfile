@@ -1,7 +1,7 @@
 FROM node:20-slim
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core fonts-liberation fonts-ubuntu wget && \
+    apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core fonts-liberation wget && \
     mkdir -p /usr/share/fonts/truetype/google && \
     DEJAVU=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf && \
     wget -q "https://github.com/google/fonts/raw/main/ofl/oswald/Oswald-Bold.ttf" \

@@ -103,7 +103,7 @@ const LIBERATION_SERIF = '/usr/share/fonts/truetype/liberation/LiberationSerif-B
 
 const FONT_PATH_MAP: Record<string, string> = {
   'arial':           LIBERATION_SANS,
-  'ubuntu':          '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf',
+  'ubuntu':          LIBERATION_SANS,
   'oswald':          '/usr/share/fonts/truetype/google/Oswald-Bold.ttf',
   'anton':           '/usr/share/fonts/truetype/google/Anton-Regular.ttf',
   'bebas-neue':      '/usr/share/fonts/truetype/google/BebasNeue-Regular.ttf',
