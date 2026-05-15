@@ -97,11 +97,37 @@ export function remapSubtitleBlocks(
   return result
 }
 
+const DEJAVU_BOLD = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+const LIBERATION_SANS = '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'
+const LIBERATION_SERIF = '/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf'
+
+const FONT_PATH_MAP: Record<string, string> = {
+  'arial':           LIBERATION_SANS,
+  'ubuntu':          '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf',
+  'oswald':          '/usr/share/fonts/truetype/google/Oswald-Bold.ttf',
+  'anton':           '/usr/share/fonts/truetype/google/Anton-Regular.ttf',
+  'bebas-neue':      '/usr/share/fonts/truetype/google/BebasNeue-Regular.ttf',
+  'bangers':         '/usr/share/fonts/truetype/google/Bangers-Regular.ttf',
+  'montserrat':      '/usr/share/fonts/truetype/google/Montserrat-Bold.ttf',
+  'poppins':         '/usr/share/fonts/truetype/google/Poppins-Bold.ttf',
+  'pacifico':        '/usr/share/fonts/truetype/google/Pacifico-Regular.ttf',
+  'dancing-script':  '/usr/share/fonts/truetype/google/DancingScript-Bold.ttf',
+  'playfair':        LIBERATION_SERIF,
+  'merriweather':    LIBERATION_SERIF,
+}
+
+export function getFontPath(font: string): string {
+  return FONT_PATH_MAP[font] ?? DEJAVU_BOLD
+}
+
 export interface SubtitleData {
   blocks: SubtitleBlock[]
   font_size: number
   color: string
   position: string
+  font: string
+  box: boolean
+  shadow: boolean
 }
 
 export interface FilterComplexResult {
@@ -178,6 +204,13 @@ function buildSubtitleFilters(
   const y = subtitleData.position === 'top'
     ? `${subtitleData.font_size}`
     : `h-th-${Math.round(subtitleData.font_size * 2)}`
+  const fontPath = getFontPath(subtitleData.font ?? '')
+  const boxOpts = subtitleData.box
+    ? ':box=1:boxborderw=8:boxcolor=black@0.5'
+    : ''
+  const shadowOpts = subtitleData.shadow
+    ? ':shadowx=3:shadowy=3:shadowcolor=black@0.8'
+    : ''
 
   return subtitleData.blocks
     .map((block, i) => {
@@ -187,11 +220,13 @@ function buildSubtitleFilters(
       const tf = textFiles[i].replace(/\\/g, '/')
       return (
         `drawtext=textfile='${tf}'` +
-        `:fontfile='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'` +
+        `:fontfile='${fontPath}'` +
         `:x=(w-text_w)/2:y=${y}` +
         `:fontsize=${subtitleData.font_size}` +
         `:fontcolor=0x${colorHex}` +
         `:borderw=3:bordercolor=black` +
+        boxOpts +
+        shadowOpts +
         `:enable='between(t,${startS},${endS})'`
       )
     })

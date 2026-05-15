@@ -170,6 +170,9 @@ describe('buildFilterComplex', () => {
         font_size: 40,
         color: '#FFFFFF',
         position: 'bottom',
+        font: 'arial',
+        box: false,
+        shadow: false,
       },
       textFiles: ['/tmp/sub0.txt'],
     })

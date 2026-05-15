@@ -13,6 +13,9 @@ export interface SubtitleStyle {
   font_size: number  // px value 4-72
   color: string      // hex e.g. '#FFFFFF'
   font: string       // font key e.g. 'roboto'
+  box?: boolean      // background box behind text
+  shadow?: boolean   // drop shadow
+  animated?: boolean // word-by-word animation (1 word per block)
 }
 
 // Maps font key → ASS font name (must match what's installed on the server)

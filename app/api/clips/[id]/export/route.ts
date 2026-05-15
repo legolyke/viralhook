@@ -52,7 +52,7 @@ export async function POST(
     return NextResponse.json({ error: 'crop_x must be a number between 0 and 1' }, { status: 400 })
   }
 
-  const subtitleStyleRaw = b?.subtitle_style as (Partial<SubtitleStyle> & { enabled?: boolean }) | null | undefined
+  const subtitleStyleRaw = b?.subtitle_style as (Partial<SubtitleStyle> & { enabled?: boolean; animated?: boolean; box?: boolean; shadow?: boolean }) | null | undefined
   const subtitleEnabled = subtitleStyleRaw?.enabled === true
 
   const resolutionRaw = b?.resolution
@@ -97,6 +97,9 @@ export async function POST(
     font_size: number
     color: string
     position: string
+    font: string
+    box: boolean
+    shadow: boolean
   } | null = null
 
   if (subtitleEnabled && subtitleStyleRaw) {
@@ -111,8 +114,10 @@ export async function POST(
     const words = (transcript?.content as { words?: AssemblyAIWord[] } | null)?.words ?? []
     console.log(`[export] subtitle: transcript=${transcript ? 'found' : 'null'} err=${tErr?.message ?? 'none'} words=${words.length} clip=${clip.start_time}-${clip.end_time}ms`)
 
-    const blocks = buildSubtitleBlocks(words, clip.start_time, clip.end_time)
-    console.log(`[export] subtitle blocks generated: ${blocks.length}`)
+    const animated = subtitleStyleRaw.animated === true
+    const wordsPerBlock = animated ? 1 : 3
+    const blocks = buildSubtitleBlocks(words, clip.start_time, clip.end_time, wordsPerBlock)
+    console.log(`[export] subtitle blocks generated: ${blocks.length} (animated=${animated})`)
 
     if (blocks.length > 0) {
       subtitleData = {
@@ -120,6 +125,9 @@ export async function POST(
         font_size: typeof subtitleStyleRaw.font_size === 'number' ? subtitleStyleRaw.font_size : 40,
         color: subtitleStyleRaw.color ?? '#FFFFFF',
         position: subtitleStyleRaw.position ?? 'bottom',
+        font: (subtitleStyleRaw.font as string | undefined) ?? 'arial',
+        box: subtitleStyleRaw.box === true,
+        shadow: subtitleStyleRaw.shadow === true,
       }
     } else {
       console.warn('[export] no subtitle blocks — subtitles will be skipped')

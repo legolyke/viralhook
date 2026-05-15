@@ -92,6 +92,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
   const [subtitleFontSize, setSubtitleFontSize] = useState(40)
   const [subtitleColor, setSubtitleColor] = useState('#FFFFFF')
   const [subtitleFont, setSubtitleFont] = useState('arial')
+  const [subtitleBox, setSubtitleBox] = useState(false)
+  const [subtitleShadow, setSubtitleShadow] = useState(false)
+  const [subtitleAnimated, setSubtitleAnimated] = useState(false)
 
   // Load Google Fonts for preview
   useEffect(() => {
@@ -244,6 +247,9 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
             font_size: subtitleFontSize,
             color: subtitleColor,
             font: subtitleFont,
+            box: subtitleBox,
+            shadow: subtitleShadow,
+            animated: subtitleAnimated,
           } : null,
         }),
       })
@@ -532,10 +538,15 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                     fontSize: Math.max(8, Math.round(subtitleFontSize * 0.35)),
                     fontWeight: 700,
                     fontFamily: SUBTITLE_FONTS.find(f => f.key === subtitleFont)?.css ?? 'Arial, sans-serif',
-                    textShadow: '0 0 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+                    textShadow: subtitleShadow
+                      ? '3px 3px 4px rgba(0,0,0,0.8), 0 0 4px #000, -1px -1px 0 #000, 1px 1px 0 #000'
+                      : '0 0 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
                     lineHeight: 1.3,
+                    background: subtitleBox ? 'rgba(0,0,0,0.5)' : 'transparent',
+                    padding: subtitleBox ? '2px 8px' : undefined,
+                    borderRadius: subtitleBox ? 4 : undefined,
                   }}>
-                    Sample subtitle text
+                    {subtitleAnimated ? 'Word' : 'Sample subtitle text'}
                   </span>
                 </div>
               )}
@@ -658,6 +669,30 @@ export default function ExportModal({ clipId, startTime, endTime, projectFileUrl
                       }} />
                       <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{subtitleColor}</span>
                     </div>
+                  </div>
+
+                  {/* Row 3: Effects toggles */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {[
+                      { label: 'Background box', active: subtitleBox, toggle: () => setSubtitleBox(v => !v) },
+                      { label: 'Shadow',          active: subtitleShadow, toggle: () => setSubtitleShadow(v => !v) },
+                      { label: 'Word by word',    active: subtitleAnimated, toggle: () => setSubtitleAnimated(v => !v) },
+                    ].map(({ label, active, toggle }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={toggle}
+                        style={{
+                          padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                          background: active ? 'rgba(168,85,247,0.25)' : 'rgba(255,255,255,0.05)',
+                          border: active ? '1px solid rgba(168,85,247,0.7)' : '1px solid rgba(255,255,255,0.1)',
+                          color: active ? '#E9D5FF' : 'rgba(255,255,255,0.35)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {active ? '✓ ' : ''}{label}
+                      </button>
+                    ))}
                   </div>
 
                 </div>
