@@ -5,7 +5,7 @@ describe('buildZoomFilter', () => {
   it('returns zoompan expression with correct dimensions', () => {
     const result = buildZoomFilter(1080, 1920)
     expect(result).toBe(
-      "zoompan=z='1+0.05*sin(2*PI*t/6)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1920"
+      "zoompan=z='1.025+0.025*sin(2*PI*t/6)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1920"
     )
   })
 
