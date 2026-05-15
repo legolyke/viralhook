@@ -111,9 +111,9 @@ export default function PricingCards({ currentPlan, exportsUsed }: PricingCardsP
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
         gap: '16px',
-        marginBottom: '24px',
+        alignItems: 'stretch',
       }}>
         {PLANS.map(plan => {
           const isCurrent = plan.key === currentPlan
@@ -125,10 +125,9 @@ export default function PricingCards({ currentPlan, exportsUsed }: PricingCardsP
               padding: '24px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '6px',
               boxShadow: isCurrent ? '0 0 24px rgba(168,85,247,0.1)' : 'none',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ color: '#A855F7', fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em' }}>
                   {plan.label}
                 </span>
@@ -142,15 +141,15 @@ export default function PricingCards({ currentPlan, exportsUsed }: PricingCardsP
                 )}
               </div>
 
-              <div style={{ color: '#fff', fontSize: '28px', fontWeight: 800 }}>
+              <div style={{ color: '#fff', fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>
                 {plan.price}
                 <span style={{ fontSize: '13px', color: '#666', fontWeight: 400 }}>{plan.period}</span>
               </div>
 
-              <div style={{ color: '#aaa', fontSize: '13px', marginBottom: '8px' }}>{plan.exports}</div>
+              <div style={{ color: '#aaa', fontSize: '13px', marginBottom: '12px' }}>{plan.exports}</div>
 
               {isCurrent && plan.key !== 'free' && (
-                <div style={{ marginBottom: '8px' }}>
+                <div style={{ marginBottom: '12px' }}>
                   <div style={{ color: '#666', fontSize: '12px', marginBottom: '4px' }}>
                     {exportsUsed} / {plan.maxExports} used
                   </div>
@@ -165,7 +164,8 @@ export default function PricingCards({ currentPlan, exportsUsed }: PricingCardsP
                 </div>
               )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+              {/* flex: 1 pushes button to bottom of card */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, marginBottom: '16px' }}>
                 {plan.features.map(f => (
                   <div key={f} style={{ color: '#888', fontSize: '12px', display: 'flex', gap: '6px', alignItems: 'center' }}>
                     <span style={{ color: '#A855F7' }}>✓</span> {f}
@@ -198,33 +198,43 @@ export default function PricingCards({ currentPlan, exportsUsed }: PricingCardsP
                 >
                   {loading === plan.cta ? 'Redirecting...' : `Upgrade to ${plan.label} →`}
                 </button>
-              ) : null}
+              ) : (
+                <div style={{ height: '37px' }} />
+              )}
             </div>
           )
         })}
-      </div>
 
-      {/* Enterprise card */}
-      <div style={{
-        background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: '14px',
-        padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: '16px',
-      }}>
-        <div>
-          <div style={{ color: '#A855F7', fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '4px' }}>ENTERPRISE</div>
-          <div style={{ color: '#fff', fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>Need more than 2,000 exports/month?</div>
-          <div style={{ color: '#666', fontSize: '13px' }}>Custom pricing, invoicing, dedicated support.</div>
+        {/* Enterprise card — same grid cell, same height */}
+        <div style={{
+          background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: '14px',
+          padding: '24px', display: 'flex', flexDirection: 'column',
+        }}>
+          <div style={{ marginBottom: '8px' }}>
+            <span style={{ color: '#A855F7', fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em' }}>ENTERPRISE</span>
+          </div>
+          <div style={{ color: '#fff', fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>
+            Custom
+          </div>
+          <div style={{ color: '#aaa', fontSize: '13px', marginBottom: '12px' }}>2000+ exports/month</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, marginBottom: '16px' }}>
+            {['Custom pricing', 'Invoicing', 'Dedicated support', 'SLA guarantee', 'Priority rendering', 'Team members'].map(f => (
+              <div key={f} style={{ color: '#888', fontSize: '12px', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <span style={{ color: '#A855F7' }}>✓</span> {f}
+              </div>
+            ))}
+          </div>
+          <a
+            href="mailto:hello@viralhook.media"
+            style={{
+              display: 'block', padding: '10px', background: '#1a1a1a', border: '1px solid #333',
+              borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: 600,
+              textDecoration: 'none', textAlign: 'center',
+            }}
+          >
+            Contact Us →
+          </a>
         </div>
-        <a
-          href="mailto:hello@viralhook.media"
-          style={{
-            padding: '10px 20px', background: '#1a1a1a', border: '1px solid #333',
-            borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: 600,
-            textDecoration: 'none', whiteSpace: 'nowrap',
-          }}
-        >
-          Contact Us →
-        </a>
       </div>
     </div>
   )
