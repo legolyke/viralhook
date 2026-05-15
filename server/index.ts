@@ -2,7 +2,16 @@ import express from 'express'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
-import { execSync } from 'child_process'
+import { execSync, spawn } from 'child_process'
+import {
+  parseSilenceOutput,
+  buildFilterComplex,
+  remapSubtitleBlocks,
+  type SilenceSegment,
+  type SubtitleData,
+  type Resolution,
+  RESOLUTION_DIMS,
+} from './filters'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
@@ -32,19 +41,6 @@ const r2 = new S3Client({
   forcePathStyle: true,
 })
 
-interface SubtitleData {
-  blocks: { start: number; end: number; text: string }[]
-  font_size: number
-  color: string    // hex e.g. '#FFFFFF'
-  position: string // 'bottom' | 'top'
-}
-
-type Resolution = '720p' | '1080p'
-
-const RESOLUTION_DIMS: Record<Resolution, { w: number; h: number }> = {
-  '720p':  { w: 720,  h: 1280  },
-  '1080p': { w: 1080, h: 1920  },
-}
 
 async function downloadFromR2(key: string, destPath: string): Promise<void> {
   console.log(`[r2] downloading key: ${key}`)
@@ -94,6 +90,37 @@ async function patchClip(clipId: string, fields: Record<string, unknown>): Promi
   console.log(`[patchClip] RPC ok → status=${fields.status} clip=${clipId}`)
 }
 
+async function detectSilence(
+  inputPath: string,
+  clipStartSec: number,
+  clipEndSec: number,
+): Promise<SilenceSegment[]> {
+  const clipDuration = clipEndSec - clipStartSec
+  return new Promise((resolve) => {
+    let stderr = ''
+    const ffmpegBin = resolvedFfmpegPath ?? 'ffmpeg'
+    const args = [
+      '-ss', clipStartSec.toFixed(3),
+      '-to', clipEndSec.toFixed(3),
+      '-i', inputPath,
+      '-af', 'silencedetect=noise=-30dB:duration=1.5',
+      '-f', 'null', '-',
+    ]
+
+    const proc = spawn(ffmpegBin, args, { stdio: ['ignore', 'ignore', 'pipe'] })
+    proc.stderr?.on('data', (chunk: Buffer) => { stderr += chunk.toString() })
+    proc.on('close', () => {
+      const segments = parseSilenceOutput(stderr, clipDuration)
+      console.log(`[silence] ${segments.length} kept segments, silence lines: ${stderr.split('\n').filter(l => l.includes('silence')).length}`)
+      resolve(segments)
+    })
+    proc.on('error', (err) => {
+      console.warn('[silence] detection failed, skipping:', err.message)
+      resolve([{ start: 0, end: clipDuration }])
+    })
+  })
+}
+
 function wrapText(text: string, videoWidth: number, fontSize: number): string {
   // Estimate chars per line: DejaVuSans-Bold avg char width ≈ 0.58 × fontSize
   const charsPerLine = Math.max(10, Math.floor(videoWidth / (fontSize * 0.58)))
@@ -114,44 +141,6 @@ function wrapText(text: string, videoWidth: number, fontSize: number): string {
   return lines.join('\n')
 }
 
-function buildVideoFilter(
-  cropX: number,
-  subtitleData: SubtitleData | null,
-  textFiles: string[],
-  resolution: Resolution = '1080p',
-): string {
-  const { w, h } = RESOLUTION_DIMS[resolution]
-  let filter = `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`
-
-  if (subtitleData && textFiles.length > 0) {
-    const colorHex = subtitleData.color.replace('#', '')
-    const y = subtitleData.position === 'top'
-      ? `${subtitleData.font_size}`
-      : `h-th-${Math.round(subtitleData.font_size * 2)}`
-
-    const filters = subtitleData.blocks.map((block, i) => {
-      if (!textFiles[i]) return null
-      const startS = (block.start / 1000).toFixed(3)
-      const endS   = (block.end   / 1000).toFixed(3)
-      const tf = textFiles[i].replace(/\\/g, '/')
-      return (
-        `drawtext=textfile='${tf}'` +
-        `:fontfile='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'` +
-        `:x=(w-text_w)/2:y=${y}` +
-        `:fontsize=${subtitleData.font_size}` +
-        `:fontcolor=0x${colorHex}` +
-        `:borderw=3:bordercolor=black` +
-        `:enable='between(t,${startS},${endS})'`
-      )
-    }).filter(Boolean) as string[]
-
-    if (filters.length > 0) {
-      filter += ',' + filters.join(',')
-    }
-  }
-
-  return filter
-}
 
 async function processClip(
   clipId: string,
@@ -167,30 +156,68 @@ async function processClip(
   const textFiles: string[] = []
 
   try {
-    console.log(`[process] clip ${clipId} | ${startMs}-${endMs}ms cropX=${cropX} subs=${subtitleData ? subtitleData.blocks.length + ' blocks' : 'none'}`)
+    const startSec = startMs / 1000
+    const endSec   = endMs   / 1000
+    const clipDurationSec = endSec - startSec
+
+    console.log(`[process] clip ${clipId} | ${startMs}-${endMs}ms cropX=${cropX} res=${resolution} subs=${subtitleData ? subtitleData.blocks.length + ' blocks' : 'none'}`)
 
     await downloadFromR2(sourceKey, inputPath)
 
-    // Write one text file per subtitle block (with word-wrap for large fonts)
-    if (subtitleData) {
+    // Pass 1: detect silence (fast, no encode)
+    const rawSegments = await detectSilence(inputPath, startSec, endSec)
+    const silenceRemoved = !(rawSegments.length === 1 &&
+      rawSegments[0].start < 0.05 &&
+      rawSegments[0].end > clipDurationSec - 0.05)
+    const segments = silenceRemoved ? rawSegments : null
+
+    const newDurationSec = segments
+      ? segments.reduce((sum, s) => sum + s.end - s.start, 0)
+      : clipDurationSec
+
+    // Remap subtitle timestamps if silence was removed
+    let effectiveSubs = subtitleData
+    if (segments && subtitleData) {
+      effectiveSubs = {
+        ...subtitleData,
+        blocks: remapSubtitleBlocks(subtitleData.blocks, segments),
+      }
+    }
+
+    // Write subtitle text files
+    if (effectiveSubs) {
       const { w: vw } = RESOLUTION_DIMS[resolution]
-      for (let i = 0; i < subtitleData.blocks.length; i++) {
+      for (let i = 0; i < effectiveSubs.blocks.length; i++) {
         const tf = path.join(os.tmpdir(), `vh_txt_${clipId}_${i}.txt`)
-        const wrapped = wrapText(subtitleData.blocks[i].text, vw, subtitleData.font_size)
+        const wrapped = wrapText(effectiveSubs.blocks[i].text, vw, effectiveSubs.font_size)
         fs.writeFileSync(tf, wrapped, 'utf8')
         textFiles.push(tf)
       }
       console.log(`[process] wrote ${textFiles.length} subtitle text files`)
     }
 
-    const videoFilter = buildVideoFilter(cropX, subtitleData, textFiles, resolution)
-    console.log(`[process] filter: ${videoFilter.slice(0, 120)}... resolution=${resolution}`)
+    // Pass 2: build filter_complex and encode
+    const { filterComplex, mapVideo, mapAudio } = buildFilterComplex({
+      segments,
+      cropX,
+      resolution,
+      durationSec: newDurationSec,
+      subtitleData: effectiveSubs,
+      textFiles,
+    })
+
+    console.log(`[process] filter_complex (first 200): ${filterComplex.slice(0, 200)}`)
+    console.log(`[process] silence_removed=${silenceRemoved} new_duration=${newDurationSec.toFixed(1)}s`)
 
     await new Promise<void>((resolve, reject) => {
-      ffmpeg(inputPath)
-        .setStartTime((startMs / 1000).toFixed(3))
-        .setDuration(((endMs - startMs) / 1000).toFixed(3))
-        .videoFilter(videoFilter)
+      const ff = ffmpeg(inputPath)
+        .inputOptions([
+          `-ss ${startSec.toFixed(3)}`,
+          `-to ${endSec.toFixed(3)}`,
+        ])
+
+      ff.complexFilter(filterComplex)
+        .outputOptions(['-map', mapVideo, '-map', mapAudio])
         .videoCodec('libx264')
         .audioCodec('aac')
         .outputOption('-movflags', 'faststart')
@@ -199,6 +226,7 @@ async function processClip(
         .on('end', () => resolve())
         .on('error', (err: Error) => reject(new Error(`FFmpeg error: ${err.message}`)))
     })
+
     console.log(`[process] ffmpeg done for ${clipId}`)
 
     const outputKey = `clips/${clipId}.mp4`
