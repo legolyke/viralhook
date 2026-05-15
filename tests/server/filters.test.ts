@@ -121,7 +121,7 @@ describe('remapSubtitleBlocks', () => {
 })
 
 describe('buildFilterComplex', () => {
-  it('no silence: produces single-stream filter with crop+zoom+fade', () => {
+  it('no silence: produces single-stream filter with crop+fade', () => {
     const { filterComplex, mapVideo, mapAudio } = buildFilterComplex({
       segments: null,
       cropX: 0.5,
@@ -133,13 +133,12 @@ describe('buildFilterComplex', () => {
     expect(mapVideo).toBe('[vout]')
     expect(mapAudio).toBe('[aout]')
     expect(filterComplex).toContain('crop=ih*9/16:ih:(iw-ih*9/16)*0.5:0,scale=1080:1920')
-    expect(filterComplex).toContain('zoompan=')
     expect(filterComplex).toContain('fade=t=in:st=0')
     expect(filterComplex).toContain('[vout]')
     expect(filterComplex).toContain('[aout]')
   })
 
-  it('with silence: produces trim+concat+crop+zoom+fade', () => {
+  it('with silence: produces trim+concat+crop+fade', () => {
     const segments: SilenceSegment[] = [
       { start: 0, end: 3.5 },
       { start: 6.2, end: 10 },

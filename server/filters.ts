@@ -136,12 +136,10 @@ export function buildFilterComplex(params: {
     const vInputs = segments.map((_, i) => `[v${i}][a${i}]`).join('')
     parts.push(`${vInputs}concat=n=${segments.length}:v=1:a=1[vcombined][acombined]`)
 
-    const zoom = buildZoomFilter(w, h)
     const fade = buildFadeFilters(durationSec)
     const subtitleStr = buildSubtitleFilters(subtitleData, textFiles)
     const videoChain = [
       `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`,
-      zoom,
       fade.video,
       subtitleStr,
     ].filter(Boolean).join(',')
@@ -152,12 +150,10 @@ export function buildFilterComplex(params: {
     // No silence removal: single stream
     const effectiveDuration = segments ? segments[0].end - segments[0].start : durationSec
 
-    const zoom = buildZoomFilter(w, h)
     const fade = buildFadeFilters(effectiveDuration)
     const subtitleStr = buildSubtitleFilters(subtitleData, textFiles)
     const videoChain = [
       `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`,
-      zoom,
       fade.video,
       subtitleStr,
     ].filter(Boolean).join(',')
