@@ -96,3 +96,109 @@ export function remapSubtitleBlocks(
   }
   return result
 }
+
+export interface SubtitleData {
+  blocks: SubtitleBlock[]
+  font_size: number
+  color: string
+  position: string
+}
+
+export interface FilterComplexResult {
+  filterComplex: string
+  mapVideo: string
+  mapAudio: string
+}
+
+export function buildFilterComplex(params: {
+  segments: SilenceSegment[] | null
+  cropX: number
+  resolution: Resolution
+  durationSec: number
+  subtitleData: SubtitleData | null
+  textFiles: string[]
+}): FilterComplexResult {
+  const { segments, cropX, resolution, durationSec, subtitleData, textFiles } = params
+  const { w, h } = RESOLUTION_DIMS[resolution]
+  const parts: string[] = []
+
+  if (segments && segments.length > 1) {
+    // Silence removal: trim each segment, then concat
+    for (let i = 0; i < segments.length; i++) {
+      const s = segments[i]
+      parts.push(
+        `[0:v]trim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},setpts=PTS-STARTPTS[v${i}]`
+      )
+      parts.push(
+        `[0:a]atrim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},asetpts=PTS-STARTPTS[a${i}]`
+      )
+    }
+    const vInputs = segments.map((_, i) => `[v${i}][a${i}]`).join('')
+    parts.push(`${vInputs}concat=n=${segments.length}:v=1:a=1[vcombined][acombined]`)
+
+    const zoom = buildZoomFilter(w, h)
+    const fade = buildFadeFilters(durationSec)
+    const subtitleStr = buildSubtitleFilters(subtitleData, textFiles)
+    const videoChain = [
+      `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`,
+      zoom,
+      fade.video,
+      subtitleStr,
+    ].filter(Boolean).join(',')
+
+    parts.push(`[vcombined]${videoChain}[vout]`)
+    parts.push(`[acombined]${fade.audio}[aout]`)
+  } else {
+    // No silence removal: single stream
+    const effectiveDuration = segments ? segments[0].end - segments[0].start : durationSec
+
+    const zoom = buildZoomFilter(w, h)
+    const fade = buildFadeFilters(effectiveDuration)
+    const subtitleStr = buildSubtitleFilters(subtitleData, textFiles)
+    const videoChain = [
+      `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`,
+      zoom,
+      fade.video,
+      subtitleStr,
+    ].filter(Boolean).join(',')
+
+    parts.push(`[0:v]${videoChain}[vout]`)
+    parts.push(`[0:a]${fade.audio}[aout]`)
+  }
+
+  return {
+    filterComplex: parts.join(';'),
+    mapVideo: '[vout]',
+    mapAudio: '[aout]',
+  }
+}
+
+function buildSubtitleFilters(
+  subtitleData: SubtitleData | null,
+  textFiles: string[],
+): string {
+  if (!subtitleData || textFiles.length === 0) return ''
+  const colorHex = subtitleData.color.replace('#', '')
+  const y = subtitleData.position === 'top'
+    ? `${subtitleData.font_size}`
+    : `h-th-${Math.round(subtitleData.font_size * 2)}`
+
+  return subtitleData.blocks
+    .map((block, i) => {
+      if (!textFiles[i]) return null
+      const startS = (block.start / 1000).toFixed(3)
+      const endS   = (block.end   / 1000).toFixed(3)
+      const tf = textFiles[i].replace(/\\/g, '/')
+      return (
+        `drawtext=textfile='${tf}'` +
+        `:fontfile='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'` +
+        `:x=(w-text_w)/2:y=${y}` +
+        `:fontsize=${subtitleData.font_size}` +
+        `:fontcolor=0x${colorHex}` +
+        `:borderw=3:bordercolor=black` +
+        `:enable='between(t,${startS},${endS})'`
+      )
+    })
+    .filter(Boolean)
+    .join(',')
+}

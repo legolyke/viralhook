@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildZoomFilter, buildFadeFilters, parseSilenceOutput, remapSubtitleBlocks, type SilenceSegment } from '../../server/filters'
+import { buildZoomFilter, buildFadeFilters, parseSilenceOutput, remapSubtitleBlocks, buildFilterComplex, type SilenceSegment } from '../../server/filters'
 
 describe('buildZoomFilter', () => {
   it('returns zoompan expression with correct dimensions', () => {
@@ -117,5 +117,64 @@ describe('remapSubtitleBlocks', () => {
 
   it('handles empty blocks array', () => {
     expect(remapSubtitleBlocks([], segments)).toEqual([])
+  })
+})
+
+describe('buildFilterComplex', () => {
+  it('no silence: produces single-stream filter with crop+zoom+fade', () => {
+    const { filterComplex, mapVideo, mapAudio } = buildFilterComplex({
+      segments: null,
+      cropX: 0.5,
+      resolution: '1080p',
+      durationSec: 10,
+      subtitleData: null,
+      textFiles: [],
+    })
+    expect(mapVideo).toBe('[vout]')
+    expect(mapAudio).toBe('[aout]')
+    expect(filterComplex).toContain('crop=ih*9/16:ih:(iw-ih*9/16)*0.5:0,scale=1080:1920')
+    expect(filterComplex).toContain('zoompan=')
+    expect(filterComplex).toContain('fade=t=in:st=0')
+    expect(filterComplex).toContain('[vout]')
+    expect(filterComplex).toContain('[aout]')
+  })
+
+  it('with silence: produces trim+concat+crop+zoom+fade', () => {
+    const segments: SilenceSegment[] = [
+      { start: 0, end: 3.5 },
+      { start: 6.2, end: 10 },
+    ]
+    const { filterComplex, mapVideo, mapAudio } = buildFilterComplex({
+      segments,
+      cropX: 0,
+      resolution: '720p',
+      durationSec: 7.3,
+      subtitleData: null,
+      textFiles: [],
+    })
+    expect(mapVideo).toBe('[vout]')
+    expect(mapAudio).toBe('[aout]')
+    expect(filterComplex).toContain('trim=start=0.000:end=3.500')
+    expect(filterComplex).toContain('trim=start=6.200:end=10.000')
+    expect(filterComplex).toContain('concat=n=2:v=1:a=1')
+    expect(filterComplex).toContain('crop=ih*9/16:ih:(iw-ih*9/16)*0:0,scale=720:1280')
+  })
+
+  it('with subtitles: includes drawtext in filter', () => {
+    const { filterComplex } = buildFilterComplex({
+      segments: null,
+      cropX: 0.5,
+      resolution: '1080p',
+      durationSec: 10,
+      subtitleData: {
+        blocks: [{ start: 1000, end: 3000, text: 'hello' }],
+        font_size: 40,
+        color: '#FFFFFF',
+        position: 'bottom',
+      },
+      textFiles: ['/tmp/sub0.txt'],
+    })
+    expect(filterComplex).toContain('drawtext=')
+    expect(filterComplex).toContain("enable='between(t,1.000,3.000)'")
   })
 })
