@@ -67,3 +67,32 @@ export function parseSilenceOutput(
 
   return kept
 }
+
+export function remapSubtitleBlocks(
+  blocks: SubtitleBlock[],
+  segments: SilenceSegment[],
+): SubtitleBlock[] {
+  // Cumulative start time in new timeline for each segment
+  const cumulative: number[] = []
+  let cum = 0
+  for (const seg of segments) {
+    cumulative.push(cum)
+    cum += seg.end - seg.start
+  }
+
+  const result: SubtitleBlock[] = []
+  for (const block of blocks) {
+    const centerSec = (block.start + block.end) / 2 / 1000
+    const segIdx = segments.findIndex(s => centerSec >= s.start && centerSec < s.end)
+    if (segIdx === -1) continue  // falls in silence — drop
+
+    const seg = segments[segIdx]
+    const offsetSec = cumulative[segIdx] - seg.start
+    result.push({
+      start: Math.round(block.start + offsetSec * 1000),
+      end:   Math.round(block.end   + offsetSec * 1000),
+      text:  block.text,
+    })
+  }
+  return result
+}

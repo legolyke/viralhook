@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildZoomFilter, buildFadeFilters, parseSilenceOutput } from '../../server/filters'
+import { buildZoomFilter, buildFadeFilters, parseSilenceOutput, remapSubtitleBlocks, type SilenceSegment } from '../../server/filters'
 
 describe('buildZoomFilter', () => {
   it('returns zoompan expression with correct dimensions', () => {
@@ -85,5 +85,37 @@ describe('parseSilenceOutput', () => {
     ].join('\n')
     const result = parseSilenceOutput(stderr, 10)
     expect(result).toEqual([{ start: 0, end: 10 }])
+  })
+})
+
+describe('remapSubtitleBlocks', () => {
+  const segments: SilenceSegment[] = [
+    { start: 0, end: 3.5 },    // kept 0-3.5s (cumulative: 0)
+    { start: 6.2, end: 10 },   // kept 6.2-10s (cumulative: 3.5s)
+  ]
+
+  it('remaps block in first segment (no offset)', () => {
+    const blocks = [{ start: 1000, end: 2000, text: 'hello' }]
+    const result = remapSubtitleBlocks(blocks, segments)
+    expect(result).toEqual([{ start: 1000, end: 2000, text: 'hello' }])
+  })
+
+  it('remaps block in second segment (offset by removed silence)', () => {
+    // original 7s-8s → segment 2 starts at 6.2s, cumulative before = 3.5s
+    // offsetSec = 3.5 - 6.2 = -2.7s → 7000 - 2700 = 4300ms, 8000 - 2700 = 5300ms
+    const blocks = [{ start: 7000, end: 8000, text: 'world' }]
+    const result = remapSubtitleBlocks(blocks, segments)
+    expect(result).toEqual([{ start: 4300, end: 5300, text: 'world' }])
+  })
+
+  it('drops block that falls inside silence gap', () => {
+    // 4000ms-5500ms falls in silence gap 3.5-6.2s
+    const blocks = [{ start: 4000, end: 5500, text: 'silent' }]
+    const result = remapSubtitleBlocks(blocks, segments)
+    expect(result).toEqual([])
+  })
+
+  it('handles empty blocks array', () => {
+    expect(remapSubtitleBlocks([], segments)).toEqual([])
   })
 })
