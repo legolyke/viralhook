@@ -12,12 +12,25 @@ const PLATFORMS: { value: CaptionPlatform; label: string }[] = [
   { value: 'youtube',  label: 'YouTube'  },
 ]
 
+interface ScoreComponent {
+  score: number
+  reason: string
+}
+
+interface ScoreBreakdown {
+  hook:          ScoreComponent
+  emotion:       ScoreComponent
+  pacing:        ScoreComponent
+  shareability:  ScoreComponent
+}
+
 interface Clip {
   id: string
   title: string
   start_time: number
   end_time: number
   virality_score: number
+  score_breakdown: ScoreBreakdown | null
   file_url: string | null
   status: string
 }
@@ -46,7 +59,19 @@ function ClipCard({
   const [showExport, setShowExport] = useState(false)
   const [showCaption, setShowCaption] = useState(false)
   const [showScoreTooltip, setShowScoreTooltip] = useState(false)
+  const [activeBreakdown, setActiveBreakdown] = useState<string | null>(null)
   const scoreRef = useRef<HTMLDivElement>(null)
+
+  const BREAKDOWN_LABELS: Record<string, string> = {
+    hook: 'Hook', emotion: 'Emotion', pacing: 'Pacing', shareability: 'Share',
+  }
+
+  const BREAKDOWN_DEFS: Record<string, string> = {
+    hook:          'How strong the opening seconds are at grabbing attention',
+    emotion:       'How much emotion and energy the clip conveys',
+    pacing:        'How well-timed the clip is — not too slow, not too fast',
+    shareability:  'How likely viewers are to share or forward this clip',
+  }
 
   useEffect(() => {
     if (!showScoreTooltip) return
@@ -289,6 +314,55 @@ function ClipCard({
           <span>⏱ {formatMs(clip.start_time)} – {formatMs(clip.end_time)}</span>
           <span>({durationSec}s)</span>
         </div>
+
+        {/* Breakdown chips */}
+        {clip.score_breakdown && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {(Object.keys(clip.score_breakdown) as (keyof ScoreBreakdown)[]).map((key) => {
+                const comp = clip.score_breakdown![key]
+                const color = comp.score >= 0.8 ? '#4ADE80' : comp.score >= 0.6 ? '#FCD34D' : '#C084FC'
+                const bg    = comp.score >= 0.8 ? 'rgba(34,197,94,0.1)' : comp.score >= 0.6 ? 'rgba(234,179,8,0.1)' : 'rgba(168,85,247,0.1)'
+                const isActive = activeBreakdown === key
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActiveBreakdown(isActive ? null : key)}
+                    style={{
+                      background: bg,
+                      border: 'none',
+                      borderRadius: 20,
+                      color,
+                      cursor: 'pointer',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                    }}
+                  >
+                    {BREAKDOWN_LABELS[key]} {Math.round(comp.score * 100)}% {isActive ? '▲' : '▼'}
+                  </button>
+                )
+              })}
+            </div>
+
+            {activeBreakdown && clip.score_breakdown[activeBreakdown as keyof ScoreBreakdown] && (
+              <div style={{
+                padding: '8px 10px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(168,85,247,0.15)',
+                borderRadius: 8,
+              }}>
+                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, margin: '0 0 4px', lineHeight: 1.4 }}>
+                  {BREAKDOWN_DEFS[activeBreakdown]}
+                </p>
+                <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 11, margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+                  &ldquo;{clip.score_breakdown[activeBreakdown as keyof ScoreBreakdown].reason}&rdquo;
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: 8 }}>
