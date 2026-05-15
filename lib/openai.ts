@@ -53,11 +53,40 @@ export async function generateCaption(
   return content
 }
 
-export interface DetectedClip {
-  title: string
-  start_ms: number
-  end_ms: number
+export interface ScoreComponent {
   score: number
+  reason: string
+}
+
+export interface ScoreBreakdown {
+  hook:          ScoreComponent
+  emotion:       ScoreComponent
+  pacing:        ScoreComponent
+  shareability:  ScoreComponent
+}
+
+export interface DetectedClip {
+  title:     string
+  start_ms:  number
+  end_ms:    number
+  score:     number
+  breakdown: ScoreBreakdown | null
+}
+
+function validateBreakdown(raw: unknown): ScoreBreakdown | null {
+  if (!raw || typeof raw !== 'object') return null
+  const b = raw as Record<string, unknown>
+  const keys = ['hook', 'emotion', 'pacing', 'shareability'] as const
+  const result = {} as ScoreBreakdown
+  for (const key of keys) {
+    const comp = b[key]
+    if (!comp || typeof comp !== 'object') return null
+    const c = comp as Record<string, unknown>
+    if (typeof c.score !== 'number' || c.score < 0 || c.score > 1) return null
+    if (typeof c.reason !== 'string' || !c.reason) return null
+    result[key] = { score: c.score, reason: c.reason }
+  }
+  return result
 }
 
 export async function detectViralClips(
@@ -105,7 +134,12 @@ Each clip must have:
 - "title": catchy title, max 60 chars
 - "start_ms": use a time_ms value from the timeline above as the clip start
 - "end_ms": use a time_ms value from the timeline above as the clip end (must be at least 3 entries after start_ms)
-- "score": virality score 0.0-1.0
+- "score": overall virality score 0.0-1.0 (weighted average of breakdown scores)
+- "breakdown": object with exactly four keys, each having "score" (0.0-1.0) and "reason" (1-2 sentences in English):
+  - "hook": how strong the opening seconds are at grabbing attention
+  - "emotion": how much emotion and energy the clip conveys
+  - "pacing": how well-timed the clip is — not too slow, not too fast
+  - "shareability": how likely viewers are to share or forward this clip
 
 Rules:
 - start_ms MUST be less than end_ms
@@ -129,7 +163,7 @@ Rules:
       ],
       response_format: { type: 'json_object' },
       temperature: 0.3,
-      max_tokens: 1000,
+      max_tokens: 2000,
     }),
   })
 
@@ -163,9 +197,11 @@ Rules:
         clip.score >= 0 && clip.score <= 1
     )
     .map((clip) => ({
-      ...clip,
-      start_ms: Math.min(clip.start_ms, clip.end_ms),
-      end_ms: Math.max(clip.start_ms, clip.end_ms),
+      title:     clip.title,
+      start_ms:  Math.min(clip.start_ms, clip.end_ms),
+      end_ms:    Math.max(clip.start_ms, clip.end_ms),
+      score:     clip.score,
+      breakdown: validateBreakdown((clip as unknown as Record<string, unknown>).breakdown),
     }))
     .filter(
       (clip) =>

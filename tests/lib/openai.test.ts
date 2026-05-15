@@ -18,7 +18,18 @@ const mockHighlights = [
 
 const mockClipsResponse = {
   clips: [
-    { title: 'Amazing moment', start_ms: 200, end_ms: 20000, score: 0.9 },
+    {
+      title: 'Amazing moment',
+      start_ms: 200,
+      end_ms: 20000,
+      score: 0.9,
+      breakdown: {
+        hook:          { score: 0.95, reason: 'Opens with a bold claim that demands attention' },
+        emotion:       { score: 0.88, reason: 'High energy delivery conveys genuine excitement' },
+        pacing:        { score: 0.85, reason: 'Fast cuts maintain engagement throughout' },
+        shareability:  { score: 0.90, reason: 'Relatable scenario most viewers will forward' },
+      },
+    },
   ],
 }
 
@@ -134,5 +145,55 @@ describe('detectViralClips', () => {
     const clips = await detectViralClips(mockWords, mockHighlights, 'Hello world')
     expect(clips).toHaveLength(1)
     expect(clips[0].title).toBe('Good clip')
+  })
+
+  it('returns breakdown on each clip', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: JSON.stringify(mockClipsResponse) } }],
+      }),
+    })
+    const clips = await detectViralClips(mockWords, mockHighlights, 'Hello world')
+    expect(clips[0].breakdown).toBeDefined()
+    expect(clips[0].breakdown!.hook.score).toBe(0.95)
+    expect(clips[0].breakdown!.hook.reason).toBe('Opens with a bold claim that demands attention')
+    expect(clips[0].breakdown!.shareability.score).toBe(0.90)
+  })
+
+  it('sets breakdown to null when GPT returns no breakdown', async () => {
+    const noBreakdown = {
+      clips: [{ title: 'Clip', start_ms: 0, end_ms: 20000, score: 0.8 }],
+    }
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: JSON.stringify(noBreakdown) } }],
+      }),
+    })
+    const clips = await detectViralClips(mockWords, mockHighlights, 'Hello world')
+    expect(clips[0].breakdown).toBeNull()
+  })
+
+  it('sets breakdown to null when a component score is out of range', async () => {
+    const badBreakdown = {
+      clips: [{
+        title: 'Clip', start_ms: 0, end_ms: 20000, score: 0.8,
+        breakdown: {
+          hook:         { score: 1.5, reason: 'Too high' },
+          emotion:      { score: 0.8, reason: 'Fine' },
+          pacing:       { score: 0.7, reason: 'Fine' },
+          shareability: { score: 0.6, reason: 'Fine' },
+        },
+      }],
+    }
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: JSON.stringify(badBreakdown) } }],
+      }),
+    })
+    const clips = await detectViralClips(mockWords, mockHighlights, 'Hello world')
+    expect(clips[0].breakdown).toBeNull()
   })
 })
