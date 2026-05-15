@@ -1,7 +1,32 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import PageHeader from '@/components/dashboard/PageHeader'
-import EmptyState from '@/components/dashboard/EmptyState'
+import PricingCards from '@/components/billing/PricingCards'
+import type { PlanName } from '@/lib/plans'
+import { PLAN_LIMITS } from '@/lib/plans'
 
-export default function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string }>
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('plan, exports_used')
+    .eq('user_id', user.id)
+    .single()
+
+  const plan = (sub?.plan ?? 'free') as PlanName
+  const exportsUsed = sub?.exports_used ?? 0
+  const limit = PLAN_LIMITS[plan]
+
+  const params = await searchParams
+  const success = params.success === 'true'
+
   return (
     <div style={{ padding: '28px 28px 40px' }}>
       <PageHeader
@@ -9,15 +34,45 @@ export default function BillingPage() {
         breadcrumb="Dashboard / Billing"
         description="Manage your subscription and payment details."
       />
-      <EmptyState
-        icon={
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.6)" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-          </svg>
-        }
-        title="Coming soon"
-        description="Subscription plans and billing will be available here."
-      />
+
+      {success && (
+        <div style={{
+          background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)',
+          borderRadius: '10px', padding: '14px 18px', marginBottom: '24px', color: '#86efac', fontSize: '14px',
+        }}>
+          ✓ Subscription activated successfully! Your plan has been upgraded.
+        </div>
+      )}
+
+      {/* Usage summary */}
+      <div style={{
+        background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: '14px',
+        padding: '20px 24px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '24px',
+        flexWrap: 'wrap',
+      }}>
+        <div>
+          <div style={{ color: '#666', fontSize: '12px', marginBottom: '2px' }}>Current plan</div>
+          <div style={{ color: '#A855F7', fontWeight: 700, fontSize: '16px' }}>{plan.toUpperCase()}</div>
+        </div>
+        <div style={{ flex: 1, minWidth: '160px' }}>
+          <div style={{ color: '#666', fontSize: '12px', marginBottom: '6px' }}>
+            Exports this month — {exportsUsed} / {limit}
+          </div>
+          <div style={{ height: '6px', background: '#1a1a1a', borderRadius: '4px' }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.min(100, (exportsUsed / limit) * 100)}%`,
+              background: exportsUsed >= limit
+                ? 'linear-gradient(90deg,#ef4444,#f97316)'
+                : 'linear-gradient(90deg,#7C3AED,#C026D3)',
+              borderRadius: '4px',
+              transition: 'width 0.3s',
+            }} />
+          </div>
+        </div>
+      </div>
+
+      <PricingCards currentPlan={plan} exportsUsed={exportsUsed} />
     </div>
   )
 }
