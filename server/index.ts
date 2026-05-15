@@ -206,7 +206,8 @@ async function processClip(
       textFiles,
     })
 
-    console.log(`[process] filter_complex (first 200): ${filterComplex.slice(0, 200)}`)
+    console.log(`[process] font=${effectiveSubs?.font ?? 'none'} box=${effectiveSubs?.box} shadow=${effectiveSubs?.shadow}`)
+    console.log(`[process] filter_complex (first 500): ${filterComplex.slice(0, 500)}`)
     console.log(`[process] silence_removed=${silenceRemoved} new_duration=${newDurationSec.toFixed(1)}s`)
 
     await new Promise<void>((resolve, reject) => {
@@ -247,6 +248,19 @@ async function processClip(
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true, ffmpeg: resolvedFfmpegPath ?? 'missing' })
+})
+
+app.get('/fonts', (_req, res) => {
+  const dirs = [
+    '/usr/share/fonts/truetype/google',
+    '/usr/share/fonts/truetype/dejavu',
+    '/usr/share/fonts/truetype/liberation',
+  ]
+  const result: Record<string, string[]> = {}
+  for (const d of dirs) {
+    try { result[d] = fs.readdirSync(d) } catch { result[d] = ['(not found)'] }
+  }
+  res.json(result)
 })
 
 app.post('/process', (req, res) => {
