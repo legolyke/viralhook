@@ -256,9 +256,14 @@ app.get('/fonts', (_req, res) => {
     '/usr/share/fonts/truetype/dejavu',
     '/usr/share/fonts/truetype/liberation',
   ]
-  const result: Record<string, string[]> = {}
+  const result: Record<string, { file: string; kb: number }[]> = {}
   for (const d of dirs) {
-    try { result[d] = fs.readdirSync(d) } catch { result[d] = ['(not found)'] }
+    try {
+      result[d] = fs.readdirSync(d).map(f => ({
+        file: f,
+        kb: Math.round(fs.statSync(`${d}/${f}`).size / 1024),
+      }))
+    } catch { result[d] = [] }
   }
   res.json(result)
 })
