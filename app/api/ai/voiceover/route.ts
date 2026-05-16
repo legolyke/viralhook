@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       .update({ voiceover_used: voiceoverUsed + 1, updated_at: new Date().toISOString() })
       .eq('user_id', user.id)
 
-    return new Response(audioBuffer, {
+    return new Response(new Uint8Array(audioBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
