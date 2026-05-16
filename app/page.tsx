@@ -8,7 +8,7 @@ export default function LandingPage() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         /* Navbar */
-        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 24px; height: 80px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 24px; height: 90px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
         .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .nav-links { display: none; gap: 32px; }
         .nav-link { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
@@ -162,7 +162,7 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="nav">
         <Link href="/" className="nav-logo">
-          <div style={{ width: 100, height: 100, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
+          <div style={{ width: 80, height: 80, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
         </Link>
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
