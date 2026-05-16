@@ -195,11 +195,11 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
 
       <aside className={`dashboard-sidebar${open ? ' open' : ''}`}>
         {/* Logo */}
-        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <div style={{ width: 120, height: 46, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'left center' }} role="img" aria-label="ViralHook" />
+        <div style={{ padding: '16px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 160, height: 153, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} role="img" aria-label="ViralHook" />
           </Link>
-          <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close menu">
+          <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close menu" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
