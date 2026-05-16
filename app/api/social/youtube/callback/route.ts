@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const { access_token, refresh_token } = await exchangeCode(code)
     const { channelId, channelName } = await getChannelInfo(access_token)
 
-    await supabase.from('social_connections').upsert(
+    const { error: upsertError } = await supabase.from('social_connections').upsert(
       {
         user_id: user.id,
         platform: 'youtube',
@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
       },
       { onConflict: 'user_id,platform' }
     )
+
+    if (upsertError) {
+      console.error('social_connections upsert error:', upsertError)
+      return NextResponse.redirect(`${appUrl}/settings?error=db_error`)
+    }
 
     return NextResponse.redirect(`${appUrl}/settings?connected=youtube`)
   } catch {
