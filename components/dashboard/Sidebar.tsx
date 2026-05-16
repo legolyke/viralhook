@@ -198,7 +198,7 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
         {/* Logo */}
         <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <Image src="/viralhook-logo.png" alt="ViralHook" width={130} height={32} style={{ width: 'auto', height: '32px', objectFit: 'contain' }} priority />
+            <Image src="/viralhook-logo.png" alt="ViralHook" width={675} height={646} style={{ width: 'auto', height: '44px', objectFit: 'contain' }} priority />
           </Link>
           <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close menu">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
