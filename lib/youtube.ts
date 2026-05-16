@@ -29,8 +29,9 @@ export async function exchangeCode(code: string): Promise<{ access_token: string
       grant_type: 'authorization_code',
     }),
   })
-  if (!res.ok) throw new Error('Failed to exchange code')
+  if (!res.ok) throw new Error(`Failed to exchange code: ${res.status}`)
   const data = await res.json() as { access_token: string; refresh_token: string }
+  if (!data.access_token) throw new Error('Failed to exchange code: missing access_token')
   return { access_token: data.access_token, refresh_token: data.refresh_token }
 }
 
@@ -45,7 +46,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
       grant_type: 'refresh_token',
     }),
   })
-  if (!res.ok) throw new Error('Failed to refresh token')
+  if (!res.ok) throw new Error(`Failed to refresh token: ${res.status}`)
   const data = await res.json() as { access_token: string }
   return data.access_token
 }
@@ -94,7 +95,10 @@ export async function uploadVideo(
 
   const uploadRes = await fetch(uploadUrl, {
     method: 'PUT',
-    headers: { 'Content-Type': 'video/mp4' },
+    headers: {
+      'Content-Type': 'video/mp4',
+      Authorization: `Bearer ${accessToken}`,
+    },
     body: videoBuffer,
   })
   if (!uploadRes.ok) throw new Error('Failed to upload video to YouTube')
