@@ -162,7 +162,7 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="nav">
         <Link href="/" className="nav-logo">
-          <div style={{ width: 52, height: 52, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
+          <div style={{ width: 62, height: 62, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
         </Link>
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>

@@ -7,7 +7,30 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'ViralHook — AI Viral Shorts Generator',
-  description: 'Turn long videos into viral shorts using AI.',
+  description: 'Upload any video. Our AI finds the most viral moments, cuts perfect 9:16 clips, adds animated subtitles, and generates captions — in minutes.',
+  metadataBase: new URL('https://www.viralhook.media'),
+  openGraph: {
+    title: 'ViralHook — AI Viral Shorts Generator',
+    description: 'Upload any video. Our AI finds the most viral moments, cuts perfect 9:16 clips, adds animated subtitles, and generates captions — in minutes.',
+    url: 'https://www.viralhook.media',
+    siteName: 'ViralHook',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'ViralHook — AI Viral Shorts Generator',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ViralHook — AI Viral Shorts Generator',
+    description: 'Upload any video. Our AI finds the most viral moments, cuts perfect 9:16 clips, adds animated subtitles, and generates captions — in minutes.',
+    images: ['/og-image.png'],
+  },
 }
 
 export const viewport: Viewport = {
