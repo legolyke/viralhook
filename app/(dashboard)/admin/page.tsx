@@ -8,6 +8,51 @@ import AdminDeleteButton from '@/components/admin/AdminDeleteButton'
 
 const ADMIN_EMAIL = 'popescu2290@gmail.com'
 
+const COUNTRY_PREFIXES: { prefix: string; code: string; flag: string }[] = [
+  { prefix: '1',   code: 'US/CA', flag: '🇺🇸' },
+  { prefix: '40',  code: 'RO',    flag: '🇷🇴' },
+  { prefix: '44',  code: 'GB',    flag: '🇬🇧' },
+  { prefix: '49',  code: 'DE',    flag: '🇩🇪' },
+  { prefix: '33',  code: 'FR',    flag: '🇫🇷' },
+  { prefix: '39',  code: 'IT',    flag: '🇮🇹' },
+  { prefix: '34',  code: 'ES',    flag: '🇪🇸' },
+  { prefix: '31',  code: 'NL',    flag: '🇳🇱' },
+  { prefix: '32',  code: 'BE',    flag: '🇧🇪' },
+  { prefix: '41',  code: 'CH',    flag: '🇨🇭' },
+  { prefix: '43',  code: 'AT',    flag: '🇦🇹' },
+  { prefix: '48',  code: 'PL',    flag: '🇵🇱' },
+  { prefix: '47',  code: 'NO',    flag: '🇳🇴' },
+  { prefix: '46',  code: 'SE',    flag: '🇸🇪' },
+  { prefix: '45',  code: 'DK',    flag: '🇩🇰' },
+  { prefix: '358', code: 'FI',    flag: '🇫🇮' },
+  { prefix: '36',  code: 'HU',    flag: '🇭🇺' },
+  { prefix: '420', code: 'CZ',    flag: '🇨🇿' },
+  { prefix: '421', code: 'SK',    flag: '🇸🇰' },
+  { prefix: '30',  code: 'GR',    flag: '🇬🇷' },
+  { prefix: '351', code: 'PT',    flag: '🇵🇹' },
+  { prefix: '61',  code: 'AU',    flag: '🇦🇺' },
+  { prefix: '81',  code: 'JP',    flag: '🇯🇵' },
+  { prefix: '82',  code: 'KR',    flag: '🇰🇷' },
+  { prefix: '86',  code: 'CN',    flag: '🇨🇳' },
+  { prefix: '91',  code: 'IN',    flag: '🇮🇳' },
+  { prefix: '55',  code: 'BR',    flag: '🇧🇷' },
+  { prefix: '52',  code: 'MX',    flag: '🇲🇽' },
+]
+
+function formatPhone(phone: string | null | undefined): { flag: string; code: string; prefix: string; local: string } | null {
+  if (!phone) return null
+  // Supabase stores E.164 without '+', e.g. "40756416379"
+  const digits = phone.replace(/\D/g, '')
+  // Sort by prefix length descending to match longest first
+  const sorted = [...COUNTRY_PREFIXES].sort((a, b) => b.prefix.length - a.prefix.length)
+  for (const c of sorted) {
+    if (digits.startsWith(c.prefix)) {
+      return { flag: c.flag, code: c.code, prefix: c.prefix, local: digits.slice(c.prefix.length) }
+    }
+  }
+  return { flag: '🌍', code: '', prefix: '', local: digits }
+}
+
 export default async function AdminPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -141,17 +186,23 @@ export default async function AdminPage() {
                     <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <td style={{ padding: '10px 16px', color: '#E9D5FF' }}>{u.email}</td>
                       <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
-                        {u.phone ? (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{u.phone}</span>
-                            {u.phone_confirmed_at
-                              ? <span title="Verified" style={{ color: '#4ADE80', fontSize: 11, fontWeight: 700 }}>✓</span>
-                              : <span title="Not verified" style={{ color: '#F87171', fontSize: 11, fontWeight: 700 }}>✗</span>
-                            }
-                          </span>
-                        ) : (
-                          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>—</span>
-                        )}
+                        {(() => {
+                          const fp = formatPhone(u.phone)
+                          if (!fp) return <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>—</span>
+                          return (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <span style={{ fontSize: 14 }}>{fp.flag}</span>
+                              <span style={{ color: '#A855F7', fontSize: 10, fontWeight: 700 }}>
+                                {fp.code}{fp.prefix ? ` +${fp.prefix}` : ''}
+                              </span>
+                              <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{fp.local}</span>
+                              {u.phone_confirmed_at
+                                ? <span title="Verified" style={{ color: '#4ADE80', fontSize: 11, fontWeight: 700 }}>✓</span>
+                                : <span title="Not verified" style={{ color: '#F87171', fontSize: 11, fontWeight: 700 }}>✗</span>
+                              }
+                            </span>
+                          )
+                        })()}
                       </td>
                       <td style={{ padding: '10px 16px' }}>
                         <span style={{ background: 'rgba(168,85,247,0.15)', color: '#A855F7', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, letterSpacing: '0.08em' }}>
