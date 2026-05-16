@@ -27,6 +27,21 @@ Lista completă cu tot ce am decis să facem după lansarea inițială.
 
 ---
 
+## 💳 Actualizare planuri & feature cards (după fiecare feature nou)
+
+- [ ] **Auto-posting YouTube** — de decis pe ce plan (CREATOR+ sau PRO+)
+- [ ] **Auto-posting TikTok/Instagram** — PRO + AGENCY (după aprobare API)
+- [ ] **Scheduled posting** — AGENCY only sau PRO+AGENCY
+- [ ] **Voiceover AI** — PRO + AGENCY
+- [ ] **AI Thumbnail Generator** — PRO + AGENCY
+- [ ] **Face tracking / Auto zoom** — CREATOR + PRO + AGENCY
+- [ ] **API access** — AGENCY only
+- [ ] **Team collaboration** — AGENCY only
+- [ ] Actualizat cardurile de pricing din `components/billing/PricingCards.tsx` cu fiecare feature nou
+- [ ] Actualizat enforcement server-side în export route pentru fiecare feature gated
+
+---
+
 ## 📱 Social Media Auto Posting (după aprobare API)
 
 - [ ] **TikTok posting** — integrare completă după aprobare API (UI-ul e deja ready)
