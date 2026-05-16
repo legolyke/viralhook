@@ -45,7 +45,7 @@ export default function AIToolsPage({ plan, voiceoverUsed, voiceoverLimit }: Pro
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 32, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 0 }}>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 32, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 0 }}>
         {tabs.map(tab => (
           <button
             key={tab.id}

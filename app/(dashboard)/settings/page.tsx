@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 
 export default function SettingsPage() {
   return (
-    <div style={{ padding: '28px 28px 40px', maxWidth: 600 }}>
+    <div className="dashboard-content" style={{ maxWidth: 600 }}>
       <PageHeader
         title="Settings"
         breadcrumb="Dashboard / Settings"

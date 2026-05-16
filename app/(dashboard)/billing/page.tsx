@@ -28,7 +28,7 @@ export default async function BillingPage({
   const success = params.success === 'true'
 
   return (
-    <div style={{ padding: '28px 28px 40px' }}>
+    <div className="dashboard-content">
       <PageHeader
         title="Billing"
         breadcrumb="Dashboard / Billing"

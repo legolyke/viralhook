@@ -267,9 +267,36 @@ body {
   .analytics-cards {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+  .admin-page {
+    padding: 16px 16px 32px !important;
+  }
+  .admin-mrr {
+    flex-direction: column !important;
+    gap: 4px !important;
+    align-items: flex-start !important;
+  }
+  .admin-plans-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .project-header-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }
 @media (max-width: 480px) {
   .analytics-cards {
     grid-template-columns: 1fr !important;
+  }
+  .admin-plans-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

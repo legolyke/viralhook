@@ -39,7 +39,7 @@ export default async function AnalyticsPage() {
   ]
 
   return (
-    <div style={{ padding: '28px 28px 40px' }}>
+    <div className="dashboard-content">
       <PageHeader
         title="Analytics"
         breadcrumb="Dashboard / Analytics"

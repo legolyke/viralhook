@@ -109,7 +109,7 @@ export default function PricingCards({ currentPlan, exportsUsed }: PricingCardsP
         </div>
       )}
 
-      <div style={{
+      <div className="pricing-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
         gap: '16px',

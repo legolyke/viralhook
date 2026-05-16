@@ -47,7 +47,7 @@ export default async function AdminPage() {
   const recentUsers = users.slice(0, 20)
 
   return (
-    <div style={{ padding: '28px 28px 40px' }}>
+    <div style={{ padding: '28px 28px 40px' }} className="admin-page">
       <PageHeader
         title="Admin Panel"
         breadcrumb="Dashboard / Admin"
@@ -87,7 +87,7 @@ export default async function AdminPage() {
           Plans &amp; Revenue
         </h2>
         <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(168,85,247,0.15)', borderRadius: 12, padding: '20px 24px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }} className="analytics-cards">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }} className="analytics-cards admin-plans-grid">
             {(['free', 'creator', 'pro', 'agency'] as PlanName[]).map(plan => (
               <div key={plan}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: '#A855F7', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
@@ -100,7 +100,7 @@ export default async function AdminPage() {
               </div>
             ))}
           </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16, display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16, display: 'flex', alignItems: 'baseline', gap: 8 }} className="admin-mrr">
             <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Estimated MRR
             </span>
