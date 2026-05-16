@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
     )
 
     if (upsertError) {
-      console.error('social_connections upsert error:', upsertError)
-      return NextResponse.redirect(`${appUrl}/settings?error=db_error`)
+      const msg = encodeURIComponent(upsertError.message.slice(0, 120))
+      return NextResponse.redirect(`${appUrl}/settings?error=db_${msg}`)
     }
 
     return NextResponse.redirect(`${appUrl}/settings?connected=youtube`)
