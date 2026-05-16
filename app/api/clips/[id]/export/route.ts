@@ -14,10 +14,9 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Phone verification check — disabled until Twilio credit is added
-  // if (!user.phone_confirmed_at) {
-  //   return NextResponse.json({ error: 'phone_required' }, { status: 403 })
-  // }
+  if (!user.phone_confirmed_at) {
+    return NextResponse.json({ error: 'phone_required' }, { status: 403 })
+  }
 
   // Plan limit check
   const { data: sub } = await supabase

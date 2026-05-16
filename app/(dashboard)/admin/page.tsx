@@ -122,7 +122,7 @@ export default async function AdminPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  {['Email', 'Plan', 'Exports Used', 'Joined', 'Change Plan', 'Delete'].map(h => (
+                  {['Email', 'Phone', 'Plan', 'Exports Used', 'Joined', 'Change Plan', 'Delete'].map(h => (
                     <th
                       key={h}
                       style={{ padding: '10px 16px', textAlign: 'left', color: 'rgba(255,255,255,0.3)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
@@ -140,6 +140,19 @@ export default async function AdminPage() {
                   return (
                     <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <td style={{ padding: '10px 16px', color: '#E9D5FF' }}>{u.email}</td>
+                      <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                        {u.phone ? (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{u.phone}</span>
+                            {u.phone_confirmed_at
+                              ? <span title="Verified" style={{ color: '#4ADE80', fontSize: 11, fontWeight: 700 }}>✓</span>
+                              : <span title="Not verified" style={{ color: '#F87171', fontSize: 11, fontWeight: 700 }}>✗</span>
+                            }
+                          </span>
+                        ) : (
+                          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>—</span>
+                        )}
+                      </td>
                       <td style={{ padding: '10px 16px' }}>
                         <span style={{ background: 'rgba(168,85,247,0.15)', color: '#A855F7', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, letterSpacing: '0.08em' }}>
                           {plan.toUpperCase()}
@@ -160,7 +173,7 @@ export default async function AdminPage() {
                 })}
                 {recentUsers.length === 0 && (
                   <tr>
-                    <td colSpan={4} style={{ padding: '24px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>
+                    <td colSpan={7} style={{ padding: '24px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>
                       No users found
                     </td>
                   </tr>
