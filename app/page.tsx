@@ -125,14 +125,6 @@ export default function LandingPage() {
         .trust-badge { display: flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 500; }
         .trust-badge svg { flex-shrink: 0; }
 
-        /* Marquee */
-        .marquee-wrap { overflow: hidden; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.01); }
-        .marquee-track { display: flex; gap: 0; width: max-content; animation: marquee 28s linear infinite; }
-        .marquee-track:hover { animation-play-state: paused; }
-        .marquee-item { display: flex; align-items: center; gap: 10px; padding: 0 36px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.3); white-space: nowrap; }
-        .marquee-dot { width: 5px; height: 5px; border-radius: 50%; background: #A855F7; flex-shrink: 0; }
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
         /* Stats counter */
         .stats-band { padding: 72px 24px; background: rgba(168,85,247,0.04); border-top: 1px solid rgba(168,85,247,0.1); border-bottom: 1px solid rgba(168,85,247,0.1); }
         .stats-band-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px 24px; text-align: center; }
@@ -360,28 +352,6 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
-
-      {/* Marquee */}
-      {(() => {
-        const items = [
-          'AI Clip Detection', 'Auto Captions', '9:16 Reframing', 'TikTok Ready',
-          'YouTube Shorts', 'Instagram Reels', 'Viral Score', 'Priority Rendering',
-          'AI Voiceover', 'One-Click Export', 'GDPR Compliant', 'No Watermark',
-        ]
-        const doubled = [...items, ...items]
-        return (
-          <div className="marquee-wrap" aria-hidden="true">
-            <div className="marquee-track">
-              {doubled.map((item, i) => (
-                <div key={i} className="marquee-item">
-                  <span className="marquee-dot" />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })()}
 
       {/* Testimonials */}
       <section className="section section-center">
