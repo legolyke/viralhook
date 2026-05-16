@@ -25,7 +25,7 @@ export default function LandingPage() {
         .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #A855F7; animation: pulse 2s infinite; flex-shrink: 0; }
         .hero-title { font-size: clamp(36px, 6.5vw, 70px); font-weight: 800; line-height: 1.08; letter-spacing: -2px; margin-bottom: 24px; max-width: 900px; margin-left: auto; margin-right: auto; }
         .hero-title-accent { background: linear-gradient(135deg, #A855F7, #EC4899, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .hero-sub { font-size: clamp(15px, 2vw, 20px); color: rgba(255,255,255,0.5); line-height: 1.65; max-width: 540px; margin: 0 auto 40px; }
+        .hero-sub { font-size: clamp(12px, 1.7vw, 17px); color: rgba(255,255,255,0.5); line-height: 1.65; max-width: 540px; margin: 0 auto 40px; }
         .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
         .btn-hero { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #7C3AED, #A855F7); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 700; padding: 16px 32px; border-radius: 14px; transition: opacity 0.2s, transform 0.2s; min-height: 54px; }
         .btn-hero:hover { opacity: 0.9; transform: translateY(-1px); }
