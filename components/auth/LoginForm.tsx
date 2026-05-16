@@ -51,10 +51,11 @@ export default function LoginForm({ message, errorParam }: LoginFormProps) {
   }
 
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
+    if (error) setError('Google sign-in failed. Please try again.')
   }
 
   return (
