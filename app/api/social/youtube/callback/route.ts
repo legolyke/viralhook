@@ -34,13 +34,12 @@ export async function GET(request: NextRequest) {
     )
 
     if (upsertError) {
-      const msg = encodeURIComponent(upsertError.message.slice(0, 120))
-      return NextResponse.redirect(`${appUrl}/settings?error=db_${msg}`)
+      console.error('social_connections upsert error:', upsertError)
+      return NextResponse.redirect(`${appUrl}/settings?error=youtube_failed`)
     }
 
     return NextResponse.redirect(`${appUrl}/settings?connected=youtube`)
-  } catch (err) {
-    const msg = encodeURIComponent(err instanceof Error ? err.message.slice(0, 100) : 'unknown')
-    return NextResponse.redirect(`${appUrl}/settings?error=${msg}`)
+  } catch {
+    return NextResponse.redirect(`${appUrl}/settings?error=youtube_failed`)
   }
 }
