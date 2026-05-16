@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: 'ViralHook',
     images: [
       {
-        url: '/og-image2.png',
+        url: '/og-image2.png?v=2',
         width: 1200,
         height: 630,
         alt: 'ViralHook — AI Viral Shorts Generator',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ViralHook — AI Viral Shorts Generator',
     description: 'Upload any video. Our AI finds the most viral moments, cuts perfect 9:16 clips, adds animated subtitles, and generates captions — in minutes.',
-    images: ['/og-image2.png'],
+    images: ['/og-image2.png?v=2'],
   },
 }
 
