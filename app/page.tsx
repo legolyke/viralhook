@@ -308,7 +308,7 @@ export default function LandingPage() {
             {
               num: '1',
               title: 'Upload your video',
-              desc: 'Drop any long-form video — podcast, webinar, interview, vlog, or course. We accept MP4, MOV, AVI and more. Up to 2GB per file.',
+              desc: 'Drop any long-form video — podcast, webinar, interview, vlog, or course. We accept MP4 and MOV files. Free plan supports up to 30 minutes; paid plans up to 6 hours.',
             },
             {
               num: '2',
@@ -317,8 +317,8 @@ export default function LandingPage() {
             },
             {
               num: '3',
-              title: 'Export & post',
-              desc: 'Download perfect 9:16 clips with animated captions, ready for TikTok, Reels, Shorts, and every major platform.',
+              title: 'Export & post in one click',
+              desc: 'Post clips directly to YouTube Shorts straight from the ViralHook dashboard — no switching apps. TikTok and Instagram Reels direct posting coming soon.',
             },
           ].map(step => (
             <div key={step.num} className="step">
