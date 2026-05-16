@@ -125,6 +125,35 @@ export default function LandingPage() {
         .trust-badge { display: flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 500; }
         .trust-badge svg { flex-shrink: 0; }
 
+        /* Marquee */
+        .marquee-wrap { overflow: hidden; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.01); }
+        .marquee-track { display: flex; gap: 0; width: max-content; animation: marquee 28s linear infinite; }
+        .marquee-track:hover { animation-play-state: paused; }
+        .marquee-item { display: flex; align-items: center; gap: 10px; padding: 0 36px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.3); white-space: nowrap; }
+        .marquee-dot { width: 5px; height: 5px; border-radius: 50%; background: #A855F7; flex-shrink: 0; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* Stats counter */
+        .stats-band { padding: 72px 24px; background: rgba(168,85,247,0.04); border-top: 1px solid rgba(168,85,247,0.1); border-bottom: 1px solid rgba(168,85,247,0.1); }
+        .stats-band-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px 24px; text-align: center; }
+        .stat-number { font-size: clamp(36px, 6vw, 60px); font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg, #ffffff, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .stat-label { font-size: 14px; color: rgba(255,255,255,0.4); margin-top: 6px; line-height: 1.5; }
+
+        /* Comparison */
+        .comparison-wrap { max-width: 860px; margin: 56px auto 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .comparison-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        .comparison-table th { padding: 14px 20px; font-size: 13px; font-weight: 700; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .comparison-table th:first-child { color: rgba(255,255,255,0.4); width: 40%; }
+        .comparison-table th.col-vh { color: #A855F7; background: rgba(168,85,247,0.06); border-radius: 10px 10px 0 0; text-align: center; }
+        .comparison-table th.col-manual { color: rgba(255,255,255,0.35); text-align: center; }
+        .comparison-table td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .comparison-table td:first-child { color: rgba(255,255,255,0.55); font-weight: 500; }
+        .comparison-table td.col-vh { background: rgba(168,85,247,0.04); text-align: center; color: rgba(255,255,255,0.85); font-weight: 600; }
+        .comparison-table td.col-manual { text-align: center; color: rgba(255,255,255,0.3); }
+        .comparison-table tr:last-child td.col-vh { border-radius: 0 0 10px 10px; }
+        .check { color: #A855F7; font-size: 16px; }
+        .cross { color: rgba(255,255,255,0.2); font-size: 16px; }
+
         /* Testimonials */
         .testimonials-grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1100px; margin: 56px auto 0; }
         .testimonial-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px; transition: border-color 0.2s; }
@@ -149,6 +178,7 @@ export default function LandingPage() {
           .footer-inner { flex-direction: row; justify-content: space-between; }
           .footer-bottom { flex-direction: row; justify-content: space-between; align-items: center; }
           .testimonials-grid { grid-template-columns: 1fr 1fr; }
+          .stats-band-inner { grid-template-columns: repeat(4, 1fr); }
         }
 
         @media (min-width: 960px) {
@@ -331,6 +361,28 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Marquee */}
+      {(() => {
+        const items = [
+          'AI Clip Detection', 'Auto Captions', '9:16 Reframing', 'TikTok Ready',
+          'YouTube Shorts', 'Instagram Reels', 'Viral Score', 'Priority Rendering',
+          'AI Voiceover', 'One-Click Export', 'GDPR Compliant', 'No Watermark',
+        ]
+        const doubled = [...items, ...items]
+        return (
+          <div className="marquee-wrap" aria-hidden="true">
+            <div className="marquee-track">
+              {doubled.map((item, i) => (
+                <div key={i} className="marquee-item">
+                  <span className="marquee-dot" />
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Testimonials */}
       <section className="section section-center">
         <div className="section-tag">Testimonials</div>
@@ -385,6 +437,23 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Stats counter */}
+      <div className="stats-band">
+        <div className="stats-band-inner">
+          {[
+            { number: '10,000+', label: 'Clips created by our users' },
+            { number: '500+', label: 'Active creators worldwide' },
+            { number: '10x', label: 'Faster than manual editing' },
+            { number: '4.9★', label: 'Average user rating' },
+          ].map(s => (
+            <div key={s.label}>
+              <div className="stat-number">{s.number}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* How it works */}
       <section id="how-it-works" className="section section-center">
@@ -494,6 +563,44 @@ export default function LandingPage() {
               <p>{f.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Comparison table */}
+      <section className="section section-center">
+        <div className="section-tag">Comparison</div>
+        <h2 className="section-title">
+          Why choose <span className="accent">ViralHook</span>?
+        </h2>
+        <p className="section-sub">See how AI-powered editing stacks up against doing it manually.</p>
+
+        <div className="comparison-wrap">
+          <table className="comparison-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th className="col-vh">ViralHook AI</th>
+                <th className="col-manual">Manual editing</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { feature: 'Time per video', vh: '~20 minutes', manual: '3–5 hours' },
+                { feature: 'Virality detection', vh: 'AI-scored ✓', manual: 'Guesswork' },
+                { feature: 'Auto captions', vh: '✓ Included', manual: 'Manual transcription' },
+                { feature: '9:16 reframing', vh: '✓ Automatic', manual: 'Manual crop' },
+                { feature: 'Consistency', vh: '✓ Always optimal', manual: 'Varies by editor' },
+                { feature: 'Post to YouTube', vh: '✓ One click', manual: 'Multiple steps' },
+                { feature: 'Cost', vh: 'From €0/month', manual: 'High labor cost' },
+              ].map(row => (
+                <tr key={row.feature}>
+                  <td>{row.feature}</td>
+                  <td className="col-vh">{row.vh}</td>
+                  <td className="col-manual">{row.manual}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
