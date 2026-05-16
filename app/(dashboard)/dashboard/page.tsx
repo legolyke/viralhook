@@ -36,16 +36,16 @@ export default async function DashboardPage() {
         <StatsCard label="Exports used" value={0} limit={3} unit="exports" />
         <StatsCard label="Video processed" value={0} limit={30} unit="min" />
         <StatsCard label="Projects" value={projects?.length ?? 0} />
-        <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Plan</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#A855F7' }}>FREE</div>
+        <div style={{ padding: '18px 20px', borderRadius: 16, background: '#111114', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Plan</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#22D3EE', letterSpacing: '-0.5px' }}>FREE</div>
         </div>
       </div>
 
       <DashboardUploadTrigger />
 
       <div style={{ marginTop: 40 }}>
-        <h3 style={{ color: '#E9D5FF', fontWeight: 600, fontSize: 16, marginBottom: 16 }}>
+        <h3 style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontSize: 14, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Recent Projects
         </h3>
         {!projects || projects.length === 0 ? (
@@ -55,38 +55,42 @@ export default async function DashboardPage() {
             description="Upload your first video to get started."
           />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {projects.map((p) => (
               <Link
                 key={p.id}
                 href={`/projects/${p.id}`}
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(168,85,247,0.1)',
+                  background: '#111114',
+                  border: '1px solid rgba(255,255,255,0.06)',
                   borderRadius: 12,
                   padding: '16px 20px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   textDecoration: 'none',
-                  transition: 'border-color 0.15s',
+                  transition: 'border-color 0.2s, background 0.2s',
                 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(34,211,238,0.2)'; (e.currentTarget as HTMLElement).style.background = '#16161a' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111114' }}
               >
                 <div>
-                  <p style={{ color: '#E9D5FF', fontWeight: 500, margin: 0 }}>{p.title}</p>
-                  <p style={{ color: '#6B7280', fontSize: 12, margin: '4px 0 0' }}>
+                  <p style={{ color: '#fff', fontWeight: 500, margin: 0, fontSize: 14 }}>{p.title}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '4px 0 0' }}>
                     {p.source === 'youtube' ? '📺 YouTube' : p.source === 'tiktok' ? '🎵 TikTok' : '📁 File'} ·{' '}
                     {new Date(p.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 <span style={{
-                  fontSize: 12,
-                  padding: '4px 10px',
+                  fontSize: 11,
+                  padding: '3px 10px',
                   borderRadius: 20,
-                  background: p.status === 'ready' ? 'rgba(34,197,94,0.1)' :
-                               p.status === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(168,85,247,0.1)',
-                  color: p.status === 'ready' ? '#4ADE80' :
-                         p.status === 'error' ? '#F87171' : '#C084FC',
+                  fontWeight: 500,
+                  background: p.status === 'ready' ? 'rgba(34,211,238,0.08)' :
+                               p.status === 'error' ? 'rgba(239,68,68,0.08)' : 'rgba(139,92,246,0.08)',
+                  color: p.status === 'ready' ? '#22D3EE' :
+                         p.status === 'error' ? '#F87171' : '#8B5CF6',
+                  border: `1px solid ${p.status === 'ready' ? 'rgba(34,211,238,0.2)' : p.status === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(139,92,246,0.2)'}`,
                 }}>
                   {p.status}
                 </span>
