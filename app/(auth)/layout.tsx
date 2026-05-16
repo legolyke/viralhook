@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 export default function AuthLayout({
   children,
 }: {
@@ -117,7 +115,7 @@ export default function AuthLayout({
 
       {/* Logo */}
       <div className="auth-logo">
-        <Image src="/viralhook-logo.png" alt="ViralHook" width={675} height={646} unoptimized style={{ width: 'auto', height: '80px', objectFit: 'contain' }} priority />
+        <div style={{ width: 100, height: 96, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} role="img" aria-label="ViralHook" />
         <p>AI-Powered Viral Shorts Generator</p>
       </div>
 

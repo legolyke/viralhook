@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useMemo, useEffect, useRef, useLayoutEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -120,7 +119,7 @@ function NavLink({
             width: 160,
             height: 160,
             borderRadius: '50%',
-            background: 'rgba(34,211,238,0.12)',
+            background: 'rgba(168,85,247,0.22)',
             transform: 'translate(-50%, -50%) scale(0)',
             animation: 'navRipple 0.6s ease-out forwards',
             pointerEvents: 'none',
@@ -198,7 +197,7 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
         {/* Logo */}
         <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <Image src="/viralhook-logo.png" alt="ViralHook" width={675} height={646} unoptimized style={{ width: 'auto', height: '44px', objectFit: 'contain' }} priority />
+            <div style={{ width: 120, height: 46, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'left center' }} role="img" aria-label="ViralHook" />
           </Link>
           <button className="sidebar-close-btn" onClick={() => setOpen(false)} aria-label="Close menu">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -217,8 +216,7 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
               left: 0,
               width: 2,
               borderRadius: 2,
-              background: '#22D3EE',
-              boxShadow: '0 0 8px rgba(34,211,238,0.6)',
+              background: 'linear-gradient(to bottom, #7C3AED, #C026D3)',
               transition: 'top 0.25s cubic-bezier(0.4,0,0.2,1), height 0.15s, opacity 0.2s',
               top: indicator.top + 12,
               height: indicator.height,
@@ -284,7 +282,7 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Plan</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
                 <span style={{
-                  background: 'rgba(34,211,238,0.1)', color: '#22D3EE',
+                  background: 'rgba(168,85,247,0.15)', color: '#A855F7',
                   fontSize: '10px', fontWeight: 700, padding: '2px 8px',
                   borderRadius: '20px', letterSpacing: '0.08em',
                 }}>
@@ -293,7 +291,7 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
               </div>
             </div>
             {plan === 'free' && (
-              <Link href="/billing" style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: 'linear-gradient(90deg,#22D3EE,#8B5CF6)', color: '#fff', fontWeight: 600, textDecoration: 'none', boxShadow: '0 0 12px rgba(34,211,238,0.2)' }}>
+              <Link href="/billing" style={{ fontSize: 11, padding: '3px 8px', borderRadius: 5, background: 'linear-gradient(90deg,#7C3AED,#C026D3)', color: '#fff', fontWeight: 600, textDecoration: 'none' }}>
                 Upgrade
               </Link>
             )}
@@ -317,7 +315,7 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#22D3EE,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#7C3AED,#C026D3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                 {initial}
               </div>
               <div style={{ minWidth: 0 }}>
