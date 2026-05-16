@@ -92,4 +92,21 @@ describe('POST /api/ai/voiceover', () => {
     const res = await POST(makeRequest({ text: 'hello', voice: 'invalid-voice' }))
     expect(res.status).toBe(400)
   })
+
+  it('increments voiceover_used on success', async () => {
+    mockCreateClient.mockResolvedValue(makeSubMock('pro', 10) as never)
+    mockGenerateVoiceover.mockResolvedValue(Buffer.from('fake-audio'))
+    const eqSpy = vi.fn().mockResolvedValue({ error: null })
+    const updateSpy = vi.fn().mockReturnValue({ eq: eqSpy })
+    mockCreateServiceClient.mockReturnValue({
+      from: () => ({ update: updateSpy }),
+    } as never)
+
+    await POST(makeRequest({ text: 'Hello world', voice: 'nova' }))
+
+    expect(updateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ voiceover_used: 11 })
+    )
+    expect(eqSpy).toHaveBeenCalledWith('user_id', 'user-1')
+  })
 })
