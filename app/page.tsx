@@ -45,9 +45,10 @@ export default function LandingPage() {
         .mockup-url { flex: 1; background: rgba(255,255,255,0.05); border-radius: 6px; padding: 4px 12px; font-size: 12px; color: rgba(255,255,255,0.25); margin: 0 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .mockup-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
         .mockup-clip { border-radius: 12px; background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.12); aspect-ratio: 9/16; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden; }
-        .mockup-clip-score { position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg,#7C3AED,#A855F7); border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: #fff; }
-        .mockup-play { width: 40px; height: 40px; border-radius: 50%; background: rgba(168,85,247,0.3); border: 1px solid rgba(168,85,247,0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .mockup-clip-label { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; padding: 0 8px; }
+        .mockup-clip video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+        .mockup-clip-score { position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg,#7C3AED,#A855F7); border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: #fff; z-index: 1; }
+        .mockup-play { width: 40px; height: 40px; border-radius: 50%; background: rgba(168,85,247,0.3); border: 1px solid rgba(168,85,247,0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+        .mockup-clip-label { font-size: 11px; color: rgba(255,255,255,0.8); text-align: center; padding: 0 8px; z-index: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.8); position: absolute; bottom: 12px; left: 0; right: 0; }
 
         /* Social proof */
         .social-bar { border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 28px 24px; text-align: center; }
@@ -231,17 +232,21 @@ export default function LandingPage() {
             </div>
             <div className="mockup-body">
               {[
-                { score: '98%', label: 'Hook moment — 0:12' },
-                { score: '94%', label: 'Emotional peak — 1:45' },
-                { score: '91%', label: 'Key insight — 3:22' },
+                { score: '98%', label: 'Hook moment', src: '/demo/demo-1.mp4' },
+                { score: '94%', label: 'Emotional peak', src: '/demo/demo-2.mp4' },
+                { score: '91%', label: 'Key insight', src: '/demo/demo-3.mp4' },
               ].map((clip, i) => (
                 <div key={i} className="mockup-clip">
+                  <video
+                    src={clip.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="none"
+                    aria-hidden="true"
+                  />
                   <div className="mockup-clip-score">{clip.score}</div>
-                  <div className="mockup-play">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#A855F7" aria-hidden="true">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
                   <div className="mockup-clip-label">{clip.label}</div>
                 </div>
               ))}
