@@ -4,6 +4,7 @@ import PageHeader from '@/components/dashboard/PageHeader'
 import { PLAN_PRICES_EUR } from '@/lib/plans'
 import type { PlanName } from '@/lib/plans'
 import AdminPlanSelector from '@/components/admin/AdminPlanSelector'
+import AdminDeleteButton from '@/components/admin/AdminDeleteButton'
 
 const ADMIN_EMAIL = 'popescu2290@gmail.com'
 
@@ -121,7 +122,7 @@ export default async function AdminPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  {['Email', 'Plan', 'Exports Used', 'Joined', 'Change Plan'].map(h => (
+                  {['Email', 'Plan', 'Exports Used', 'Joined', 'Change Plan', 'Delete'].map(h => (
                     <th
                       key={h}
                       style={{ padding: '10px 16px', textAlign: 'left', color: 'rgba(255,255,255,0.3)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
@@ -150,6 +151,9 @@ export default async function AdminPage() {
                       </td>
                       <td style={{ padding: '10px 16px' }}>
                         <AdminPlanSelector userId={u.id} currentPlan={plan} />
+                      </td>
+                      <td style={{ padding: '10px 16px' }}>
+                        <AdminDeleteButton userId={u.id} email={u.email ?? ''} />
                       </td>
                     </tr>
                   )
