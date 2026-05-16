@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import PageHeader from '@/components/dashboard/PageHeader'
 import { PLAN_PRICES_EUR } from '@/lib/plans'
 import type { PlanName } from '@/lib/plans'
+import AdminPlanSelector from '@/components/admin/AdminPlanSelector'
 
 const ADMIN_EMAIL = 'popescu2290@gmail.com'
 
@@ -120,7 +121,7 @@ export default async function AdminPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  {['Email', 'Plan', 'Exports Used', 'Joined'].map(h => (
+                  {['Email', 'Plan', 'Exports Used', 'Joined', 'Change Plan'].map(h => (
                     <th
                       key={h}
                       style={{ padding: '10px 16px', textAlign: 'left', color: 'rgba(255,255,255,0.3)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
@@ -146,6 +147,9 @@ export default async function AdminPage() {
                       <td style={{ padding: '10px 16px', color: 'rgba(255,255,255,0.5)' }}>{exportsUsed}</td>
                       <td style={{ padding: '10px 16px', color: 'rgba(255,255,255,0.35)', fontSize: 11, whiteSpace: 'nowrap' }}>
                         {new Date(u.created_at).toLocaleDateString('en-GB')}
+                      </td>
+                      <td style={{ padding: '10px 16px' }}>
+                        <AdminPlanSelector userId={u.id} currentPlan={plan} />
                       </td>
                     </tr>
                   )
