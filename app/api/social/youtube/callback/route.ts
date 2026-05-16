@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.redirect(`${appUrl}/settings?connected=youtube`)
-  } catch {
-    return NextResponse.redirect(`${appUrl}/settings?error=youtube_failed`)
+  } catch (err) {
+    const msg = encodeURIComponent(err instanceof Error ? err.message.slice(0, 100) : 'unknown')
+    return NextResponse.redirect(`${appUrl}/settings?error=${msg}`)
   }
 }
