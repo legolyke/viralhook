@@ -212,3 +212,155 @@ Rules:
   console.log('[detectViralClips] filtered count:', normalized.length)
   return normalized
 }
+
+export type ScriptPlatform = 'tiktok' | 'reels' | 'shorts' | 'youtube'
+export type ScriptTone = 'funny' | 'educational' | 'motivational' | 'inspirational'
+export type VoiceOption = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'
+
+export interface IdeaItem {
+  title: string
+  hook: string
+  description: string
+}
+
+export async function generateScript(
+  topic: string,
+  platform: ScriptPlatform,
+  duration: string,
+  tone: ScriptTone
+): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
+
+  const platformGuides: Record<ScriptPlatform, string> = {
+    tiktok: 'TikTok — casual, hook in first 3 words, trending phrases, direct CTA at end',
+    reels: 'Instagram Reels — visually descriptive, emotional, shareable moment, strong CTA',
+    shorts: 'YouTube Shorts — punchy, keyword-rich title style opening, subscribe CTA',
+    youtube: 'YouTube — informative hook, structured content, strong outro with subscribe nudge',
+  }
+
+  const durationGuides: Record<string, string> = {
+    '30s': '~75 words (spoken at normal pace)',
+    '60s': '~150 words',
+    '90s': '~225 words',
+  }
+
+  const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
+    method: 'POST',
+    signal: AbortSignal.timeout(20000),
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert viral video scriptwriter. Write scripts that are engaging, ${tone}, and optimized for ${platformGuides[platform]}. Return ONLY the script text — no labels, no stage directions, no quotes.`,
+        },
+        {
+          role: 'user',
+          content: `Write a ${duration} video script about: "${topic}"\nTarget length: ${durationGuides[duration] ?? '~150 words'}\nTone: ${tone}`,
+        },
+      ],
+      temperature: 0.8,
+      max_tokens: 500,
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`OpenAI error ${res.status}: ${text}`)
+  }
+
+  const data = await res.json() as { choices: Array<{ message: { content: string } }> }
+  const content = data.choices[0]?.message?.content?.trim()
+  if (!content) throw new Error('OpenAI returned empty response')
+  return content
+}
+
+export async function generateIdeas(
+  niche: string,
+  platform: ScriptPlatform
+): Promise<IdeaItem[]> {
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
+
+  const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
+    method: 'POST',
+    signal: AbortSignal.timeout(20000),
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a viral content strategist. Generate video ideas that are trending and high-engagement. Return ONLY valid JSON.',
+        },
+        {
+          role: 'user',
+          content: `Generate 7 viral video ideas for the "${niche}" niche on ${platform}.\n\nReturn JSON: {"ideas": [{"title": "...", "hook": "...", "description": "..."}]}\n\n- title: catchy video title (max 60 chars)\n- hook: the opening line that grabs attention (1 sentence)\n- description: what the video is about (1-2 sentences)`,
+        },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.85,
+      max_tokens: 1000,
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`OpenAI error ${res.status}: ${text}`)
+  }
+
+  const data = await res.json() as { choices: Array<{ message: { content: string } }> }
+  const content = data.choices[0]?.message?.content
+  if (!content) throw new Error('OpenAI returned empty response')
+
+  let parsed: { ideas: IdeaItem[] }
+  try {
+    parsed = JSON.parse(content) as { ideas: IdeaItem[] }
+  } catch {
+    throw new Error('OpenAI returned invalid JSON')
+  }
+
+  if (!Array.isArray(parsed.ideas)) throw new Error('OpenAI response missing ideas array')
+
+  return parsed.ideas.filter(
+    (idea) =>
+      typeof idea.title === 'string' &&
+      typeof idea.hook === 'string' &&
+      typeof idea.description === 'string'
+  )
+}
+
+export async function generateVoiceover(
+  text: string,
+  voice: VoiceOption
+): Promise<Buffer> {
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
+
+  const res = await fetch(`${OPENAI_BASE}/audio/speech`, {
+    method: 'POST',
+    signal: AbortSignal.timeout(30000),
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'tts-1',
+      input: text.slice(0, 4000),
+      voice,
+    }),
+  })
+
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`OpenAI error ${res.status}: ${errText}`)
+  }
+
+  const arrayBuffer = await res.arrayBuffer()
+  return Buffer.from(arrayBuffer)
+}

@@ -7,6 +7,7 @@ export interface Subscription {
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
   exports_used: number
+  voiceover_used: number
   period_start: string
   created_at: string
   updated_at: string
@@ -17,6 +18,13 @@ export const PLAN_LIMITS: Record<PlanName, number> = {
   creator: 40,
   pro: 150,
   agency: 2000,
+}
+
+export const VOICEOVER_LIMITS: Record<PlanName, number> = {
+  free: 0,
+  creator: 0,
+  pro: 50,
+  agency: 300,
 }
 
 export const PLAN_LABELS: Record<PlanName, string> = {
@@ -43,6 +51,22 @@ export function getPlanLimit(plan: PlanName): number {
   return PLAN_LIMITS[plan] ?? PLAN_LIMITS.free
 }
 
+export function getVoiceoverLimit(plan: PlanName): number {
+  return VOICEOVER_LIMITS[plan] ?? 0
+}
+
 export function isAtLimit(plan: PlanName, exportsUsed: number): boolean {
   return exportsUsed >= getPlanLimit(plan)
+}
+
+export function isAtVoiceoverLimit(plan: PlanName, voiceoverUsed: number): boolean {
+  return voiceoverUsed >= getVoiceoverLimit(plan)
+}
+
+export function canUseAITools(plan: PlanName): boolean {
+  return plan === 'creator' || plan === 'pro' || plan === 'agency'
+}
+
+export function canUseVoiceover(plan: PlanName): boolean {
+  return plan === 'pro' || plan === 'agency'
 }
