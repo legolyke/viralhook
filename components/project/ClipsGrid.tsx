@@ -546,6 +546,7 @@ function ClipCard({
         <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
           <ExportModal
             clipId={clip.id}
+            clipTitle={clip.title ?? ''}
             startTime={clip.start_time}
             endTime={clip.end_time}
             projectFileUrl={projectFileUrl}
