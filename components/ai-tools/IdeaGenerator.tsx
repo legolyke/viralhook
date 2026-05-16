@@ -53,6 +53,12 @@ export default function IdeaGenerator({ plan, onUseIdea }: Props) {
     fontSize: 14,
     width: '100%',
     cursor: 'pointer',
+    colorScheme: 'dark',
+  }
+
+  const optionStyle: React.CSSProperties = {
+    background: '#1a1a2e',
+    color: '#fff',
   }
 
   const labelStyle: React.CSSProperties = {
@@ -96,10 +102,10 @@ export default function IdeaGenerator({ plan, onUseIdea }: Props) {
           <div>
             <label style={labelStyle}>Platform</label>
             <select value={platform} onChange={e => setPlatform(e.target.value)} style={selectStyle}>
-              <option value="tiktok">TikTok</option>
-              <option value="reels">Reels</option>
-              <option value="shorts">Shorts</option>
-              <option value="youtube">YouTube</option>
+              <option value="tiktok" style={optionStyle}>TikTok</option>
+              <option value="reels" style={optionStyle}>Reels</option>
+              <option value="shorts" style={optionStyle}>Shorts</option>
+              <option value="youtube" style={optionStyle}>YouTube</option>
             </select>
           </div>
         </div>

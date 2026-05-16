@@ -65,6 +65,12 @@ export default function ScriptGenerator({ plan, initialTopic = '', onTopicUsed, 
     fontSize: 14,
     width: '100%',
     cursor: 'pointer',
+    colorScheme: 'dark',
+  }
+
+  const optionStyle: React.CSSProperties = {
+    background: '#1a1a2e',
+    color: '#fff',
   }
 
   const labelStyle: React.CSSProperties = {
@@ -110,27 +116,27 @@ export default function ScriptGenerator({ plan, initialTopic = '', onTopicUsed, 
         <div>
           <label style={labelStyle}>Platform</label>
           <select value={platform} onChange={e => setPlatform(e.target.value)} style={selectStyle}>
-            <option value="tiktok">TikTok</option>
-            <option value="reels">Reels</option>
-            <option value="shorts">Shorts</option>
-            <option value="youtube">YouTube</option>
+            <option value="tiktok" style={optionStyle}>TikTok</option>
+            <option value="reels" style={optionStyle}>Reels</option>
+            <option value="shorts" style={optionStyle}>Shorts</option>
+            <option value="youtube" style={optionStyle}>YouTube</option>
           </select>
         </div>
         <div>
           <label style={labelStyle}>Duration</label>
           <select value={duration} onChange={e => setDuration(e.target.value)} style={selectStyle}>
-            <option value="30s">30 seconds</option>
-            <option value="60s">60 seconds</option>
-            <option value="90s">90 seconds</option>
+            <option value="30s" style={optionStyle}>30 seconds</option>
+            <option value="60s" style={optionStyle}>60 seconds</option>
+            <option value="90s" style={optionStyle}>90 seconds</option>
           </select>
         </div>
         <div>
           <label style={labelStyle}>Tone</label>
           <select value={tone} onChange={e => setTone(e.target.value)} style={selectStyle}>
-            <option value="funny">Funny</option>
-            <option value="educational">Educational</option>
-            <option value="motivational">Motivational</option>
-            <option value="inspirational">Inspirational</option>
+            <option value="funny" style={optionStyle}>Funny</option>
+            <option value="educational" style={optionStyle}>Educational</option>
+            <option value="motivational" style={optionStyle}>Motivational</option>
+            <option value="inspirational" style={optionStyle}>Inspirational</option>
           </select>
         </div>
       </div>
