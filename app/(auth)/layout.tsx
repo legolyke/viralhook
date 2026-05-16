@@ -1,8 +1,38 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
+
+const LEFT_PANEL: Record<string, { heading: string; headingAccent: string; sub: string }> = {
+  '/login': {
+    heading: 'Welcome',
+    headingAccent: 'back!',
+    sub: 'Sign in to your account and continue creating viral content.',
+  },
+  '/signup': {
+    heading: 'Start for',
+    headingAccent: 'free!',
+    sub: 'Create your account and start generating viral shorts today.',
+  },
+  '/forgot-password': {
+    heading: 'Reset your',
+    headingAccent: 'password',
+    sub: 'Enter your email and we\'ll send you a reset link.',
+  },
+  '/reset-password': {
+    heading: 'Almost',
+    headingAccent: 'there!',
+    sub: 'Set your new password and get back to creating.',
+  },
+}
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const panel = LEFT_PANEL[pathname] ?? LEFT_PANEL['/login']
+
   return (
     <div className="auth-page">
       <style>{`
@@ -181,10 +211,10 @@ export default function AuthLayout({
             {/* Heading */}
             <div>
               <h2 style={{fontSize:34, fontWeight:700, lineHeight:1.15, color:'#ffffff', margin:'0 0 12px'}}>
-                Welcome <span style={{color:'#A855F7'}}>back!</span>
+                {panel.heading} <span style={{color:'#A855F7'}}>{panel.headingAccent}</span>
               </h2>
               <p style={{fontSize:14, color:'rgba(255,255,255,0.5)', lineHeight:1.65, margin:0}}>
-                Sign in to your account and continue creating viral content.
+                {panel.sub}
               </p>
             </div>
 
