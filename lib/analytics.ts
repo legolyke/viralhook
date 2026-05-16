@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { PLAN_LIMITS } from '@/lib/plans'
+import { PLAN_LIMITS, PLAN_PRICES_EUR } from '@/lib/plans'
 import type { PlanName } from '@/lib/plans'
 
 export interface UserStats {
@@ -53,6 +53,10 @@ export async function getUserStats(
     supabase.from('subscriptions').select('plan, exports_used').eq('user_id', userId).single(),
   ])
 
+  if (projectsRes.error) throw new Error(`getUserStats projects: ${projectsRes.error.message}`)
+  if (clipsRes.error) throw new Error(`getUserStats clips: ${clipsRes.error.message}`)
+  if (subRes.error && subRes.error.code !== 'PGRST116') throw new Error(`getUserStats subscription: ${subRes.error.message}`)
+
   const projectCount = projectsRes.count ?? 0
   const clips = (clipsRes.data ?? []) as { virality_score: number }[]
   const scores = clips
@@ -79,13 +83,14 @@ export async function getExportsByDay(
   const since = new Date()
   since.setDate(since.getDate() - days)
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('clips')
     .select('updated_at')
     .eq('user_id', userId)
     .eq('status', 'ready')
     .gte('updated_at', since.toISOString())
 
+  if (error) throw new Error(`getExportsByDay: ${error.message}`)
   if (!data || (data as unknown[]).length === 0) return []
 
   const counts: Record<string, number> = {}
@@ -109,13 +114,14 @@ export async function getTopClips(
   userId: string,
   limit: number = 3,
 ): Promise<TopClip[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('clips')
     .select('id, title, virality_score, start_time, end_time, project_id')
     .eq('user_id', userId)
     .order('virality_score', { ascending: false })
     .limit(limit)
 
+  if (error) throw new Error(`getTopClips: ${error.message}`)
   if (!data || (data as unknown[]).length === 0) return []
 
   const typedData = data as {
@@ -124,10 +130,12 @@ export async function getTopClips(
   }[]
 
   const projectIds = [...new Set(typedData.map(c => c.project_id))]
-  const { data: projects } = await supabase
+  const { data: projects, error: projectsError } = await supabase
     .from('projects')
     .select('id, title')
     .in('id', projectIds)
+
+  if (projectsError) throw new Error(`getTopClips projects: ${projectsError.message}`)
 
   const projectMap = Object.fromEntries(
     ((projects ?? []) as { id: string; title: string }[]).map(p => [p.id, p.title])
@@ -160,13 +168,19 @@ export async function getPlatformUserStats(
     supabase.from('subscriptions').select('id', { count: 'exact', head: true }).gte('created_at', monthStart),
   ])
 
+  if (totalRes.error) throw new Error(`getPlatformUserStats total: ${totalRes.error.message}`)
+  if (plansRes.error) throw new Error(`getPlatformUserStats plans: ${plansRes.error.message}`)
+  if (todayRes.error) throw new Error(`getPlatformUserStats newToday: ${todayRes.error.message}`)
+  if (weekRes.error) throw new Error(`getPlatformUserStats newThisWeek: ${weekRes.error.message}`)
+  if (monthRes.error) throw new Error(`getPlatformUserStats newThisMonth: ${monthRes.error.message}`)
+
   const byPlan: Record<PlanName, number> = { free: 0, creator: 0, pro: 0, agency: 0 }
   for (const row of (plansRes.data ?? []) as { plan: string }[]) {
     const p = (row.plan ?? 'free') as PlanName
     if (p in byPlan) byPlan[p]++
   }
 
-  const mrr = byPlan.creator * 19 + byPlan.pro * 49 + byPlan.agency * 149
+  const mrr = byPlan.creator * PLAN_PRICES_EUR.creator + byPlan.pro * PLAN_PRICES_EUR.pro + byPlan.agency * PLAN_PRICES_EUR.agency
   return {
     totalUsers: totalRes.count ?? 0,
     byPlan,
@@ -192,6 +206,12 @@ export async function getPlatformActivityStats(
     supabase.from('projects').select('id', { count: 'exact', head: true }).gte('created_at', todayStart),
     supabase.from('projects').select('id', { count: 'exact', head: true }).gte('created_at', weekStart),
   ])
+
+  if (projRes.error) throw new Error(`getPlatformActivityStats projects: ${projRes.error.message}`)
+  if (clipsRes.error) throw new Error(`getPlatformActivityStats clips: ${clipsRes.error.message}`)
+  if (exportsRes.error) throw new Error(`getPlatformActivityStats exports: ${exportsRes.error.message}`)
+  if (projTodayRes.error) throw new Error(`getPlatformActivityStats projectsToday: ${projTodayRes.error.message}`)
+  if (projWeekRes.error) throw new Error(`getPlatformActivityStats projectsThisWeek: ${projWeekRes.error.message}`)
 
   const totalExports = ((exportsRes.data ?? []) as { exports_used: number }[])
     .reduce((sum, row) => sum + (row.exports_used ?? 0), 0)

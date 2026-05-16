@@ -32,6 +32,13 @@ export const PLAN_PRICES: Record<string, string> = {
   agency: process.env.STRIPE_PRICE_AGENCY ?? '',
 }
 
+export const PLAN_PRICES_EUR: Record<PlanName, number> = {
+  free: 0,
+  creator: 19,
+  pro: 49,
+  agency: 149,
+}
+
 export function getPlanLimit(plan: PlanName): number {
   return PLAN_LIMITS[plan] ?? PLAN_LIMITS.free
 }
