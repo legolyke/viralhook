@@ -120,6 +120,22 @@ export default function LandingPage() {
         .footer-bottom { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 28px; display: flex; gap: 16px; align-items: flex-start; flex-direction: column; }
         .footer-bottom p { font-size: 13px; color: rgba(255,255,255,0.25); }
 
+        /* Trust badges */
+        .trust-badges { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: 24px; }
+        .trust-badge { display: flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 500; }
+        .trust-badge svg { flex-shrink: 0; }
+
+        /* Testimonials */
+        .testimonials-grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1100px; margin: 56px auto 0; }
+        .testimonial-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px; transition: border-color 0.2s; }
+        .testimonial-card:hover { border-color: rgba(168,85,247,0.25); }
+        .testimonial-stars { display: flex; gap: 3px; }
+        .testimonial-text { font-size: 15px; color: rgba(255,255,255,0.65); line-height: 1.7; flex: 1; }
+        .testimonial-author { display: flex; align-items: center; gap: 12px; }
+        .testimonial-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .testimonial-name { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); }
+        .testimonial-role { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
         /* Divider */
         .divider { width: 48px; height: 3px; background: linear-gradient(90deg, #7C3AED, #A855F7); border-radius: 999px; margin: 0 auto 0; }
 
@@ -132,6 +148,11 @@ export default function LandingPage() {
           .footer-cols { grid-template-columns: repeat(3, 1fr); }
           .footer-inner { flex-direction: row; justify-content: space-between; }
           .footer-bottom { flex-direction: row; justify-content: space-between; align-items: center; }
+          .testimonials-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (min-width: 960px) {
+          .testimonials-grid { grid-template-columns: 1fr 1fr 1fr; }
         }
 
         @media (min-width: 768px) {
@@ -204,6 +225,21 @@ export default function LandingPage() {
           <a href="#how-it-works" className="btn-hero-ghost">
             See how it works
           </a>
+        </div>
+
+        {/* Trust badges */}
+        <div className="trust-badges" role="list">
+          {[
+            { label: 'No credit card required', icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg> },
+            { label: 'Cancel anytime', icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg> },
+            { label: 'GDPR Compliant', icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg> },
+            { label: 'SSL Secured', icon: <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="rgba(168,85,247,0.7)" strokeWidth={2} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg> },
+          ].map(b => (
+            <div key={b.label} className="trust-badge" role="listitem">
+              {b.icon}
+              {b.label}
+            </div>
+          ))}
         </div>
 
         <div className="hero-stats" role="list">
@@ -294,6 +330,61 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
+
+      {/* Testimonials */}
+      <section className="section section-center">
+        <div className="section-tag">Testimonials</div>
+        <h2 className="section-title">
+          Creators <span className="accent">love</span> ViralHook
+        </h2>
+        <p className="section-sub">Join thousands of creators already growing faster with AI-powered clips.</p>
+
+        <div className="testimonials-grid">
+          {[
+            {
+              text: '"ViralHook cut my editing time from 4 hours to under 20 minutes. My TikTok engagement tripled in the first month — the AI finds hooks I would have never thought to cut."',
+              name: 'Alex M.',
+              role: 'Content Creator · 250K followers',
+              initials: 'AM',
+              color: 'linear-gradient(135deg, #7C3AED, #A855F7)',
+            },
+            {
+              text: '"We use ViralHook for all our agency clients. The virality scoring is scarily accurate — it consistently picks the moments that actually perform. Saves us hours every week."',
+              name: 'Sarah K.',
+              role: 'Marketing Manager · Digital Agency',
+              initials: 'SK',
+              color: 'linear-gradient(135deg, #EC4899, #A855F7)',
+            },
+            {
+              text: '"The auto captions alone are worth it. Clean, synced, and they look professional out of the box. My YouTube Shorts are getting 5x more views since I started using ViralHook."',
+              name: 'Marcus T.',
+              role: 'YouTuber · 80K subscribers',
+              initials: 'MT',
+              color: 'linear-gradient(135deg, #3B82F6, #7C3AED)',
+            },
+          ].map((t, i) => (
+            <div key={i} className="testimonial-card">
+              <div className="testimonial-stars" aria-label="5 stars">
+                {Array.from({ length: 5 }).map((_, s) => (
+                  <svg key={s} width="16" height="16" viewBox="0 0 24 24" fill="#A855F7" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ))}
+              </div>
+              <p className="testimonial-text">{t.text}</p>
+              <div className="testimonial-author">
+                <div className="testimonial-avatar" style={{ background: t.color }} aria-hidden="true">
+                  {t.initials}
+                </div>
+                <div>
+                  <div className="testimonial-name">{t.name}</div>
+                  <div className="testimonial-role">{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* How it works */}
       <section id="how-it-works" className="section section-center">
