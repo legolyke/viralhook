@@ -162,8 +162,7 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="nav">
         <Link href="/" className="nav-logo">
-          <div style={{ width: 36, height: 36, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
-          <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.5px' }}>Viral<span style={{ color: '#A855F7' }}>Hook</span></span>
+          <div style={{ width: 52, height: 52, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
         </Link>
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
@@ -589,8 +588,7 @@ export default function LandingPage() {
         <div className="footer-inner">
           <div className="footer-brand">
             <Link href="/" className="nav-logo" style={{ marginBottom: 12 }}>
-              <div style={{ width: 32, height: 32, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
-              <span style={{ fontSize: 16, fontWeight: 800 }}>Viral<span style={{ color: '#A855F7' }}>Hook</span></span>
+              <div style={{ width: 48, height: 48, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
             </Link>
             <p>AI-powered short video generation for creators, marketers, and agencies worldwide.</p>
           </div>
