@@ -15,11 +15,11 @@ export default function TermsPage() {
     <div style={{ background: '#000', color: '#fff', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 24px; height: 80px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
         .nav-logo { display: flex; align-items: center; text-decoration: none; }
         .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
         .back-link:hover { color: #fff; }
-        .page { max-width: 760px; margin: 0 auto; padding: 112px 24px 96px; }
+        .page { max-width: 760px; margin: 0 auto; padding: 128px 24px 96px; }
         .page-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.2); border-radius: 999px; padding: 5px 14px; font-size: 12px; color: #C084FC; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px; }
         .page-title { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 8px; }
         .page-date { font-size: 13px; color: rgba(255,255,255,0.3); margin-bottom: 48px; }
@@ -44,7 +44,7 @@ export default function TermsPage() {
       {/* Navbar */}
       <nav className="nav">
         <Link href="/" className="nav-logo">
-          <div style={{ width: 48, height: 48, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
+          <div style={{ width: 100, height: 100, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
         </Link>
         <Link href="/" className="back-link">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
