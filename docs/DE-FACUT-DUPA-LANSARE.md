@@ -52,6 +52,12 @@ Lista completă cu tot ce am decis să facem după lansarea inițială.
 
 ---
 
+## 🎨 Watermark pe Free plan
+- [ ] **Implementat watermark FFmpeg** în `server/index.ts` — text "viralhook.media" în colț dreapta-jos pentru useri Free
+- [ ] Câmpul `has_watermark` din DB e deja acolo, trebuie doar logica în Railway
+
+---
+
 ## 🛠 Technical debt & Known limitations
 
 - [ ] **Realtime subscription** pe project detail page — acum userul trebuie să refresheze manual ca să vadă transcrierea gata
