@@ -37,6 +37,7 @@ export async function POST(request: Request) {
   const tone = b.tone as ScriptTone
 
   if (!topic) return NextResponse.json({ error: 'topic is required' }, { status: 400 })
+  if (topic.length > 500) return NextResponse.json({ error: 'topic too long (max 500 chars)' }, { status: 400 })
   if (!VALID_PLATFORMS.includes(platform)) return NextResponse.json({ error: 'Invalid platform' }, { status: 400 })
   if (!VALID_DURATIONS.includes(duration)) return NextResponse.json({ error: 'Invalid duration' }, { status: 400 })
   if (!VALID_TONES.includes(tone)) return NextResponse.json({ error: 'Invalid tone' }, { status: 400 })

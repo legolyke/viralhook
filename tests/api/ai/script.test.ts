@@ -64,4 +64,31 @@ describe('POST /api/ai/script', () => {
     const res = await POST(makeRequest({ topic: 'fitness', platform: 'invalid', duration: '30s', tone: 'funny' }))
     expect(res.status).toBe(400)
   })
+
+  it('returns 400 for empty topic', async () => {
+    mockCreateClient.mockResolvedValue({
+      auth: { getUser: async () => ({ data: { user: { id: 'user-1' } } }) },
+      from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { plan: 'creator' } }) }) }) }),
+    } as never)
+    const res = await POST(makeRequest({ topic: '', platform: 'tiktok', duration: '30s', tone: 'funny' }))
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid tone', async () => {
+    mockCreateClient.mockResolvedValue({
+      auth: { getUser: async () => ({ data: { user: { id: 'user-1' } } }) },
+      from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { plan: 'creator' } }) }) }) }),
+    } as never)
+    const res = await POST(makeRequest({ topic: 'fitness', platform: 'tiktok', duration: '30s', tone: 'invalid' }))
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid duration', async () => {
+    mockCreateClient.mockResolvedValue({
+      auth: { getUser: async () => ({ data: { user: { id: 'user-1' } } }) },
+      from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { plan: 'creator' } }) }) }) }),
+    } as never)
+    const res = await POST(makeRequest({ topic: 'fitness', platform: 'tiktok', duration: '2m', tone: 'funny' }))
+    expect(res.status).toBe(400)
+  })
 })
