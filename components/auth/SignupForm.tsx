@@ -69,6 +69,9 @@ export default function SignupForm() {
           <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, margin: 0, maxWidth: 340 }}>
             We sent a confirmation link to your email address. Click it to activate your account.
           </p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', lineHeight: 1.6, margin: '12px 0 0', maxWidth: 340 }}>
+            ✉️ Can&apos;t find it? Check your <strong style={{ color: 'rgba(255,255,255,0.45)' }}>spam or junk folder</strong>.
+          </p>
         </div>
         <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, background: 'linear-gradient(90deg, #7C3AED, #C026D3)', color: '#ffffff', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
           Go to Sign In
