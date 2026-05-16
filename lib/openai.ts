@@ -230,6 +230,7 @@ export async function generateScript(
   tone: ScriptTone
 ): Promise<string> {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
+  topic = topic.slice(0, 500)
 
   const platformGuides: Record<ScriptPlatform, string> = {
     tiktok: 'TikTok — casual, hook in first 3 words, trending phrases, direct CTA at end',
@@ -284,6 +285,7 @@ export async function generateIdeas(
   platform: ScriptPlatform
 ): Promise<IdeaItem[]> {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
+  niche = niche.slice(0, 300)
 
   const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
     method: 'POST',
