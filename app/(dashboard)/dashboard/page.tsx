@@ -60,19 +60,7 @@ export default async function DashboardPage() {
               <Link
                 key={p.id}
                 href={`/projects/${p.id}`}
-                style={{
-                  background: '#111114',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 12,
-                  padding: '16px 20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  textDecoration: 'none',
-                  transition: 'border-color 0.2s, background 0.2s',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(34,211,238,0.2)'; (e.currentTarget as HTMLElement).style.background = '#16161a' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111114' }}
+                className="project-card"
               >
                 <div>
                   <p style={{ color: '#fff', fontWeight: 500, margin: 0, fontSize: 14 }}>{p.title}</p>
