@@ -534,7 +534,7 @@ export default function LandingPage() {
           {[
             {
               q: 'What video formats are supported?',
-              a: 'We support all common video formats including MP4, MOV, AVI, MKV, and WebM. Files can be up to 2GB. For larger files, contact our support team.',
+              a: 'We currently support MP4 and MOV formats. For any other format, convert your file to MP4 first using a free tool like HandBrake. Free plan supports videos up to 30 minutes; Creator up to 2h; Pro up to 4h; Agency up to 6h.',
             },
             {
               q: 'How long does processing take?',
@@ -546,7 +546,7 @@ export default function LandingPage() {
             },
             {
               q: 'Are my videos stored permanently?',
-              a: 'Your original videos and exported clips are stored for 30 days after processing, then automatically deleted. You can manually delete them sooner from your dashboard.',
+              a: 'Your videos and exported clips are stored securely in your account for as long as you need them. You can delete any project manually from your dashboard at any time. We do not share or sell your content.',
             },
             {
               q: 'Do I own the content I export?',
