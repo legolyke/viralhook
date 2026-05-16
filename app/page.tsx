@@ -132,20 +132,20 @@ export default function LandingPage() {
         .stat-label { font-size: 14px; color: rgba(255,255,255,0.4); margin-top: 6px; line-height: 1.5; }
 
         /* Comparison */
-        .comparison-wrap { max-width: 860px; margin: 56px auto 0; }
-        .comparison-header { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; padding: 0 0 0 0; max-width: 560px; margin-left: auto; }
-        .comparison-col-label { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 16px; border-radius: 10px; }
-        .comparison-col-vh { color: #A855F7; background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.2); }
-        .comparison-col-manual { color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
-        .comparison-row { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .comparison-feature { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
-        .comparison-values { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .comparison-val { font-size: 13px; padding: 8px 12px; border-radius: 8px; text-align: center; line-height: 1.4; }
-        .comparison-val-vh { background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.15); color: rgba(255,255,255,0.85); font-weight: 600; }
-        .comparison-val-manual { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); }
-        @media (min-width: 640px) {
-          .comparison-row { grid-template-columns: 2fr 3fr; align-items: center; }
-          .comparison-feature { margin-bottom: 0; }
+        .comparison-wrap { max-width: 760px; margin: 56px auto 0; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+        .comparison-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .comparison-table th { padding: 10px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .comparison-table th:first-child { color: rgba(255,255,255,0.35); width: 40%; }
+        .comparison-table th.col-vh { color: #A855F7; background: rgba(168,85,247,0.06); text-align: center; }
+        .comparison-table th.col-manual { color: rgba(255,255,255,0.3); text-align: center; }
+        .comparison-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); word-break: break-word; }
+        .comparison-table tr:last-child td { border-bottom: none; }
+        .comparison-table td:first-child { color: rgba(255,255,255,0.55); font-weight: 500; }
+        .comparison-table td.col-vh { background: rgba(168,85,247,0.04); text-align: center; color: rgba(255,255,255,0.85); font-weight: 600; }
+        .comparison-table td.col-manual { text-align: center; color: rgba(255,255,255,0.28); }
+        @media (max-width: 480px) {
+          .comparison-table th, .comparison-table td { padding: 8px 7px; font-size: 11px; }
+          .comparison-table th { font-size: 10px; }
         }
 
         /* Testimonials */
@@ -547,29 +547,32 @@ export default function LandingPage() {
         <p className="section-sub">See how AI-powered editing stacks up against doing it manually.</p>
 
         <div className="comparison-wrap">
-          <div className="comparison-header" style={{ maxWidth: '100%', marginLeft: 0 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginLeft: 'auto', maxWidth: 400, width: '100%' }}>
-              <div className="comparison-col-label comparison-col-vh">ViralHook AI</div>
-              <div className="comparison-col-label comparison-col-manual">Manual editing</div>
-            </div>
-          </div>
-          {[
-            { feature: 'Time per video', vh: '~20 minutes', manual: '3–5 hours' },
-            { feature: 'Virality detection', vh: 'AI-scored', manual: 'Guesswork' },
-            { feature: 'Auto captions', vh: 'Included', manual: 'Manual transcription' },
-            { feature: '9:16 reframing', vh: 'Automatic', manual: 'Manual crop' },
-            { feature: 'Consistency', vh: 'Always optimal', manual: 'Varies by editor' },
-            { feature: 'Post to YouTube', vh: 'One click', manual: 'Multiple steps' },
-            { feature: 'Cost', vh: 'From €0/month', manual: 'High labor cost' },
-          ].map(row => (
-            <div key={row.feature} className="comparison-row">
-              <div className="comparison-feature">{row.feature}</div>
-              <div className="comparison-values">
-                <div className="comparison-val comparison-val-vh">{row.vh}</div>
-                <div className="comparison-val comparison-val-manual">{row.manual}</div>
-              </div>
-            </div>
-          ))}
+          <table className="comparison-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th className="col-vh">ViralHook AI</th>
+                <th className="col-manual">Manual</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { feature: 'Time/video', vh: '~20 min', manual: '3–5 hours' },
+                { feature: 'Virality', vh: 'AI-scored', manual: 'Guesswork' },
+                { feature: 'Captions', vh: 'Auto', manual: 'Manual' },
+                { feature: '9:16 crop', vh: 'Auto', manual: 'Manual' },
+                { feature: 'Consistency', vh: 'Always', manual: 'Varies' },
+                { feature: 'Post YouTube', vh: '1 click', manual: 'Multi-step' },
+                { feature: 'Cost', vh: 'From €0', manual: 'High cost' },
+              ].map(row => (
+                <tr key={row.feature}>
+                  <td>{row.feature}</td>
+                  <td className="col-vh">{row.vh}</td>
+                  <td className="col-manual">{row.manual}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
