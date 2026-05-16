@@ -117,7 +117,7 @@ export default function AuthLayout({
 
       {/* Logo */}
       <div className="auth-logo">
-        <Image src="/viralhook-logo.png" alt="ViralHook" width={675} height={646} style={{ width: 'auto', height: '80px', objectFit: 'contain' }} priority />
+        <Image src="/viralhook-logo.png" alt="ViralHook" width={675} height={646} unoptimized style={{ width: 'auto', height: '80px', objectFit: 'contain' }} priority />
         <p>AI-Powered Viral Shorts Generator</p>
       </div>
 
