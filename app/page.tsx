@@ -711,10 +711,6 @@ export default function LandingPage() {
 
         <div className="footer-bottom" style={{ maxWidth: 1100, margin: '0 auto' }}>
           <p>© {new Date().getFullYear()} ViralHook Media. All rights reserved.</p>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.2)' }}>
-            Made with AI · Powered by{' '}
-            <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>Vercel</a>
-          </p>
         </div>
       </footer>
 
