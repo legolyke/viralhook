@@ -77,8 +77,8 @@ export async function POST(
         })
 
         return NextResponse.json({ ok: true, publishId })
-      } catch {
-        return NextResponse.json({ error: 'TikTok post failed after token refresh' }, { status: 500 })
+      } catch (retryErr) {
+        return NextResponse.json({ error: retryErr instanceof Error ? retryErr.message : 'TikTok post failed after token refresh' }, { status: 500 })
       }
     }
 
