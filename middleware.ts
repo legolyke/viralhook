@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
     request.cookies.has(`sb-${PROJECT_REF}-auth-token`) ||
     request.cookies.has(`sb-${PROJECT_REF}-auth-token.0`)
 
-  if (!hasSession && (pathname.startsWith('/dashboard') || pathname.startsWith('/projects') || pathname.startsWith('/admin'))) {
+  if (!hasSession && (pathname.startsWith('/dashboard') || pathname.startsWith('/projects') || pathname.startsWith('/admin') || pathname.startsWith('/support'))) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
