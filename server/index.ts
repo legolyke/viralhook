@@ -215,8 +215,8 @@ async function processClip(
     await new Promise<void>((resolve, reject) => {
       const ff = ffmpeg(inputPath)
         .inputOptions([
-          `-ss ${startSec.toFixed(3)}`,
-          `-to ${endSec.toFixed(3)}`,
+          `-ss ${Math.max(0, startSec - 5).toFixed(3)}`,
+          `-to ${(endSec + 1).toFixed(3)}`,
         ])
 
       ff.complexFilter(filterComplex)
