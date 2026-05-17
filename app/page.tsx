@@ -188,6 +188,11 @@ export default function LandingPage() {
 
         @media (min-width: 1024px) {
           .steps { grid-template-columns: 1fr 1fr 1fr; }
+          .nav { padding: 0 48px; }
+        }
+
+        @media (min-width: 1280px) {
+          .nav { padding: 0 80px; }
         }
 
         @media (max-width: 480px) {
