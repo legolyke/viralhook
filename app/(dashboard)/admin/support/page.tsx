@@ -2,13 +2,12 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminSupportClient from '@/components/admin/AdminSupportClient'
-
-const ADMIN_EMAIL = 'popescu2290@gmail.com'
+import { isAdmin } from '@/lib/is-admin'
 
 export default async function AdminSupportPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email !== ADMIN_EMAIL) redirect('/dashboard')
+  if (!user || !(await isAdmin(user.id, user.email))) redirect('/dashboard')
 
   const service = createServiceClient()
   const { data: tickets } = await service

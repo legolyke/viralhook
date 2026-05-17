@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-
-const ADMIN_EMAIL = 'popescu2290@gmail.com'
+import { isAdmin } from '@/lib/is-admin'
 
 export async function PATCH(
   request: Request,
@@ -9,7 +8,7 @@ export async function PATCH(
 ) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email !== ADMIN_EMAIL) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user || !(await isAdmin(user.id, user.email))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   let body: { status?: string }

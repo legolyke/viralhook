@@ -10,6 +10,7 @@ interface SidebarProps {
   email: string
   fullName?: string
   plan?: string
+  isAdmin?: boolean
 }
 
 const NAV_MAIN = [
@@ -139,7 +140,7 @@ function NavLink({
   )
 }
 
-export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps) {
+export default function Sidebar({ email, fullName, plan = 'free', isAdmin = false }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -269,7 +270,7 @@ export default function Sidebar({ email, fullName, plan = 'free' }: SidebarProps
             />
           ))}
 
-          {email === 'popescu2290@gmail.com' && (
+          {isAdmin && (
             <>
               <NavLink
                 href="/admin"
