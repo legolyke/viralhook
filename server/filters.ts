@@ -189,8 +189,8 @@ export function buildFilterComplex(params: {
       subtitleStr,
     ].filter(Boolean).join(',')
 
-    parts.push(`[0:v]${videoChain}[vout]`)
-    parts.push(`[0:a]${fade.audio}[aout]`)
+    parts.push(`[0:v]trim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},setpts=PTS-STARTPTS,${videoChain}[vout]`)
+    parts.push(`[0:a]atrim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},asetpts=PTS-STARTPTS,${fade.audio}[aout]`)
   }
 
   return {
