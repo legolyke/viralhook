@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-interface YouTubeStatus {
+interface PlatformStatus {
   connected: boolean
   channelName?: string
   channelId?: string
@@ -85,13 +85,18 @@ function PlatformCard({
 
 export default function ConnectedAccounts() {
   const searchParams = useSearchParams()
-  const [youtube, setYoutube] = useState<YouTubeStatus>({ connected: false })
-  const [banner, setBanner] = useState<string | null>(null)
+  const [youtube, setYoutube] = useState<PlatformStatus>({ connected: false })
+  const [tiktok, setTiktok] = useState<PlatformStatus>({ connected: false })
+  const [banner, setBanner] = useState<{ text: string; ok: boolean } | null>(null)
 
   useEffect(() => {
     fetch('/api/social/youtube/status')
       .then(r => r.json())
-      .then((data: YouTubeStatus) => setYoutube(data))
+      .then((data: PlatformStatus) => setYoutube(data))
+      .catch(() => {})
+    fetch('/api/social/tiktok/status')
+      .then(r => r.json())
+      .then((data: PlatformStatus) => setTiktok(data))
       .catch(() => {})
   }, [])
 
@@ -99,19 +104,35 @@ export default function ConnectedAccounts() {
     const connected = searchParams.get('connected')
     const error = searchParams.get('error')
     if (connected === 'youtube') {
-      setBanner('YouTube connected successfully!')
+      setBanner({ text: 'YouTube connected successfully!', ok: true })
       fetch('/api/social/youtube/status')
         .then(r => r.json())
-        .then((data: YouTubeStatus) => setYoutube(data))
+        .then((data: PlatformStatus) => setYoutube(data))
+        .catch(() => {})
+    } else if (connected === 'tiktok') {
+      setBanner({ text: 'TikTok connected successfully!', ok: true })
+      fetch('/api/social/tiktok/status')
+        .then(r => r.json())
+        .then((data: PlatformStatus) => setTiktok(data))
         .catch(() => {})
     } else if (error) {
-      setBanner('Failed to connect YouTube. Please try again.')
+      const msg = error === 'tiktok_session_expired'
+        ? 'TikTok session expired. Please try again.'
+        : error === 'tiktok_failed'
+        ? 'Failed to connect TikTok. Please try again.'
+        : 'Failed to connect. Please try again.'
+      setBanner({ text: msg, ok: false })
     }
   }, [searchParams])
 
-  async function handleDisconnect() {
+  async function handleYoutubeDisconnect() {
     await fetch('/api/social/youtube/disconnect', { method: 'DELETE' })
     setYoutube({ connected: false })
+  }
+
+  async function handleTiktokDisconnect() {
+    await fetch('/api/social/tiktok/disconnect', { method: 'DELETE' })
+    setTiktok({ connected: false })
   }
 
   return (
@@ -119,12 +140,12 @@ export default function ConnectedAccounts() {
       {banner && (
         <div style={{
           marginBottom: 16, padding: '10px 16px', borderRadius: 8,
-          background: banner.includes('success') ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
-          border: `1px solid ${banner.includes('success') ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`,
-          color: banner.includes('success') ? '#4ADE80' : '#F87171',
+          background: banner.ok ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)',
+          border: `1px solid ${banner.ok ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)'}`,
+          color: banner.ok ? '#4ADE80' : '#F87171',
           fontSize: 13,
         }}>
-          {banner}
+          {banner.text}
         </div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -133,7 +154,7 @@ export default function ConnectedAccounts() {
           connected={youtube.connected}
           channelName={youtube.channelName}
           onConnect={() => { window.location.href = '/api/social/youtube/auth' }}
-          onDisconnect={() => void handleDisconnect()}
+          onDisconnect={() => void handleYoutubeDisconnect()}
           icon={
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#FF0000">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -142,9 +163,12 @@ export default function ConnectedAccounts() {
         />
         <PlatformCard
           name="TikTok"
-          comingSoon
+          connected={tiktok.connected}
+          channelName={tiktok.channelName}
+          onConnect={() => { window.location.href = '/api/social/tiktok/auth' }}
+          onDisconnect={() => void handleTiktokDisconnect()}
           icon={
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill={tiktok.connected ? '#fff' : 'rgba(255,255,255,0.7)'}>
               <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.16 8.16 0 0 0 4.77 1.52V6.76a4.85 4.85 0 0 1-1-.07z"/>
             </svg>
           }
