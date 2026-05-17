@@ -373,7 +373,11 @@ export default async function AdminPage() {
                         )}
                       </td>
                       <td style={{ padding: '10px 16px' }}>
-                        <AdminDeleteButton userId={u.id} email={u.email ?? ''} />
+                        {u.email === SUPERADMIN_EMAIL ? (
+                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)' }}>—</span>
+                        ) : (
+                          <AdminDeleteButton userId={u.id} email={u.email ?? ''} />
+                        )}
                       </td>
                     </tr>
                   )
