@@ -33,9 +33,24 @@ export async function POST(request: Request) {
   const svc = createServiceClient()
   const { data: sub } = await svc
     .from('subscriptions')
-    .select('stripe_customer_id')
+    .select('stripe_customer_id, stripe_subscription_id')
     .eq('user_id', user.id)
     .single()
+
+  // If user already has an active Stripe subscription, use portal to change plan
+  if (sub?.stripe_subscription_id && sub?.stripe_customer_id) {
+    let portalSession
+    try {
+      portalSession = await stripe.billingPortal.sessions.create({
+        customer: sub.stripe_customer_id,
+        return_url: `${appUrl}/billing`,
+      })
+    } catch (err) {
+      console.error('[checkout] portal fallback failed', err)
+      return NextResponse.json({ error: 'Checkout creation failed' }, { status: 500 })
+    }
+    return NextResponse.json({ url: portalSession.url })
+  }
 
   let customerId = sub?.stripe_customer_id ?? null
 
@@ -74,8 +89,9 @@ export async function POST(request: Request) {
       metadata: { user_id: user.id, plan },
     })
   } catch (err) {
-    console.error('[checkout] stripe.checkout.sessions.create failed', err)
-    return NextResponse.json({ error: 'Checkout creation failed' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[checkout] stripe.checkout.sessions.create failed', msg)
+    return NextResponse.json({ error: `Checkout creation failed: ${msg}` }, { status: 500 })
   }
 
   return NextResponse.json({ url: session.url })
