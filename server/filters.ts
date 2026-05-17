@@ -160,7 +160,8 @@ export function buildFilterComplex(params: {
     const fade = buildFadeFilters(durationSec)
     const subtitleStr = buildSubtitleFilters(subtitleData, textFiles)
     const videoChain = [
-      `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`,
+      `scale=${w}:${h}:force_original_aspect_ratio=increase`,
+      `crop=${w}:${h}:(iw-${w})*${cropX}:(ih-${h})/2`,
       fade.video,
       subtitleStr,
     ].filter(Boolean).join(',')
@@ -174,7 +175,8 @@ export function buildFilterComplex(params: {
     const fade = buildFadeFilters(effectiveDuration)
     const subtitleStr = buildSubtitleFilters(subtitleData, textFiles)
     const videoChain = [
-      `crop=ih*9/16:ih:(iw-ih*9/16)*${cropX}:0,scale=${w}:${h}`,
+      `scale=${w}:${h}:force_original_aspect_ratio=increase`,
+      `crop=${w}:${h}:(iw-${w})*${cropX}:(ih-${h})/2`,
       fade.video,
       subtitleStr,
     ].filter(Boolean).join(',')
