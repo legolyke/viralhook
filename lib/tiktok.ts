@@ -120,9 +120,9 @@ export async function postVideo(
       post_info: {
         title,
         privacy_level: privacyLevel,
-        disable_duet: false,
-        disable_comment: false,
-        disable_stitch: false,
+        disable_duet: true,
+        disable_comment: true,
+        disable_stitch: true,
       },
       source_info: {
         source: 'PULL_FROM_URL',
