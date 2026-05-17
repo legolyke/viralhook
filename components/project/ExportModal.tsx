@@ -5,6 +5,7 @@ import PhoneVerifyModal from '@/components/phone/PhoneVerifyModal'
 import UpsellModal from '@/components/billing/UpsellModal'
 import PostToYouTubeModal from './PostToYouTubeModal'
 import PostToTikTokModal from './PostToTikTokModal'
+import PostToInstagramModal from './PostToInstagramModal'
 
 const SUBTITLE_FONTS = [
   { key: 'arial',            name: 'Arial',             css: 'Arial, sans-serif' },
@@ -101,6 +102,8 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
   const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(null)
   const [showTikTokModal, setShowTikTokModal] = useState(false)
   const [tiktokConnected, setTiktokConnected] = useState<boolean | null>(null)
+  const [showInstagramModal, setShowInstagramModal] = useState(false)
+  const [instagramConnected, setInstagramConnected] = useState<boolean | null>(null)
 
   // Load Google Fonts for preview
   useEffect(() => {
@@ -248,6 +251,10 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
       .then(r => r.json())
       .then((data: { connected: boolean }) => setTiktokConnected(data.connected))
       .catch(() => setTiktokConnected(false))
+    fetch('/api/social/instagram/status')
+      .then(r => r.json())
+      .then((data: { connected: boolean }) => setInstagramConnected(data.connected))
+      .catch(() => setInstagramConnected(false))
   }, [state])
 
   const handleGenerate = async () => {
@@ -835,21 +842,37 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
                   </span>
                 </button>
 
-                {/* Instagram — coming soon */}
+                {/* Instagram */}
                 <button
                   type="button"
-                  disabled
-                  title="Instagram API approval pending"
+                  onClick={() => {
+                    if (instagramConnected) {
+                      setShowInstagramModal(true)
+                    } else {
+                      window.open('/settings', '_blank')
+                    }
+                  }}
+                  title={instagramConnected ? 'Post to Instagram' : 'Connect Instagram in Settings first'}
                   style={{
-                    flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'not-allowed',
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, opacity: 0.4,
+                    flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
+                    background: instagramConnected ? 'rgba(220,39,67,0.08)' : 'rgba(255,255,255,0.03)',
+                    border: instagramConnected ? '1px solid rgba(220,39,67,0.25)' : '1px solid rgba(255,255,255,0.08)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={instagramConnected ? 'url(#ig-export-grad)' : 'rgba(255,255,255,0.2)'}>
+                    <defs>
+                      <linearGradient id="ig-export-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#f09433"/>
+                        <stop offset="50%" stopColor="#dc2743"/>
+                        <stop offset="100%" stopColor="#bc1888"/>
+                      </linearGradient>
+                    </defs>
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
                   </svg>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', fontWeight: 600 }}>Instagram</span>
+                  <span style={{ fontSize: 10, color: instagramConnected ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', fontWeight: 600 }}>
+                    {instagramConnected ? 'Instagram' : 'Connect'}
+                  </span>
                 </button>
               </div>
             </div>
@@ -920,6 +943,13 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
           clipId={clipId}
           defaultTitle={clipTitle}
           onClose={() => setShowTikTokModal(false)}
+        />
+      )}
+      {showInstagramModal && (
+        <PostToInstagramModal
+          clipId={clipId}
+          defaultTitle={clipTitle}
+          onClose={() => setShowInstagramModal(false)}
         />
       )}
     </div>

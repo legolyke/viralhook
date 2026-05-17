@@ -87,6 +87,7 @@ export default function ConnectedAccounts() {
   const searchParams = useSearchParams()
   const [youtube, setYoutube] = useState<PlatformStatus>({ connected: false })
   const [tiktok, setTiktok] = useState<PlatformStatus>({ connected: false })
+  const [instagram, setInstagram] = useState<PlatformStatus>({ connected: false })
   const [banner, setBanner] = useState<{ text: string; ok: boolean } | null>(null)
 
   useEffect(() => {
@@ -97,6 +98,10 @@ export default function ConnectedAccounts() {
     fetch('/api/social/tiktok/status')
       .then(r => r.json())
       .then((data: PlatformStatus) => setTiktok(data))
+      .catch(() => {})
+    fetch('/api/social/instagram/status')
+      .then(r => r.json())
+      .then((data: PlatformStatus) => setInstagram(data))
       .catch(() => {})
   }, [])
 
@@ -115,11 +120,21 @@ export default function ConnectedAccounts() {
         .then(r => r.json())
         .then((data: PlatformStatus) => setTiktok(data))
         .catch(() => {})
+    } else if (connected === 'instagram') {
+      setBanner({ text: 'Instagram connected successfully!', ok: true })
+      fetch('/api/social/instagram/status')
+        .then(r => r.json())
+        .then((data: PlatformStatus) => setInstagram(data))
+        .catch(() => {})
     } else if (error) {
       const msg = error === 'tiktok_session_expired'
         ? 'TikTok session expired. Please try again.'
         : error === 'tiktok_failed'
         ? 'Failed to connect TikTok. Please try again.'
+        : error === 'instagram_session_expired'
+        ? 'Instagram session expired. Please try again.'
+        : error === 'instagram_failed'
+        ? 'Failed to connect Instagram. Please try again.'
         : 'Failed to connect. Please try again.'
       setBanner({ text: msg, ok: false })
     }
@@ -133,6 +148,11 @@ export default function ConnectedAccounts() {
   async function handleTiktokDisconnect() {
     await fetch('/api/social/tiktok/disconnect', { method: 'DELETE' })
     setTiktok({ connected: false })
+  }
+
+  async function handleInstagramDisconnect() {
+    await fetch('/api/social/instagram/disconnect', { method: 'DELETE' })
+    setInstagram({ connected: false })
   }
 
   return (
@@ -175,9 +195,19 @@ export default function ConnectedAccounts() {
         />
         <PlatformCard
           name="Instagram"
-          comingSoon
+          connected={instagram.connected}
+          channelName={instagram.channelName}
+          onConnect={() => { window.location.href = '/api/social/instagram/auth' }}
+          onDisconnect={() => void handleInstagramDisconnect()}
           icon={
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill={instagram.connected ? 'url(#ig-settings-grad)' : 'rgba(255,255,255,0.3)'}>
+              <defs>
+                <linearGradient id="ig-settings-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#f09433"/>
+                  <stop offset="50%" stopColor="#dc2743"/>
+                  <stop offset="100%" stopColor="#bc1888"/>
+                </linearGradient>
+              </defs>
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
             </svg>
           }
