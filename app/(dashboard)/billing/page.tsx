@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import PageHeader from '@/components/dashboard/PageHeader'
 import PricingCards from '@/components/billing/PricingCards'
+import ManageSubscriptionButton from '@/components/billing/ManageSubscriptionButton'
 import type { PlanName } from '@/lib/plans'
 import { PLAN_LIMITS } from '@/lib/plans'
 
@@ -23,6 +24,7 @@ export default async function BillingPage({
   const plan = (sub?.plan ?? 'free') as PlanName
   const exportsUsed = sub?.exports_used ?? 0
   const limit = PLAN_LIMITS[plan]
+  const isPaid = plan !== 'free'
 
   const params = await searchParams
   const success = params.success === 'true'
@@ -71,6 +73,18 @@ export default async function BillingPage({
           </div>
         </div>
       </div>
+
+      {isPaid && (
+        <div style={{
+          background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: '14px',
+          padding: '20px 24px', marginBottom: '24px',
+        }}>
+          <div style={{ color: '#666', fontSize: '12px', marginBottom: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Subscription Management
+          </div>
+          <ManageSubscriptionButton />
+        </div>
+      )}
 
       <PricingCards currentPlan={plan} exportsUsed={exportsUsed} />
     </div>
