@@ -13,10 +13,7 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: clipId } = await params
-  const { title, privacyLevel } = await request.json() as {
-    title: string
-    privacyLevel?: TikTokPrivacy
-  }
+  const { title } = await request.json() as { title: string }
 
   const { data: clip } = await supabase
     .from('clips')

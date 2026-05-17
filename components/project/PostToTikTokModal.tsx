@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import type { TikTokPrivacy } from '@/lib/tiktok'
-
 interface PostToTikTokModalProps {
   clipId: string
   defaultTitle: string
@@ -11,15 +9,8 @@ interface PostToTikTokModalProps {
 
 type PostState = 'idle' | 'posting' | 'done' | 'error'
 
-const PRIVACY_OPTIONS: { value: TikTokPrivacy; label: string }[] = [
-  { value: 'PUBLIC_TO_EVERYONE', label: 'Public' },
-  { value: 'FOLLOWER_OF_CREATOR', label: 'Followers' },
-  { value: 'SELF_ONLY', label: 'Private' },
-]
-
 export default function PostToTikTokModal({ clipId, defaultTitle, onClose }: PostToTikTokModalProps) {
   const [title, setTitle] = useState(defaultTitle.slice(0, 150))
-  const [privacy, setPrivacy] = useState<TikTokPrivacy>('SELF_ONLY')
   const [postState, setPostState] = useState<PostState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -29,7 +20,7 @@ export default function PostToTikTokModal({ clipId, defaultTitle, onClose }: Pos
       const res = await fetch(`/api/clips/${clipId}/post/tiktok`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, privacyLevel: privacy }),
+        body: JSON.stringify({ title }),
       })
       const data = await res.json() as { ok?: boolean; publishId?: string; error?: string }
       if (!res.ok || !data.ok) {
