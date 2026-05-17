@@ -139,27 +139,30 @@ export interface FilterComplexResult {
 export function buildFilterComplex(params: {
   segments: SilenceSegment[] | null
   clipStartSec: number
+  clipEndSec: number
   cropX: number
   resolution: Resolution
   durationSec: number
   subtitleData: SubtitleData | null
   textFiles: string[]
 }): FilterComplexResult {
-  const { segments, clipStartSec, cropX, resolution, durationSec, subtitleData, textFiles } = params
+  const { segments, clipStartSec, clipEndSec, cropX, resolution, durationSec, subtitleData, textFiles } = params
   const { w, h } = RESOLUTION_DIMS[resolution]
   const parts: string[] = []
 
   if (segments && segments.length > 1) {
-    // Silence removal: explicit split → trim each segment → concat
+    // Step 1: pre-clip trim to exact bounds (handles keyframe-alignment extra frames)
+    // then split for per-segment silence removal
     const n = segments.length
-    parts.push(`[0:v]split=${n}${segments.map((_, i) => `[vs${i}]`).join('')}`)
-    parts.push(`[0:a]asplit=${n}${segments.map((_, i) => `[as${i}]`).join('')}`)
+    parts.push(`[0:v]trim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},setpts=PTS-STARTPTS[vclip]`)
+    parts.push(`[0:a]atrim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},asetpts=PTS-STARTPTS[aclip]`)
+    parts.push(`[vclip]split=${n}${segments.map((_, i) => `[vs${i}]`).join('')}`)
+    parts.push(`[aclip]asplit=${n}${segments.map((_, i) => `[as${i}]`).join('')}`)
+    // Step 2: per-segment trim (0-based after pre-clip setpts)
     for (let i = 0; i < n; i++) {
       const s = segments[i]
-      const absStart = (s.start + clipStartSec).toFixed(3)
-      const absEnd   = (s.end   + clipStartSec).toFixed(3)
-      parts.push(`[vs${i}]trim=start=${absStart}:end=${absEnd},setpts=PTS-STARTPTS,setsar=1[v${i}]`)
-      parts.push(`[as${i}]atrim=start=${absStart}:end=${absEnd},asetpts=PTS-STARTPTS[a${i}]`)
+      parts.push(`[vs${i}]trim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},setpts=PTS-STARTPTS,setsar=1[v${i}]`)
+      parts.push(`[as${i}]atrim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},asetpts=PTS-STARTPTS[a${i}]`)
     }
     const vInputs = segments.map((_, i) => `[v${i}][a${i}]`).join('')
     parts.push(`${vInputs}concat=n=${segments.length}:v=1:a=1[vcombined][acombined]`)

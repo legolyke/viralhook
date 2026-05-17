@@ -200,6 +200,7 @@ async function processClip(
     const { filterComplex, mapVideo, mapAudio } = buildFilterComplex({
       segments,
       clipStartSec: startSec,
+      clipEndSec: endSec,
       cropX,
       resolution,
       durationSec: newDurationSec,
