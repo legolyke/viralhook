@@ -45,9 +45,11 @@ export async function POST(
   let accessToken = connection.access_token
   // Use proxy URL on viralhook.media so TikTok URL ownership check passes
   const streamUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/clips/${clipId}/stream`
+  // Until TikTok approves the app, unaudited apps can only post privately
+  const effectivePrivacy: TikTokPrivacy = 'SELF_ONLY'
 
   try {
-    const publishId = await postVideo(accessToken, streamUrl, title, privacyLevel)
+    const publishId = await postVideo(accessToken, streamUrl, title, effectivePrivacy)
 
     await supabase.from('social_posts').insert({
       clip_id: clipId,
@@ -68,7 +70,7 @@ export async function POST(
           .eq('user_id', user.id)
           .eq('platform', 'tiktok')
 
-        const publishId = await postVideo(accessToken, streamUrl, title, privacyLevel)
+        const publishId = await postVideo(accessToken, streamUrl, title, effectivePrivacy)
 
         await supabase.from('social_posts').insert({
           clip_id: clipId,

@@ -19,7 +19,7 @@ const PRIVACY_OPTIONS: { value: TikTokPrivacy; label: string }[] = [
 
 export default function PostToTikTokModal({ clipId, defaultTitle, onClose }: PostToTikTokModalProps) {
   const [title, setTitle] = useState(defaultTitle.slice(0, 150))
-  const [privacy, setPrivacy] = useState<TikTokPrivacy>('PUBLIC_TO_EVERYONE')
+  const [privacy, setPrivacy] = useState<TikTokPrivacy>('SELF_ONLY')
   const [postState, setPostState] = useState<PostState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -87,31 +87,11 @@ export default function PostToTikTokModal({ clipId, defaultTitle, onClose }: Pos
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 4, textAlign: 'right' }}>{title.length}/150</div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
-                Visibility
-              </label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {PRIVACY_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setPrivacy(opt.value)}
-                    style={{
-                      flex: 1, padding: '8px 4px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                      background: privacy === opt.value ? 'rgba(168,85,247,0.18)' : 'rgba(255,255,255,0.04)',
-                      border: privacy === opt.value ? '1px solid rgba(168,85,247,0.6)' : '1px solid rgba(255,255,255,0.1)',
-                      color: privacy === opt.value ? '#E9D5FF' : 'rgba(255,255,255,0.4)',
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              {privacy === 'PUBLIC_TO_EVERYONE' && (
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: '6px 0 0' }}>
-                  Note: in Sandbox mode TikTok posts as private regardless of this setting.
-                </p>
-              )}
+            <div style={{
+              background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)',
+              borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'rgba(234,179,8,0.85)', lineHeight: 1.5,
+            }}>
+              Pending TikTok app review — videos post as <strong>private</strong> only. After approval, public posting will be enabled.
             </div>
 
             <button
