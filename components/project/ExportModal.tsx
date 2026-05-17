@@ -87,7 +87,6 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
   const [videoNaturalHeight, setVideoNaturalHeight] = useState(1080)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
-  const [isDownloading, setIsDownloading] = useState(false)
   const [resolution, setResolution] = useState<'720p' | '1080p'>('1080p')
   const [subtitleEnabled, setSubtitleEnabled] = useState(false)
   const [subtitlePosition, setSubtitlePosition] = useState<'bottom' | 'top'>('bottom')
@@ -296,26 +295,14 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
     }
   }
 
-  const handleDownload = async () => {
-    if (!fileUrl || isDownloading) return
-    setIsDownloading(true)
-    try {
-      const res = await fetch(fileUrl)
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `clip-${clipId}.mp4`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch {
-      // fallback: open in new tab
-      window.open(fileUrl, '_blank')
-    } finally {
-      setIsDownloading(false)
-    }
+  const handleDownload = () => {
+    if (!fileUrl) return
+    const a = document.createElement('a')
+    a.href = `/api/clips/${clipId}/download`
+    a.download = `clip-${clipId}.mp4`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   const handleReset = () => {
@@ -762,16 +749,16 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
             </p>
             <button
               type="button"
-              onClick={() => void handleDownload()}
-              disabled={isDownloading}
+              onClick={handleDownload}
+              disabled={false}
               style={{
                 width: '100%', padding: '13px', borderRadius: 10,
                 background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
                 border: 'none', color: '#fff', fontWeight: 700, fontSize: 15,
-                cursor: isDownloading ? 'wait' : 'pointer', opacity: isDownloading ? 0.7 : 1,
+                cursor: 'pointer', opacity: 1,
               }}
             >
-              {isDownloading ? 'Downloading...' : 'Download Video'}
+              Download Video
             </button>
             <a
               href={`/api/clips/${clipId}/subtitles/srt`}
