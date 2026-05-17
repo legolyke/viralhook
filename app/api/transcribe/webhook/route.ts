@@ -1,3 +1,4 @@
+import { after } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getTranscript, verifyWebhookSecret } from '@/lib/assemblyai'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -27,14 +28,14 @@ export async function POST(request: Request) {
   if (typeof transcript_id !== 'string' || !transcript_id.trim()) {
     return NextResponse.json({ error: 'Invalid transcript_id' }, { status: 400 })
   }
+
   const supabase = createServiceClient()
 
   if (status === 'error') {
-    const { error: updateErr } = await supabase
+    await supabase
       .from('projects')
       .update({ status: 'error', updated_at: new Date().toISOString() })
       .eq('transcript_job_id', transcript_id)
-    if (updateErr) console.error('Failed to set project error status:', updateErr)
     return NextResponse.json({ ok: true })
   }
 
@@ -77,11 +78,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to save transcript' }, { status: 500 })
   }
 
-  // Detect viral clips (non-fatal — project still becomes ready if this fails)
-  try {
-    const words = transcript.words ?? []
-    const highlights = transcript.auto_highlights_result?.results ?? []
-    if (words.length > 0) {
+  // Respond to AssemblyAI immediately — then detect clips in background
+  after(async () => {
+    try {
+      const words = transcript.words ?? []
+      const highlights = transcript.auto_highlights_result?.results ?? []
+      if (words.length === 0) return
+
       const clips = await detectViralClips(words, highlights, transcript.text ?? '', transcript.language_code ?? 'en')
       if (clips.length > 0) {
         const { error: clipsErr } = await supabase.from('clips').insert(
@@ -96,22 +99,18 @@ export async function POST(request: Request) {
             status: 'detected',
           }))
         )
-        if (clipsErr) console.error('Failed to insert clips:', clipsErr)
+        if (clipsErr) console.error('[after] Failed to insert clips:', clipsErr)
+        else console.log(`[after] inserted ${clips.length} clips for project ${project.id}`)
       }
+    } catch (err) {
+      console.error('[after] Failed to detect viral clips:', err)
+    } finally {
+      await supabase
+        .from('projects')
+        .update({ status: 'ready', updated_at: new Date().toISOString() })
+        .eq('id', project.id)
     }
-  } catch (err) {
-    console.error('Failed to detect viral clips:', err)
-  }
-
-  const { error: readyErr } = await supabase
-    .from('projects')
-    .update({ status: 'ready', updated_at: new Date().toISOString() })
-    .eq('id', project.id)
-
-  if (readyErr) {
-    console.error('Failed to set project ready status:', readyErr)
-    return NextResponse.json({ error: 'Failed to update project status' }, { status: 500 })
-  }
+  })
 
   return NextResponse.json({ ok: true })
 }
