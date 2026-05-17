@@ -74,11 +74,11 @@ export default function LandingPage() {
 
         /* Features */
         .features-grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1100px; margin: 64px auto 0; }
-        .feature-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 28px; transition: border-color 0.2s, transform 0.2s; }
+        .feature-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; padding: 28px; transition: border-color 0.2s, transform 0.2s; display: grid; grid-template-columns: 48px 1fr; grid-template-rows: auto auto; column-gap: 16px; align-items: start; }
         .feature-card:hover { border-color: rgba(168,85,247,0.3); transform: translateY(-2px); }
-        .feature-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.08)); border: 1px solid rgba(168,85,247,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
-        .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-        .feature-card p { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.65; }
+        .feature-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.08)); border: 1px solid rgba(168,85,247,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 0; grid-column: 1; grid-row: 1 / 3; align-self: start; }
+        .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; grid-column: 2; grid-row: 1; align-self: center; }
+        .feature-card p { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.65; grid-column: 2; grid-row: 2; }
 
         /* Pricing */
         .pricing-grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1100px; margin: 64px auto 0; }
@@ -204,10 +204,6 @@ export default function LandingPage() {
           .mockup-clip:last-child { display: none; }
           .section { padding: 72px 20px; }
           .step { padding: 28px 24px; }
-          .feature-card { display: grid; grid-template-columns: 48px 1fr; grid-template-rows: auto auto; column-gap: 16px; align-items: start; }
-          .feature-icon { grid-column: 1; grid-row: 1 / 3; margin-bottom: 0; align-self: start; }
-          .feature-card h3 { grid-column: 2; grid-row: 1; align-self: center; }
-          .feature-card p { grid-column: 2; grid-row: 2; }
           .pricing-card { padding: 28px 22px; }
           .footer-cols { grid-template-columns: 1fr 1fr; }
         }
