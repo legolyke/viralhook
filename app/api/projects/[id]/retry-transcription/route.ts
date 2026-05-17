@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getTranscript } from '@/lib/assemblyai'
 import { detectViralClips } from '@/lib/openai'
 
+export const maxDuration = 60
+
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
