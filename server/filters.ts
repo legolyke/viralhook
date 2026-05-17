@@ -151,21 +151,11 @@ export function buildFilterComplex(params: {
   const parts: string[] = []
 
   if (segments && segments.length > 1) {
-    // Step 1: pre-clip trim to exact bounds (handles keyframe-alignment extra frames)
-    // then split for per-segment silence removal
-    const n = segments.length
-    parts.push(`[0:v]trim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},setpts=PTS-STARTPTS[vclip]`)
-    parts.push(`[0:a]atrim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},asetpts=PTS-STARTPTS[aclip]`)
-    parts.push(`[vclip]split=${n}${segments.map((_, i) => `[vs${i}]`).join('')}`)
-    parts.push(`[aclip]asplit=${n}${segments.map((_, i) => `[as${i}]`).join('')}`)
-    // Step 2: per-segment trim (0-based after pre-clip setpts)
-    for (let i = 0; i < n; i++) {
-      const s = segments[i]
-      parts.push(`[vs${i}]trim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},setpts=PTS-STARTPTS,setsar=1[v${i}]`)
-      parts.push(`[as${i}]atrim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},asetpts=PTS-STARTPTS[a${i}]`)
-    }
-    const vInputs = segments.map((_, i) => `[v${i}][a${i}]`).join('')
-    parts.push(`${vInputs}concat=n=${segments.length}:v=1:a=1[vcombined][acombined]`)
+    // Use select/aselect to pick non-silent frames in one pass
+    // Avoids split+trim which causes 'Error reinitializing filters' on some H.264 files
+    const expr = segments.map(s => `between(t,${s.start.toFixed(3)},${s.end.toFixed(3)})`).join('+')
+    parts.push(`[0:v]trim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},setpts=PTS-STARTPTS,select='${expr}',setpts=N/FRAME_RATE/TB[vcombined]`)
+    parts.push(`[0:a]atrim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},asetpts=PTS-STARTPTS,aselect='${expr}',asetpts=N/SR/TB[acombined]`)
 
     const fade = buildFadeFilters(durationSec)
     const subtitleStr = buildSubtitleFilters(subtitleData, textFiles)

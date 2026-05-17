@@ -214,6 +214,7 @@ async function processClip(
 
     await new Promise<void>((resolve, reject) => {
       const ff = ffmpeg(inputPath)
+      let ffmpegStderr = ''
 
       ff.complexFilter(filterComplex)
         .outputOptions(['-map', mapVideo, '-map', mapAudio])
@@ -221,9 +222,14 @@ async function processClip(
         .audioCodec('aac')
         .outputOption('-movflags', 'faststart')
         .save(outputPath)
+        .on('stderr', (line: string) => { ffmpegStderr += line + '\n' })
         .on('start', (cmd) => console.log(`[ffmpeg] cmd: ${cmd.slice(0, 200)}`))
         .on('end', () => resolve())
-        .on('error', (err: Error) => reject(new Error(`FFmpeg error: ${err.message}`)))
+        .on('error', (err: Error) => {
+          console.error(`[ffmpeg] STDERR_TAIL:
+${ffmpegStderr.slice(-4000)}`)
+          reject(new Error(`FFmpeg error: ${err.message}`))
+        })
     })
 
     console.log(`[process] ffmpeg done for ${clipId}`)
