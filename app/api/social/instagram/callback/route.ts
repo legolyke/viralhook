@@ -25,13 +25,13 @@ export async function GET(request: NextRequest) {
   try {
     const { access_token: shortToken } = await exchangeCode(code)
     const longToken = await getLongLivedToken(shortToken)
-    const { userId, username } = await getUserInfo(longToken)
+    const { userId, username, pageAccessToken } = await getUserInfo(longToken)
 
     const { error: upsertError } = await admin.from('social_connections').upsert(
       {
         user_id: user.id,
         platform: 'instagram',
-        access_token: longToken,
+        access_token: pageAccessToken,
         refresh_token: '',
         channel_id: userId,
         channel_name: `@${username}`,

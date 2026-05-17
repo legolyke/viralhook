@@ -62,10 +62,11 @@ export async function getLongLivedToken(shortToken: string): Promise<string> {
 export async function getUserInfo(accessToken: string): Promise<{
   userId: string
   username: string
+  pageAccessToken: string
 }> {
-  // Get Facebook Pages and their linked Instagram business accounts
+  // Get Facebook Pages with their Page access tokens and linked Instagram business accounts
   const params = new URLSearchParams({
-    fields: 'id,name,instagram_business_account{id,username}',
+    fields: 'id,name,access_token,instagram_business_account{id,username}',
     access_token: accessToken,
   })
   const res = await fetch(`${FB_GRAPH_URL}/me/accounts?${params}`)
@@ -74,14 +75,14 @@ export async function getUserInfo(accessToken: string): Promise<{
     throw new Error(`Facebook pages fetch failed: ${res.status} ${text}`)
   }
   const data = await res.json() as {
-    data?: Array<{ id: string; name: string; instagram_business_account?: { id: string; username: string } }>
+    data?: Array<{ id: string; name: string; access_token: string; instagram_business_account?: { id: string; username: string } }>
     error?: { message: string; code: number }
   }
   if (data.error) throw new Error(`Facebook pages error: ${data.error.message} (${data.error.code})`)
   const page = data.data?.find(p => p.instagram_business_account)
   const igAccount = page?.instagram_business_account
   if (!igAccount) throw new Error('No Instagram business account linked to your Facebook Page. Make sure your Instagram account is connected to a Facebook Page.')
-  return { userId: igAccount.id, username: igAccount.username }
+  return { userId: igAccount.id, username: igAccount.username, pageAccessToken: page!.access_token }
 }
 
 export async function createReelContainer(
