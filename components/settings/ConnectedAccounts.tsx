@@ -127,6 +127,7 @@ export default function ConnectedAccounts() {
         .then((data: PlatformStatus) => setInstagram(data))
         .catch(() => {})
     } else if (error) {
+      const detail = searchParams.get('detail')
       const msg = error === 'tiktok_session_expired'
         ? 'TikTok session expired. Please try again.'
         : error === 'tiktok_failed'
@@ -134,7 +135,7 @@ export default function ConnectedAccounts() {
         : error === 'instagram_session_expired'
         ? 'Instagram session expired. Please try again.'
         : error === 'instagram_failed'
-        ? 'Failed to connect Instagram. Please try again.'
+        ? `Failed to connect Instagram: ${detail ?? 'unknown error'}`
         : 'Failed to connect. Please try again.'
       setBanner({ text: msg, ok: false })
     }

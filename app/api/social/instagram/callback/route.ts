@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
     response.cookies.delete('ig_state')
     return response
   } catch (err) {
-    console.error('Instagram callback error:', err)
-    return NextResponse.redirect(`${appUrl}/settings?error=instagram_failed`)
+    const msg = err instanceof Error ? err.message : 'unknown'
+    console.error('Instagram callback error:', msg)
+    return NextResponse.redirect(`${appUrl}/settings?error=instagram_failed&detail=${encodeURIComponent(msg)}`)
   }
 }
