@@ -103,7 +103,7 @@ async function detectSilence(
       '-ss', clipStartSec.toFixed(3),
       '-to', clipEndSec.toFixed(3),
       '-i', inputPath,
-      '-af', 'silencedetect=noise=-30dB:duration=1.5',
+      '-af', `atrim=start=${clipStartSec.toFixed(3)}:end=${clipEndSec.toFixed(3)},asetpts=PTS-STARTPTS,silencedetect=noise=-30dB:duration=1.5`,
       '-f', 'null', '-',
     ]
 
@@ -199,6 +199,7 @@ async function processClip(
     // Pass 2: build filter_complex and encode
     const { filterComplex, mapVideo, mapAudio } = buildFilterComplex({
       segments,
+      clipStartSec: startSec,
       cropX,
       resolution,
       durationSec: newDurationSec,

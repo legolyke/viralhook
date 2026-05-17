@@ -138,13 +138,14 @@ export interface FilterComplexResult {
 
 export function buildFilterComplex(params: {
   segments: SilenceSegment[] | null
+  clipStartSec: number
   cropX: number
   resolution: Resolution
   durationSec: number
   subtitleData: SubtitleData | null
   textFiles: string[]
 }): FilterComplexResult {
-  const { segments, cropX, resolution, durationSec, subtitleData, textFiles } = params
+  const { segments, clipStartSec, cropX, resolution, durationSec, subtitleData, textFiles } = params
   const { w, h } = RESOLUTION_DIMS[resolution]
   const parts: string[] = []
 
@@ -153,10 +154,10 @@ export function buildFilterComplex(params: {
     for (let i = 0; i < segments.length; i++) {
       const s = segments[i]
       parts.push(
-        `[0:v]trim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},setpts=PTS-STARTPTS[v${i}]`
+        `[0:v]trim=start=${(s.start + clipStartSec).toFixed(3)}:end=${(s.end + clipStartSec).toFixed(3)},setpts=PTS-STARTPTS[v${i}]`
       )
       parts.push(
-        `[0:a]atrim=start=${s.start.toFixed(3)}:end=${s.end.toFixed(3)},asetpts=PTS-STARTPTS[a${i}]`
+        `[0:a]atrim=start=${(s.start + clipStartSec).toFixed(3)}:end=${(s.end + clipStartSec).toFixed(3)},asetpts=PTS-STARTPTS[a${i}]`
       )
     }
     const vInputs = segments.map((_, i) => `[v${i}][a${i}]`).join('')
