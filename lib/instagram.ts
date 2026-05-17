@@ -1,56 +1,54 @@
 import crypto from 'crypto'
 
-const INSTAGRAM_AUTH_URL = 'https://www.instagram.com/oauth/authorize'
-const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token'
-const INSTAGRAM_LONG_TOKEN_URL = 'https://graph.instagram.com/access_token'
-const GRAPH_URL = 'https://graph.instagram.com/v22.0'
+// Facebook OAuth for Instagram (API setup with Facebook login)
+// Works for app admins without requiring Instagram Tester role
+const FB_AUTH_URL = 'https://www.facebook.com/dialog/oauth'
+const FB_GRAPH_URL = 'https://graph.facebook.com/v22.0'
+const IG_GRAPH_URL = 'https://graph.instagram.com/v22.0'
 
 export function getAuthUrl(state: string): string {
   const params = new URLSearchParams({
-    client_id: process.env.INSTAGRAM_APP_ID!,
+    client_id: process.env.META_APP_ID!,
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/social/instagram/callback`,
-    scope: 'instagram_business_basic,instagram_content_publish',
+    scope: 'instagram_business_basic,instagram_business_content_publish',
     response_type: 'code',
     state,
   })
-  return `${INSTAGRAM_AUTH_URL}?${params}`
+  return `${FB_AUTH_URL}?${params}`
 }
 
 export async function exchangeCode(code: string): Promise<{
   access_token: string
   user_id: string
 }> {
-  const body = new URLSearchParams({
-    client_id: process.env.INSTAGRAM_APP_ID!,
-    client_secret: process.env.INSTAGRAM_APP_SECRET!,
-    grant_type: 'authorization_code',
+  const params = new URLSearchParams({
+    client_id: process.env.META_APP_ID!,
+    client_secret: process.env.META_APP_SECRET!,
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/social/instagram/callback`,
     code,
   })
-  const res = await fetch(INSTAGRAM_TOKEN_URL, { method: 'POST', body })
+  const res = await fetch(`${FB_GRAPH_URL}/oauth/access_token?${params}`)
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(`Instagram token exchange failed: ${res.status} ${text}`)
+    throw new Error(`Instagram (FB) token exchange failed: ${res.status} ${text}`)
   }
   const data = await res.json() as {
     access_token?: string
-    user_id?: number
-    error_message?: string
-    error_type?: string
+    error?: { message: string; code: number }
   }
-  if (!data.access_token) {
-    throw new Error(`Instagram auth error: ${data.error_message ?? 'missing access_token'}`)
-  }
-  return { access_token: data.access_token, user_id: String(data.user_id ?? '') }
+  if (data.error) throw new Error(`Instagram auth error: ${data.error.message}`)
+  if (!data.access_token) throw new Error('Instagram auth: missing access_token')
+  return { access_token: data.access_token, user_id: '' }
 }
 
 export async function getLongLivedToken(shortToken: string): Promise<string> {
   const params = new URLSearchParams({
-    grant_type: 'ig_exchange_token',
-    client_secret: process.env.INSTAGRAM_APP_SECRET!,
-    access_token: shortToken,
+    grant_type: 'fb_exchange_token',
+    client_id: process.env.META_APP_ID!,
+    client_secret: process.env.META_APP_SECRET!,
+    fb_exchange_token: shortToken,
   })
-  const res = await fetch(`${INSTAGRAM_LONG_TOKEN_URL}?${params}`)
+  const res = await fetch(`${FB_GRAPH_URL}/oauth/access_token?${params}`)
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`Instagram long-lived token failed: ${res.status} ${text}`)
@@ -65,19 +63,18 @@ export async function getUserInfo(accessToken: string): Promise<{
   userId: string
   username: string
 }> {
+  // Get Instagram accounts linked to this Facebook user
   const params = new URLSearchParams({ fields: 'id,username', access_token: accessToken })
-  const res = await fetch(`${GRAPH_URL}/me?${params}`)
-  if (!res.ok) throw new Error(`Instagram user info failed: ${res.status}`)
+  const res = await fetch(`${FB_GRAPH_URL}/me/instagram_accounts?${params}`)
+  if (!res.ok) throw new Error(`Instagram accounts fetch failed: ${res.status}`)
   const data = await res.json() as {
-    id?: string
-    username?: string
+    data?: Array<{ id: string; username: string }>
     error?: { message: string; code: number }
   }
-  if (data.error) throw new Error(`Instagram user info error: ${data.error.message} (${data.error.code})`)
-  return {
-    userId: data.id ?? '',
-    username: data.username ?? 'Instagram User',
-  }
+  if (data.error) throw new Error(`Instagram accounts error: ${data.error.message} (${data.error.code})`)
+  const account = data.data?.[0]
+  if (!account) throw new Error('No Instagram account linked to this Facebook account')
+  return { userId: account.id, username: account.username }
 }
 
 export async function createReelContainer(
@@ -86,7 +83,7 @@ export async function createReelContainer(
   videoUrl: string,
   caption: string
 ): Promise<string> {
-  const res = await fetch(`${GRAPH_URL}/${userId}/media`, {
+  const res = await fetch(`${IG_GRAPH_URL}/${userId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -115,7 +112,7 @@ export async function getContainerStatus(
   containerId: string
 ): Promise<'IN_PROGRESS' | 'FINISHED' | 'ERROR' | 'EXPIRED' | 'PUBLISHED'> {
   const params = new URLSearchParams({ fields: 'status_code', access_token: accessToken })
-  const res = await fetch(`${GRAPH_URL}/${containerId}?${params}`)
+  const res = await fetch(`${IG_GRAPH_URL}/${containerId}?${params}`)
   if (!res.ok) throw new Error(`Instagram container status failed: ${res.status}`)
   const data = await res.json() as { status_code?: string }
   return (data.status_code ?? 'IN_PROGRESS') as 'IN_PROGRESS' | 'FINISHED' | 'ERROR' | 'EXPIRED' | 'PUBLISHED'
@@ -126,7 +123,7 @@ export async function publishReel(
   userId: string,
   containerId: string
 ): Promise<string> {
-  const res = await fetch(`${GRAPH_URL}/${userId}/media_publish`, {
+  const res = await fetch(`${IG_GRAPH_URL}/${userId}/media_publish`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -151,7 +148,7 @@ export function verifySignedRequest(signedRequest: string): Record<string, unkno
   const parts = signedRequest.split('.')
   if (parts.length !== 2) return null
   const [encodedSig, payload] = parts as [string, string]
-  const secret = process.env.INSTAGRAM_APP_SECRET!
+  const secret = process.env.META_APP_SECRET!
   const expectedSig = crypto
     .createHmac('sha256', secret)
     .update(payload)
