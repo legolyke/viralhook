@@ -71,6 +71,7 @@ export interface DetectedClip {
   end_ms:    number
   score:     number
   breakdown: ScoreBreakdown | null
+  rawBreakdown: string
 }
 
 function validateBreakdown(raw: unknown): ScoreBreakdown | null {
@@ -199,13 +200,17 @@ Rules:
         typeof clip.score === 'number' &&
         clip.score >= 0 && clip.score <= 1
     )
-    .map((clip) => ({
-      title:     clip.title,
-      start_ms:  Math.min(clip.start_ms, clip.end_ms),
-      end_ms:    Math.max(clip.start_ms, clip.end_ms),
-      score:     clip.score,
-      breakdown: validateBreakdown((clip as unknown as Record<string, unknown>).breakdown),
-    }))
+    .map((clip) => {
+      const rawBd = (clip as unknown as Record<string, unknown>).breakdown
+      return {
+        title:        clip.title,
+        start_ms:     Math.min(clip.start_ms, clip.end_ms),
+        end_ms:       Math.max(clip.start_ms, clip.end_ms),
+        score:        clip.score,
+        breakdown:    validateBreakdown(rawBd),
+        rawBreakdown: JSON.stringify(rawBd ?? null),
+      }
+    })
     .filter(
       (clip) =>
         clip.end_ms - clip.start_ms >= 15000 &&

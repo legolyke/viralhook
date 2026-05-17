@@ -562,6 +562,7 @@ export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, cl
   const router = useRouter()
   const autoDetectFired = useRef(false)
   const [autoDetecting, setAutoDetecting] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<unknown>(null)
   const [localClips, setLocalClips] = useState(initialClips)
 
   // Sync server-rendered clips into local state (e.g. after Re-analyze)
@@ -574,7 +575,8 @@ export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, cl
     setAutoDetecting(true)
     fetch(`/api/projects/${projectId}/detect-clips`, { method: 'POST' })
       .then(r => r.json())
-      .then((data: { ok?: boolean; clips?: typeof initialClips }) => {
+      .then((data: { ok?: boolean; clips?: typeof initialClips; debug?: unknown }) => {
+        if (data.debug) setDebugInfo(data.debug)
         if (data.clips?.length) setLocalClips(data.clips)
         router.refresh()
       })
@@ -639,6 +641,16 @@ export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, cl
             <ClipCard key={clip.id} clip={clip} projectFileUrl={projectFileUrl} />
           ))}
         </div>
+      )}
+      {debugInfo !== null && (
+        <details style={{ marginTop: 16, padding: 12, background: 'rgba(255,0,0,0.08)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 8 }}>
+          <summary style={{ cursor: 'pointer', color: '#f87171', fontSize: 12, fontWeight: 700 }}>
+            DEBUG — breakdown raw (click to expand)
+          </summary>
+          <pre style={{ marginTop: 8, fontSize: 10, color: 'rgba(255,255,255,0.7)', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            {JSON.stringify(debugInfo, null, 2)}
+          </pre>
+        </details>
       )}
     </div>
   )
