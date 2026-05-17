@@ -6,12 +6,13 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let body: { subject?: string; message?: string; category?: string }
+  let body: { subject?: string; message?: string; category?: string; attachment_url?: string }
   try { body = await request.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
 
   const subject = body.subject?.trim()
   const message = body.message?.trim()
   const category = body.category ?? 'question'
+  const attachment_url = body.attachment_url?.trim() || null
 
   if (!subject || subject.length < 3) return NextResponse.json({ error: 'Subject too short' }, { status: 400 })
   if (!message || message.length < 10) return NextResponse.json({ error: 'Message too short' }, { status: 400 })
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     message,
     category,
     status: 'open',
+    attachment_url,
   }).select('id').single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

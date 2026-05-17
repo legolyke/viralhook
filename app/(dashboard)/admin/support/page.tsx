@@ -13,7 +13,7 @@ export default async function AdminSupportPage() {
   const service = createServiceClient()
   const { data: tickets } = await service
     .from('support_tickets')
-    .select('id, user_id, user_email, subject, message, category, status, admin_reply, replied_at, created_at')
+    .select('id, user_id, user_email, subject, message, category, status, admin_reply, replied_at, created_at, attachment_url')
     .order('created_at', { ascending: false })
 
   return <AdminSupportClient tickets={tickets ?? []} />

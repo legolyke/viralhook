@@ -18,6 +18,7 @@ interface Ticket {
   admin_reply: string | null
   replied_at: string | null
   created_at: string
+  attachment_url: string | null
 }
 
 const STATUS_COLORS: Record<TicketStatus, { color: string; bg: string; label: string }> = {
@@ -156,6 +157,14 @@ export default function AdminSupportClient({ tickets: initialTickets }: { ticket
                     <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10 }}>
                       <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>User message</p>
                       <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{ticket.message}</p>
+                      {ticket.attachment_url && (
+                        <div style={{ marginTop: 10 }}>
+                          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, margin: '0 0 6px', fontWeight: 600 }}>Screenshot:</p>
+                          <a href={ticket.attachment_url} target="_blank" rel="noopener noreferrer">
+                            <img src={ticket.attachment_url} alt="screenshot" style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', objectFit: 'contain', cursor: 'zoom-in' }} />
+                          </a>
+                        </div>
+                      )}
                     </div>
 
                     {/* Existing reply */}

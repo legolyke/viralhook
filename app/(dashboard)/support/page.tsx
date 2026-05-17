@@ -39,6 +39,9 @@ export default function SupportPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   async function loadTickets() {
     setLoading(true)
@@ -53,15 +56,47 @@ export default function SupportPage() {
 
   useEffect(() => { loadTickets() }, [])
 
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Only JPG, PNG or WebP images allowed')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be under 5MB')
+      return
+    }
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setError(null)
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     setError(null)
     try {
+      let attachment_url: string | null = null
+
+      if (imageFile) {
+        setUploadingImage(true)
+        const presignRes = await fetch('/api/support/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contentType: imageFile.type, size: imageFile.size }),
+        })
+        const presignData = await presignRes.json() as { uploadUrl?: string; publicUrl?: string; error?: string }
+        if (!presignRes.ok) throw new Error(presignData.error ?? 'Upload failed')
+        await fetch(presignData.uploadUrl!, { method: 'PUT', body: imageFile, headers: { 'Content-Type': imageFile.type } })
+        attachment_url = presignData.publicUrl!
+        setUploadingImage(false)
+      }
+
       const res = await fetch('/api/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, message, category }),
+        body: JSON.stringify({ subject, message, category, attachment_url }),
       })
       const data = await res.json() as { ok?: boolean; error?: string }
       if (!res.ok) throw new Error(data.error ?? 'Failed to submit')
@@ -69,10 +104,13 @@ export default function SupportPage() {
       setSubject('')
       setMessage('')
       setCategory('question')
+      setImageFile(null)
+      setImagePreview(null)
       setShowForm(false)
       await loadTickets()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit')
+      setUploadingImage(false)
     } finally {
       setSubmitting(false)
     }
@@ -128,11 +166,35 @@ export default function SupportPage() {
               style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#E9D5FF', fontSize: 13, outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
           </div>
 
+          {/* Screenshot upload */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Screenshot <span style={{ color: 'rgba(255,255,255,0.25)', fontWeight: 400, textTransform: 'none' }}>(optional, JPG/PNG, max 5MB)</span>
+            </label>
+            {imagePreview ? (
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <img src={imagePreview} alt="preview" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, border: '1px solid rgba(168,85,247,0.25)', objectFit: 'contain' }} />
+                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null) }}
+                  style={{ position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: 'none', color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(168,85,247,0.25)', cursor: 'pointer' }}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: 'rgba(168,85,247,0.6)', flexShrink: 0 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                </svg>
+                <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Click to attach a screenshot</span>
+                <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleImageChange} style={{ display: 'none' }} />
+              </label>
+            )}
+          </div>
+
           {error && <p style={{ color: '#F87171', fontSize: 12, margin: 0 }}>{error}</p>}
 
-          <button type="submit" disabled={submitting}
+          <button type="submit" disabled={submitting || uploadingImage}
             style={{ padding: 10, borderRadius: 8, background: submitting ? 'rgba(124,58,237,0.3)' : 'linear-gradient(135deg, rgba(124,58,237,0.8), rgba(192,38,211,0.8))', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600, cursor: submitting ? 'wait' : 'pointer' }}>
-            {submitting ? 'Submitting...' : 'Submit Ticket'}
+            {uploadingImage ? 'Uploading image...' : submitting ? 'Submitting...' : 'Submit Ticket'}
           </button>
         </form>
       )}
