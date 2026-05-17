@@ -87,15 +87,13 @@ export async function POST(
     }
   }
 
-  console.log('[detect-clips] returning clips with breakdown:', clips.map(c => ({ title: c.title, hasBreakdown: !!c.breakdown, rawBreakdown: c.rawBreakdown })))
-  return NextResponse.json({ ok: true, count: clips.length,
-    debug: clips.map(c => ({ title: c.title, hasBreakdown: !!c.breakdown, rawBreakdown: c.rawBreakdown })),
-    clips: clips.map(clip => ({
-      title: clip.title,
-      start_time: Math.round(clip.start_ms),
-      end_time: Math.round(clip.end_ms),
-      virality_score: clip.score,
-      score_breakdown: clip.breakdown ?? null,
-      status: 'detected',
-    })) })
+  // Read back from DB to get real IDs and confirm score_breakdown was stored
+  const { data: savedClips } = await supabase
+    .from('clips')
+    .select('id, title, start_time, end_time, virality_score, score_breakdown, status, file_url')
+    .eq('project_id', id)
+    .order('virality_score', { ascending: false })
+
+  console.log('[detect-clips] DB clips:', (savedClips ?? []).map(c => ({ title: c.title, hasBreakdown: !!c.score_breakdown })))
+  return NextResponse.json({ ok: true, count: (savedClips ?? []).length, clips: savedClips ?? [] })
 }
