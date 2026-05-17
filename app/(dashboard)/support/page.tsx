@@ -88,7 +88,8 @@ export default function SupportPage() {
         })
         const presignData = await presignRes.json() as { uploadUrl?: string; publicUrl?: string; error?: string }
         if (!presignRes.ok) throw new Error(presignData.error ?? 'Upload failed')
-        await fetch(presignData.uploadUrl!, { method: 'PUT', body: imageFile, headers: { 'Content-Type': imageFile.type } })
+        const putRes = await fetch(presignData.uploadUrl!, { method: 'PUT', body: imageFile, headers: { 'Content-Type': imageFile.type } })
+        if (!putRes.ok) throw new Error('Image upload to storage failed')
         attachment_url = presignData.publicUrl!
         setUploadingImage(false)
       }

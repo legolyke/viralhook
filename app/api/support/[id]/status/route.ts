@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 const ADMIN_EMAIL = 'popescu2290@gmail.com'
 
@@ -18,7 +18,8 @@ export async function PATCH(
   const status = body.status
   if (!['open', 'in_progress', 'closed'].includes(status ?? '')) return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
 
-  const { error } = await supabase.from('support_tickets').update({ status }).eq('id', id)
+  const service = createServiceClient()
+  const { error } = await service.from('support_tickets').update({ status }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

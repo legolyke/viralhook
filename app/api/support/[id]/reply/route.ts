@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 const ADMIN_EMAIL = 'popescu2290@gmail.com'
 
@@ -20,7 +20,8 @@ export async function POST(
 
   const newStatus = body.status ?? 'closed'
 
-  const { error } = await supabase
+  const service = createServiceClient()
+  const { error } = await service
     .from('support_tickets')
     .update({ admin_reply: reply, replied_at: new Date().toISOString(), status: newStatus })
     .eq('id', id)
