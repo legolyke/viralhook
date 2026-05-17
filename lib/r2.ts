@@ -22,7 +22,6 @@ export async function generatePresignedUploadUrl(
   const command = new PutObjectCommand({
     Bucket: process.env.R2_BUCKET_NAME!,
     Key: key,
-    ContentType: contentType,
   })
   return getSignedUrl(r2, command, { expiresIn })
 }
