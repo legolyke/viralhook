@@ -3,6 +3,8 @@ import { getTranscript, verifyWebhookSecret } from '@/lib/assemblyai'
 import { createServiceClient } from '@/lib/supabase/server'
 import { detectViralClips } from '@/lib/openai'
 
+export const maxDuration = 60
+
 interface WebhookPayload {
   transcript_id: string
   status: 'completed' | 'error'
@@ -90,6 +92,7 @@ export async function POST(request: Request) {
             end_time: Math.round(clip.end_ms),
             title: clip.title,
             virality_score: clip.score,
+            score_breakdown: clip.breakdown ?? null,
             status: 'detected',
           }))
         )
