@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import PhoneVerifyModal from '@/components/phone/PhoneVerifyModal'
 import UpsellModal from '@/components/billing/UpsellModal'
 import PostToYouTubeModal from './PostToYouTubeModal'
+import PostToTikTokModal from './PostToTikTokModal'
 
 const SUBTITLE_FONTS = [
   { key: 'arial',            name: 'Arial',             css: 'Arial, sans-serif' },
@@ -98,6 +99,8 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
   const [subtitleAnimated, setSubtitleAnimated] = useState(false)
   const [showYouTubeModal, setShowYouTubeModal] = useState(false)
   const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(null)
+  const [showTikTokModal, setShowTikTokModal] = useState(false)
+  const [tiktokConnected, setTiktokConnected] = useState<boolean | null>(null)
 
   // Load Google Fonts for preview
   useEffect(() => {
@@ -241,6 +244,10 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
       .then(r => r.json())
       .then((data: { connected: boolean }) => setYoutubeConnected(data.connected))
       .catch(() => setYoutubeConnected(false))
+    fetch('/api/social/tiktok/status')
+      .then(r => r.json())
+      .then((data: { connected: boolean }) => setTiktokConnected(data.connected))
+      .catch(() => setTiktokConnected(false))
   }, [state])
 
   const handleGenerate = async () => {
@@ -802,21 +809,30 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
                   </span>
                 </button>
 
-                {/* TikTok — coming soon */}
+                {/* TikTok */}
                 <button
                   type="button"
-                  disabled
-                  title="TikTok API approval pending"
+                  onClick={() => {
+                    if (tiktokConnected) {
+                      setShowTikTokModal(true)
+                    } else {
+                      window.open('/settings', '_blank')
+                    }
+                  }}
+                  title={tiktokConnected ? 'Post to TikTok' : 'Connect TikTok in Settings first'}
                   style={{
-                    flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'not-allowed',
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, opacity: 0.4,
+                    flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
+                    background: tiktokConnected ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+                    border: tiktokConnected ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.08)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={tiktokConnected ? '#fff' : 'rgba(255,255,255,0.2)'}>
                     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.16 8.16 0 0 0 4.77 1.52V6.76a4.85 4.85 0 0 1-1-.07z"/>
                   </svg>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', fontWeight: 600 }}>TikTok</span>
+                  <span style={{ fontSize: 10, color: tiktokConnected ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', fontWeight: 600 }}>
+                    {tiktokConnected ? 'TikTok' : 'Connect'}
+                  </span>
                 </button>
 
                 {/* Instagram — coming soon */}
@@ -897,6 +913,13 @@ export default function ExportModal({ clipId, clipTitle, startTime, endTime, pro
           clipId={clipId}
           defaultTitle={clipTitle}
           onClose={() => setShowYouTubeModal(false)}
+        />
+      )}
+      {showTikTokModal && (
+        <PostToTikTokModal
+          clipId={clipId}
+          defaultTitle={clipTitle}
+          onClose={() => setShowTikTokModal(false)}
         />
       )}
     </div>
