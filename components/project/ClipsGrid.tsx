@@ -561,16 +561,19 @@ function ClipCard({
 
 export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, clips }: ClipsGridProps) {
   const router = useRouter()
+  const autoDetectFired = useRef(false)
   const [autoDetecting, setAutoDetecting] = useState(false)
 
   useEffect(() => {
-    if (projectStatus !== 'ready' || clips.length > 0 || autoDetecting) return
+    if (projectStatus !== 'ready' || clips.length > 0) return
+    if (autoDetectFired.current) return
+    autoDetectFired.current = true
     setAutoDetecting(true)
     fetch(`/api/projects/${projectId}/detect-clips`, { method: 'POST' })
       .then(() => router.refresh())
       .catch(console.error)
       .finally(() => setAutoDetecting(false))
-  }, [projectStatus, projectId, clips.length, autoDetecting, router])
+  }, [projectStatus, projectId, clips.length, router])
 
   return (
     <div style={{ marginTop: 40 }}>

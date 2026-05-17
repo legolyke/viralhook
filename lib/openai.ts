@@ -78,14 +78,17 @@ function validateBreakdown(raw: unknown): ScoreBreakdown | null {
   const b = raw as Record<string, unknown>
   const keys = ['hook', 'emotion', 'pacing', 'shareability'] as const
   const result = {} as ScoreBreakdown
+  let validCount = 0
   for (const key of keys) {
     const comp = b[key]
-    if (!comp || typeof comp !== 'object') return null
+    if (!comp || typeof comp !== 'object') { result[key] = { score: 0.5, reason: '' }; continue }
     const c = comp as Record<string, unknown>
-    if (typeof c.score !== 'number' || c.score < 0 || c.score > 1) return null
-    if (typeof c.reason !== 'string' || !c.reason) return null
-    result[key] = { score: c.score, reason: c.reason }
+    const score = typeof c.score === 'number' ? Math.max(0, Math.min(1, c.score)) : 0.5
+    const reason = typeof c.reason === 'string' ? c.reason : ''
+    result[key] = { score, reason }
+    if (typeof c.score === 'number') validCount++
   }
+  if (validCount === 0) { console.log('[validateBreakdown] all invalid:', JSON.stringify(raw)); return null }
   return result
 }
 
