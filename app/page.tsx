@@ -198,7 +198,11 @@ export default function LandingPage() {
           .mockup-body { grid-template-columns: 1fr 1fr; }
           .mockup-clip:last-child { display: none; }
           .section { padding: 72px 20px; }
-          .step { flex-direction: column; gap: 20px; padding: 28px 24px; }
+          .step { padding: 28px 24px; }
+          .feature-card { display: grid; grid-template-columns: 48px 1fr; grid-template-rows: auto auto; column-gap: 16px; align-items: start; }
+          .feature-icon { grid-column: 1; grid-row: 1 / 3; margin-bottom: 0; align-self: start; }
+          .feature-card h3 { grid-column: 2; grid-row: 1; align-self: center; }
+          .feature-card p { grid-column: 2; grid-row: 2; }
           .pricing-card { padding: 28px 22px; }
           .footer-cols { grid-template-columns: 1fr 1fr; }
         }
