@@ -17,7 +17,7 @@ const PLANS = [
     period: '',
     exports: '3 exports/month',
     maxExports: 3,
-    features: ['1080p export', 'AI clip detection', 'AI captions'],
+    features: ['1080p export', 'AI clip detection', 'AI captions', 'Community support'],
     cta: null as string | null,
   },
   {
@@ -37,7 +37,7 @@ const PLANS = [
     period: '/month',
     exports: '150 exports/month',
     maxExports: 150,
-    features: ['1080p export', 'AI clip detection', 'AI captions', 'Analytics', 'Priority rendering'],
+    features: ['1080p export', 'AI clip detection', 'AI captions', 'Analytics', 'Priority support', 'Priority rendering'],
     cta: 'pro' as string | null,
   },
   {
@@ -47,7 +47,7 @@ const PLANS = [
     period: '/month',
     exports: '2000 exports/month',
     maxExports: 2000,
-    features: ['1080p export', 'AI clip detection', 'AI captions', 'Analytics', 'Team members', 'Priority support'],
+    features: ['1080p export', 'AI clip detection', 'AI captions', 'Analytics', 'Team members', 'Dedicated support'],
     cta: 'agency' as string | null,
   },
 ]
