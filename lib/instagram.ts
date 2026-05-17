@@ -4,7 +4,7 @@ import crypto from 'crypto'
 // Works for app admins without requiring Instagram Tester role
 const FB_AUTH_URL = 'https://www.facebook.com/dialog/oauth'
 const FB_GRAPH_URL = 'https://graph.facebook.com/v22.0'
-const IG_GRAPH_URL = 'https://graph.instagram.com/v22.0'
+const IG_GRAPH_URL = 'https://graph.facebook.com/v22.0'
 
 export function getAuthUrl(state: string): string {
   const params = new URLSearchParams({
