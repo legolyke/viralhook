@@ -80,7 +80,7 @@ export default function SupportPage() {
 
   return (
     <div className="dashboard-content" style={{ maxWidth: 760 }}>
-      <PageHeader title="Support" subtitle="Submit a ticket and we will get back to you as soon as possible." />
+      <PageHeader title="Support" description="Submit a ticket and we will get back to you as soon as possible." breadcrumb="Support" />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
         <button

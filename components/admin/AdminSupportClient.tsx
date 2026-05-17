@@ -94,7 +94,8 @@ export default function AdminSupportClient({ tickets: initialTickets }: { ticket
     <div className="dashboard-content" style={{ maxWidth: 900 }}>
       <PageHeader
         title="Support Inbox"
-        subtitle={openCount > 0 ? `${openCount} open ticket${openCount > 1 ? 's' : ''}` : 'All tickets resolved'}
+        description={openCount > 0 ? `${openCount} open ticket${openCount > 1 ? 's' : ''}` : 'All tickets resolved'}
+        breadcrumb="Admin / Support"
       />
 
       {/* Filter tabs */}
