@@ -10,7 +10,7 @@ export function getAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: process.env.META_APP_ID!,
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/social/instagram/callback`,
-    scope: 'instagram_content_publish,pages_show_list',
+    scope: 'instagram_content_publish',
     response_type: 'code',
     state,
   })
@@ -63,25 +63,20 @@ export async function getUserInfo(accessToken: string): Promise<{
   userId: string
   username: string
 }> {
-  // Get Facebook Pages and their linked Instagram business accounts
+  // Get Instagram business account linked directly to the Facebook profile
   const params = new URLSearchParams({
-    fields: 'id,name,instagram_business_account{id,username}',
+    fields: 'instagram_business_account{id,username}',
     access_token: accessToken,
   })
-  const res = await fetch(`${FB_GRAPH_URL}/me/accounts?${params}`)
-  if (!res.ok) throw new Error(`Facebook accounts fetch failed: ${res.status}`)
+  const res = await fetch(`${FB_GRAPH_URL}/me?${params}`)
+  if (!res.ok) throw new Error(`Facebook profile fetch failed: ${res.status}`)
   const data = await res.json() as {
-    data?: Array<{
-      id: string
-      name: string
-      instagram_business_account?: { id: string; username: string }
-    }>
+    instagram_business_account?: { id: string; username: string }
     error?: { message: string; code: number }
   }
-  if (data.error) throw new Error(`Facebook accounts error: ${data.error.message} (${data.error.code})`)
-  const pageWithIg = data.data?.find(p => p.instagram_business_account)
-  const ig = pageWithIg?.instagram_business_account
-  if (!ig) throw new Error('No Instagram account linked to a Facebook Page. Make sure your Instagram Creator account is linked to a Facebook Page in Meta Account Center.')
+  if (data.error) throw new Error(`Facebook profile error: ${data.error.message} (${data.error.code})`)
+  const ig = data.instagram_business_account
+  if (!ig) throw new Error('No Instagram account linked to this Facebook account. Link your Instagram in Meta Account Center.')
   return { userId: ig.id, username: ig.username }
 }
 
