@@ -222,10 +222,16 @@ export default async function AdminPage() {
   const users = authData?.users ?? []
   const subs = subscriptions ?? []
 
+  // Find superadmin user_id to exclude from revenue stats
+  const superadminId = users.find(u => u.email === SUPERADMIN_EMAIL)?.id
+  if (superadminId) adminUserIds.add(superadminId)
+
   const subsByUserId = Object.fromEntries(subs.map(s => [s.user_id, s]))
 
+  // Exclude admin accounts from plan counts and MRR
   const planCounts: Record<string, number> = {}
   for (const sub of subs) {
+    if (adminUserIds.has(sub.user_id)) continue
     planCounts[sub.plan] = (planCounts[sub.plan] ?? 0) + 1
   }
 
