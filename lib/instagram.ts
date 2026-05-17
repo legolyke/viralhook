@@ -63,21 +63,21 @@ export async function getUserInfo(accessToken: string): Promise<{
   userId: string
   username: string
 }> {
-  // Get Instagram business account linked directly to the Facebook profile
-  const params = new URLSearchParams({
-    fields: 'instagram_business_account{id,username}',
-    access_token: accessToken,
-  })
-  const res = await fetch(`${FB_GRAPH_URL}/me?${params}`)
-  if (!res.ok) throw new Error(`Facebook profile fetch failed: ${res.status}`)
+  // Try /me/instagram_accounts first (works when user selects IG account in OAuth dialog)
+  const params = new URLSearchParams({ fields: 'id,username', access_token: accessToken })
+  const res = await fetch(`${FB_GRAPH_URL}/me/instagram_accounts?${params}`)
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Instagram accounts fetch failed: ${res.status} ${text}`)
+  }
   const data = await res.json() as {
-    instagram_business_account?: { id: string; username: string }
+    data?: Array<{ id: string; username: string }>
     error?: { message: string; code: number }
   }
-  if (data.error) throw new Error(`Facebook profile error: ${data.error.message} (${data.error.code})`)
-  const ig = data.instagram_business_account
-  if (!ig) throw new Error('No Instagram account linked to this Facebook account. Link your Instagram in Meta Account Center.')
-  return { userId: ig.id, username: ig.username }
+  if (data.error) throw new Error(`Instagram accounts error: ${data.error.message} (${data.error.code})`)
+  const account = data.data?.[0]
+  if (!account) throw new Error('No Instagram account found. Make sure you selected an account during authorization.')
+  return { userId: account.id, username: account.username }
 }
 
 export async function createReelContainer(
