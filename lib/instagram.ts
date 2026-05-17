@@ -10,7 +10,7 @@ export function getAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: process.env.META_APP_ID!,
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/social/instagram/callback`,
-    scope: 'instagram_content_publish',
+    scope: 'instagram_basic,instagram_content_publishing,pages_show_list,pages_read_engagement,business_management',
     response_type: 'code',
     state,
   })
@@ -63,21 +63,25 @@ export async function getUserInfo(accessToken: string): Promise<{
   userId: string
   username: string
 }> {
-  // Try /me/instagram_accounts first (works when user selects IG account in OAuth dialog)
-  const params = new URLSearchParams({ fields: 'id,username', access_token: accessToken })
-  const res = await fetch(`${FB_GRAPH_URL}/me/instagram_accounts?${params}`)
+  // Get Facebook Pages and their linked Instagram business accounts
+  const params = new URLSearchParams({
+    fields: 'id,name,instagram_business_account{id,username}',
+    access_token: accessToken,
+  })
+  const res = await fetch(`${FB_GRAPH_URL}/me/accounts?${params}`)
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(`Instagram accounts fetch failed: ${res.status} ${text}`)
+    throw new Error(`Facebook pages fetch failed: ${res.status} ${text}`)
   }
   const data = await res.json() as {
-    data?: Array<{ id: string; username: string }>
+    data?: Array<{ id: string; name: string; instagram_business_account?: { id: string; username: string } }>
     error?: { message: string; code: number }
   }
-  if (data.error) throw new Error(`Instagram accounts error: ${data.error.message} (${data.error.code})`)
-  const account = data.data?.[0]
-  if (!account) throw new Error('No Instagram account found. Make sure you selected an account during authorization.')
-  return { userId: account.id, username: account.username }
+  if (data.error) throw new Error(`Facebook pages error: ${data.error.message} (${data.error.code})`)
+  const page = data.data?.find(p => p.instagram_business_account)
+  const igAccount = page?.instagram_business_account
+  if (!igAccount) throw new Error('No Instagram business account linked to your Facebook Page. Make sure your Instagram account is connected to a Facebook Page.')
+  return { userId: igAccount.id, username: igAccount.username }
 }
 
 export async function createReelContainer(
