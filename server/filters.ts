@@ -150,15 +150,16 @@ export function buildFilterComplex(params: {
   const parts: string[] = []
 
   if (segments && segments.length > 1) {
-    // Silence removal: trim each segment, then concat
-    for (let i = 0; i < segments.length; i++) {
+    // Silence removal: explicit split → trim each segment → concat
+    const n = segments.length
+    parts.push(`[0:v]split=${n}${segments.map((_, i) => `[vs${i}]`).join('')}`)
+    parts.push(`[0:a]asplit=${n}${segments.map((_, i) => `[as${i}]`).join('')}`)
+    for (let i = 0; i < n; i++) {
       const s = segments[i]
-      parts.push(
-        `[0:v]trim=start=${(s.start + clipStartSec).toFixed(3)}:end=${(s.end + clipStartSec).toFixed(3)},setpts=PTS-STARTPTS[v${i}]`
-      )
-      parts.push(
-        `[0:a]atrim=start=${(s.start + clipStartSec).toFixed(3)}:end=${(s.end + clipStartSec).toFixed(3)},asetpts=PTS-STARTPTS[a${i}]`
-      )
+      const absStart = (s.start + clipStartSec).toFixed(3)
+      const absEnd   = (s.end   + clipStartSec).toFixed(3)
+      parts.push(`[vs${i}]trim=start=${absStart}:end=${absEnd},setpts=PTS-STARTPTS,setsar=1[v${i}]`)
+      parts.push(`[as${i}]atrim=start=${absStart}:end=${absEnd},asetpts=PTS-STARTPTS[a${i}]`)
     }
     const vInputs = segments.map((_, i) => `[v${i}][a${i}]`).join('')
     parts.push(`${vInputs}concat=n=${segments.length}:v=1:a=1[vcombined][acombined]`)
