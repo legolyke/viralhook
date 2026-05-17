@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import ReanalyzeButton from './ReanalyzeButton'
 import ExportModal from './ExportModal'
 
@@ -559,6 +560,18 @@ function ClipCard({
 }
 
 export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, clips }: ClipsGridProps) {
+  const router = useRouter()
+  const [autoDetecting, setAutoDetecting] = useState(false)
+
+  useEffect(() => {
+    if (projectStatus !== 'ready' || clips.length > 0 || autoDetecting) return
+    setAutoDetecting(true)
+    fetch(`/api/projects/${projectId}/detect-clips`, { method: 'POST' })
+      .then(() => router.refresh())
+      .catch(console.error)
+      .finally(() => setAutoDetecting(false))
+  }, [projectStatus, projectId, clips.length, autoDetecting, router])
+
   return (
     <div style={{ marginTop: 40 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -599,7 +612,7 @@ export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, cl
           }}
         >
           <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14, margin: 0 }}>
-            Analysis failed
+            {autoDetecting ? 'Detecting clips...' : 'Analysis failed'}
           </p>
           <ReanalyzeButton projectId={projectId} />
         </div>

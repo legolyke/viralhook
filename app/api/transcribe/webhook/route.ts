@@ -1,10 +1,8 @@
-import { after } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getTranscript, verifyWebhookSecret } from '@/lib/assemblyai'
 import { createServiceClient } from '@/lib/supabase/server'
-import { detectViralClips } from '@/lib/openai'
 
-export const maxDuration = 60
+export const maxDuration = 30
 
 interface WebhookPayload {
   transcript_id: string
@@ -78,39 +76,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to save transcript' }, { status: 500 })
   }
 
-  // Respond to AssemblyAI immediately — then detect clips in background
-  after(async () => {
-    try {
-      const words = transcript.words ?? []
-      const highlights = transcript.auto_highlights_result?.results ?? []
-      if (words.length === 0) return
+  // Mark project ready — clip detection runs client-side when user opens the project page
+  const { error: readyErr } = await supabase
+    .from('projects')
+    .update({ status: 'ready', updated_at: new Date().toISOString() })
+    .eq('id', project.id)
 
-      const clips = await detectViralClips(words, highlights, transcript.text ?? '', transcript.language_code ?? 'en')
-      if (clips.length > 0) {
-        const { error: clipsErr } = await supabase.from('clips').insert(
-          clips.map((clip) => ({
-            project_id: project.id,
-            user_id: project.user_id,
-            start_time: Math.round(clip.start_ms),
-            end_time: Math.round(clip.end_ms),
-            title: clip.title,
-            virality_score: clip.score,
-            score_breakdown: clip.breakdown ?? null,
-            status: 'detected',
-          }))
-        )
-        if (clipsErr) console.error('[after] Failed to insert clips:', clipsErr)
-        else console.log(`[after] inserted ${clips.length} clips for project ${project.id}`)
-      }
-    } catch (err) {
-      console.error('[after] Failed to detect viral clips:', err)
-    } finally {
-      await supabase
-        .from('projects')
-        .update({ status: 'ready', updated_at: new Date().toISOString() })
-        .eq('id', project.id)
-    }
-  })
+  if (readyErr) console.error('Failed to set project ready:', readyErr)
 
   return NextResponse.json({ ok: true })
 }
