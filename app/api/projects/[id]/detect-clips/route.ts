@@ -87,5 +87,13 @@ export async function POST(
     }
   }
 
-  return NextResponse.json({ ok: true, count: clips.length })
+  console.log('[detect-clips] returning clips with breakdown:', clips.map(c => ({ title: c.title, hasBreakdown: !!c.breakdown, breakdown: c.breakdown })))
+  return NextResponse.json({ ok: true, count: clips.length, clips: clips.map(clip => ({
+    title: clip.title,
+    start_time: Math.round(clip.start_ms),
+    end_time: Math.round(clip.end_ms),
+    virality_score: clip.score,
+    score_breakdown: clip.breakdown ?? null,
+    status: 'detected',
+  })) })
 }

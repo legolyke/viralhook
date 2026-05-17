@@ -558,22 +558,29 @@ function ClipCard({
     </>
   )
 }
-
-export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, clips }: ClipsGridProps) {
+export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, clips: initialClips }: ClipsGridProps) {
   const router = useRouter()
   const autoDetectFired = useRef(false)
   const [autoDetecting, setAutoDetecting] = useState(false)
+  const [localClips, setLocalClips] = useState(initialClips)
+
+  // Sync server-rendered clips into local state (e.g. after Re-analyze)
+  useEffect(() => { setLocalClips(initialClips) }, [initialClips])
 
   useEffect(() => {
-    if (projectStatus !== 'ready' || clips.length > 0) return
+    if (projectStatus !== 'ready' || localClips.length > 0) return
     if (autoDetectFired.current) return
     autoDetectFired.current = true
     setAutoDetecting(true)
     fetch(`/api/projects/${projectId}/detect-clips`, { method: 'POST' })
-      .then(() => router.refresh())
+      .then(r => r.json())
+      .then((data: { ok?: boolean; clips?: typeof initialClips }) => {
+        if (data.clips?.length) setLocalClips(data.clips)
+        router.refresh()
+      })
       .catch(console.error)
       .finally(() => setAutoDetecting(false))
-  }, [projectStatus, projectId, clips.length, router])
+  }, [projectStatus, projectId, localClips.length, router])
 
   return (
     <div style={{ marginTop: 40 }}>
@@ -581,7 +588,7 @@ export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, cl
         <h3 style={{ color: '#E9D5FF', fontWeight: 600, fontSize: 16, margin: 0 }}>
           AI Clips
         </h3>
-        {projectStatus === 'ready' && clips.length > 0 && (
+        {projectStatus === 'ready' && localClips.length > 0 && (
           <ReanalyzeButton projectId={projectId} />
         )}
       </div>
@@ -600,7 +607,7 @@ export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, cl
             AI analysis will start once the video is processed.
           </p>
         </div>
-      ) : clips.length === 0 ? (
+      ) : localClips.length === 0 ? (
         <div
           style={{
             padding: '32px 24px',
@@ -628,7 +635,7 @@ export default function ClipsGrid({ projectStatus, projectId, projectFileUrl, cl
           }}
           className="clips-grid"
         >
-          {[...clips].sort((a, b) => b.virality_score - a.virality_score).map((clip) => (
+          {[...localClips].sort((a, b) => b.virality_score - a.virality_score).map((clip) => (
             <ClipCard key={clip.id} clip={clip} projectFileUrl={projectFileUrl} />
           ))}
         </div>
