@@ -117,7 +117,7 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
     console.log('[downloadVideo] fetching metadata...')
     const proc = spawn('yt-dlp', [
       '--dump-json', '--no-download', '--no-playlist',
-      '--js-runtimes', 'nodejs',
+      '--js-runtimes', 'node',
       '--extractor-args', 'youtube:player_client=android',
       url,
     ], {
@@ -151,7 +151,7 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
       '--merge-output-format', 'mp4',
       '--no-playlist',
       '--max-filesize', '4G',
-      '--js-runtimes', 'nodejs',
+      '--js-runtimes', 'node',
       '--extractor-args', 'youtube:player_client=android',
       '-o', destPath,
       url,
@@ -486,6 +486,7 @@ app.listen(Number(PORT), () => {
   console.log(`[startup] R2_ACCOUNT_ID=${process.env.R2_ACCOUNT_ID ? 'SET' : 'MISSING'}`)
   console.log(`[startup] SUPABASE_URL=${process.env.SUPABASE_URL ? 'SET' : 'MISSING'}`)
   console.log(`[startup] WORKER_SECRET=${process.env.WORKER_SECRET ? 'SET' : 'MISSING'}`)
+  console.log(`[startup] SUPABASE_SERVICE_ROLE_KEY=${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING'}`)
   console.log(`[startup] ASSEMBLYAI_API_KEY=${process.env.ASSEMBLYAI_API_KEY ? 'SET' : 'MISSING'}`)
   console.log(`[startup] NEXT_PUBLIC_APP_URL=${process.env.NEXT_PUBLIC_APP_URL ?? 'MISSING'}`)
   console.log(`[startup] subtitle engine: drawtext`)
