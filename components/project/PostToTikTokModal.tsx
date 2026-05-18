@@ -8,9 +8,17 @@ interface PostToTikTokModalProps {
 }
 
 type PostState = 'idle' | 'posting' | 'done' | 'error'
+type Privacy = 'PUBLIC_TO_EVERYONE' | 'FOLLOWER_OF_CREATOR' | 'SELF_ONLY'
+
+const PRIVACY_OPTIONS: { value: Privacy; label: string }[] = [
+  { value: 'PUBLIC_TO_EVERYONE', label: 'Public' },
+  { value: 'FOLLOWER_OF_CREATOR', label: 'Followers' },
+  { value: 'SELF_ONLY', label: 'Private' },
+]
 
 export default function PostToTikTokModal({ clipId, defaultTitle, onClose }: PostToTikTokModalProps) {
   const [title, setTitle] = useState(defaultTitle.slice(0, 150))
+  const [privacy, setPrivacy] = useState<Privacy>('PUBLIC_TO_EVERYONE')
   const [postState, setPostState] = useState<PostState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -20,7 +28,7 @@ export default function PostToTikTokModal({ clipId, defaultTitle, onClose }: Pos
       const res = await fetch(`/api/clips/${clipId}/post/tiktok`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, privacy }),
       })
       const data = await res.json() as { ok?: boolean; publishId?: string; error?: string }
       if (!res.ok || !data.ok) {
@@ -78,11 +86,28 @@ export default function PostToTikTokModal({ clipId, defaultTitle, onClose }: Pos
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 4, textAlign: 'right' }}>{title.length}/150</div>
             </div>
 
-            <div style={{
-              background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.25)',
-              borderRadius: 8, padding: '10px 12px', fontSize: 12, color: 'rgba(234,179,8,0.85)', lineHeight: 1.5,
-            }}>
-              Pending TikTok app review — videos post as <strong>private</strong> only. After approval, public posting will be enabled.
+            <div>
+              <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                Privacy
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {PRIVACY_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setPrivacy(opt.value)}
+                    style={{
+                      flex: 1, padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500,
+                      background: privacy === opt.value ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.04)',
+                      border: privacy === opt.value ? '1px solid rgba(168,85,247,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                      color: privacy === opt.value ? '#C084FC' : 'rgba(255,255,255,0.5)',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <button

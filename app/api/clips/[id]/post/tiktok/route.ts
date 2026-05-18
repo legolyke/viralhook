@@ -13,7 +13,7 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: clipId } = await params
-  const { title } = await request.json() as { title: string }
+  const { title, privacy } = await request.json() as { title: string; privacy?: string }
 
   const { data: clip } = await supabase
     .from('clips')
@@ -42,8 +42,8 @@ export async function POST(
   let accessToken = connection.access_token
   // Use proxy URL on viralhook.media so TikTok URL ownership check passes
   const streamUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/clips/${clipId}/stream`
-  // Until TikTok approves the app, unaudited apps can only post privately
-  const effectivePrivacy: TikTokPrivacy = 'SELF_ONLY'
+  const allowed: TikTokPrivacy[] = ['PUBLIC_TO_EVERYONE', 'MUTUAL_FOLLOW_FRIENDS', 'FOLLOWER_OF_CREATOR', 'SELF_ONLY']
+  const effectivePrivacy: TikTokPrivacy = (allowed.includes(privacy as TikTokPrivacy) ? privacy : 'SELF_ONLY') as TikTokPrivacy
 
   try {
     const publishId = await postVideo(accessToken, streamUrl, title, effectivePrivacy)
