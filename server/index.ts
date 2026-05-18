@@ -111,20 +111,34 @@ async function patchProject(projectId: string, fields: Record<string, unknown>):
 }
 
 async function downloadVideo(url: string, destPath: string): Promise<number> {
+  console.log(`[downloadVideo] start url=${url.slice(0, 80)}`)
   let durationSeconds = 0
   await new Promise<void>((resolve) => {
-    const proc = spawn('yt-dlp', ['--dump-json', '--no-download', url], {
+    console.log('[downloadVideo] fetching metadata...')
+    const proc = spawn('yt-dlp', ['--dump-json', '--no-download', '--no-playlist', url], {
       stdio: ['ignore', 'pipe', 'pipe'],
     })
     let out = ''
+    let errOut = ''
+    const timeout = setTimeout(() => {
+      console.log('[downloadVideo] metadata timeout after 30s, killing proc')
+      proc.kill()
+    }, 30_000)
     proc.stdout?.on('data', (c: Buffer) => { out += c.toString() })
-    proc.on('close', () => {
+    proc.stderr?.on('data', (c: Buffer) => { errOut += c.toString() })
+    proc.on('close', (code) => {
+      clearTimeout(timeout)
+      if (errOut) console.log(`[downloadVideo] metadata stderr: ${errOut.slice(-300)}`)
       try { durationSeconds = Math.round(JSON.parse(out).duration) || 0 } catch {}
+      console.log(`[downloadVideo] metadata done code=${code} duration=${durationSeconds}s`)
       resolve()
     })
-    proc.on('error', () => resolve())
+    proc.on('error', (err) => {
+      clearTimeout(timeout)
+      console.log(`[downloadVideo] metadata spawn error: ${err.message}`)
+      resolve()
+    })
   })
-  console.log(`[download] duration=${durationSeconds}s url=${url.slice(0, 80)}`)
 
   await new Promise<void>((resolve, reject) => {
     const args = [
@@ -135,15 +149,18 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
       '-o', destPath,
       url,
     ]
-    console.log(`[download] starting yt-dlp → ${destPath}`)
+    console.log(`[downloadVideo] starting download → ${destPath}`)
     const proc = spawn('yt-dlp', args, { stdio: ['ignore', 'pipe', 'pipe'] })
     let stderr = ''
     proc.stdout?.on('data', (c: Buffer) => process.stdout.write(c))
-    proc.stderr?.on('data', (c: Buffer) => { stderr += c.toString() })
+    proc.stderr?.on('data', (c: Buffer) => {
+      stderr += c.toString()
+      process.stderr.write(c)
+    })
     proc.on('close', (code) => {
       if (code === 0) {
         const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
-        console.log(`[download] done ${sizeMB}MB`)
+        console.log(`[downloadVideo] done ${sizeMB}MB`)
         resolve()
       } else {
         reject(new Error(`yt-dlp exited ${code}: ${stderr.slice(-500)}`))
@@ -339,6 +356,7 @@ ${ffmpegStderr.slice(-4000)}`)
 }
 
 async function downloadAndTranscribe(projectId: string, url: string): Promise<void> {
+  console.log(`[downloadAndTranscribe] start project=${projectId} url=${url.slice(0, 80)}`)
   const tmpPath = path.join(os.tmpdir(), `vh_dl_${projectId}.mp4`)
   try {
     const durationSeconds = await downloadVideo(url, tmpPath)
@@ -461,5 +479,13 @@ app.listen(Number(PORT), () => {
   console.log(`[startup] R2_ACCOUNT_ID=${process.env.R2_ACCOUNT_ID ? 'SET' : 'MISSING'}`)
   console.log(`[startup] SUPABASE_URL=${process.env.SUPABASE_URL ? 'SET' : 'MISSING'}`)
   console.log(`[startup] WORKER_SECRET=${process.env.WORKER_SECRET ? 'SET' : 'MISSING'}`)
+  console.log(`[startup] ASSEMBLYAI_API_KEY=${process.env.ASSEMBLYAI_API_KEY ? 'SET' : 'MISSING'}`)
+  console.log(`[startup] NEXT_PUBLIC_APP_URL=${process.env.NEXT_PUBLIC_APP_URL ?? 'MISSING'}`)
   console.log(`[startup] subtitle engine: drawtext`)
+  try {
+    const v = execSync('yt-dlp --version', { encoding: 'utf8' }).trim()
+    console.log(`[startup] yt-dlp: ${v}`)
+  } catch {
+    console.log('[startup] yt-dlp: NOT FOUND')
+  }
 })
