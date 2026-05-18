@@ -214,7 +214,7 @@ Rules:
     .filter(
       (clip) =>
         clip.end_ms - clip.start_ms >= 15000 &&
-        clip.end_ms - clip.start_ms <= 60000
+        clip.end_ms - clip.start_ms <= 90000
     )
 
   console.log('[detectViralClips] filtered count:', normalized.length)
