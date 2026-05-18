@@ -15,7 +15,7 @@ const STATUS_LABELS: Record<string, string> = {
   error: 'Import failed.',
 }
 
-export default function UrlImport({ projectName = '' }: { projectName?: string }) {
+export default function UrlImport({ projectName = '', onClose }: { projectName?: string; onClose?: () => void }) {
   const router = useRouter()
   const [url, setUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -69,6 +69,7 @@ export default function UrlImport({ projectName = '' }: { projectName?: string }
           const newStatus = payload.new.status as string
           setImportStatus(newStatus)
           if (newStatus === 'ready') {
+            onClose?.()
             router.push(`/projects/${projectId}`)
           }
           if (newStatus === 'error') {
@@ -90,7 +91,7 @@ export default function UrlImport({ projectName = '' }: { projectName?: string }
         if (!data) return
         const status = data.status as string
         setImportStatus(status)
-        if (status === 'ready') router.push(`/projects/${projectId}`)
+        if (status === 'ready') { onClose?.(); router.push(`/projects/${projectId}`) }
         if (status === 'error') {
           setError('Download failed. The video may be private or unavailable.')
           setProjectId(null)

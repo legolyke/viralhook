@@ -106,7 +106,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         {activeTab === 'file' ? (
           <FileUpload projectName={projectName} onClose={onClose} />
         ) : (
-          <UrlImport projectName={projectName} />
+          <UrlImport projectName={projectName} onClose={onClose} />
         )}
       </div>
     </div>
