@@ -114,12 +114,14 @@ async function patchProject(projectId: string, fields: Record<string, unknown>):
 
 async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] start url=${url.slice(0, 80)}`)
-  // tv_embedded is the client used for embedded YouTube players on third-party sites.
-  // It does not require authentication and works on data center IPs.
-  // mweb and android are fallbacks in case tv_embedded is blocked for a specific video.
-  const ytdlpBaseArgs = [
-    '--extractor-args', 'youtube:player_client=tv_embedded,mweb,android',
+  const cookiesFile = '/tmp/youtube-cookies.txt'
+  const hasCookies = fs.existsSync(cookiesFile)
+  console.log(`[downloadVideo] cookies file present: ${hasCookies}`)
+  // android client is less restricted than web; cookies authenticate the session to pass bot check
+  const ytdlpBaseArgs: string[] = [
+    '--extractor-args', 'youtube:player_client=android,mweb',
     '--no-playlist',
+    ...(hasCookies ? ['--cookies', cookiesFile] : []),
   ]
 
   let durationSeconds = 0
@@ -506,5 +508,15 @@ app.listen(Number(PORT), () => {
   } catch {
     console.log('[startup] yt-dlp: NOT FOUND')
   }
-  console.log('[startup] yt-dlp strategy: tv_embedded,mweb,android (no cookies required)')
+  const cookiesB64 = process.env.YOUTUBE_COOKIES_B64
+  if (cookiesB64) {
+    try {
+      fs.writeFileSync('/tmp/youtube-cookies.txt', Buffer.from(cookiesB64, 'base64').toString('utf8'))
+      console.log('[startup] youtube-cookies.txt written ✓')
+    } catch (err) {
+      console.log('[startup] failed to write youtube-cookies.txt:', err)
+    }
+  } else {
+    console.log('[startup] YOUTUBE_COOKIES_B64 not set — YouTube will block downloads on server IPs')
+  }
 })
