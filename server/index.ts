@@ -160,7 +160,7 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
 
   await new Promise<void>((resolve, reject) => {
     const args = [
-      '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+      '-f', 'bestvideo[vcodec^=avc][ext=mp4]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
       '--max-filesize', '4G',
       ...ytdlpBaseArgs,
