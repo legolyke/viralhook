@@ -119,7 +119,8 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] cookies file present: ${hasCookies}`)
   // android client is less restricted than web; cookies authenticate the session to pass bot check
   const ytdlpBaseArgs: string[] = [
-    '--extractor-args', 'youtube:player_client=android,mweb',
+    '--extractor-args', 'youtube:player_client=web,mweb',
+    '--js-runtimes', 'node',
     '--no-playlist',
     ...(hasCookies ? ['--cookies', cookiesFile] : []),
   ]
