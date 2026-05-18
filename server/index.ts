@@ -110,6 +110,51 @@ async function patchProject(projectId: string, fields: Record<string, unknown>):
   console.log(`[patchProject] ok → status=${fields.status} project=${projectId}`)
 }
 
+async function downloadVideo(url: string, destPath: string): Promise<number> {
+  let durationSeconds = 0
+  await new Promise<void>((resolve) => {
+    const proc = spawn('yt-dlp', ['--dump-json', '--no-download', url], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    let out = ''
+    proc.stdout?.on('data', (c: Buffer) => { out += c.toString() })
+    proc.on('close', () => {
+      try { durationSeconds = Math.round(JSON.parse(out).duration) || 0 } catch {}
+      resolve()
+    })
+    proc.on('error', () => resolve())
+  })
+  console.log(`[download] duration=${durationSeconds}s url=${url.slice(0, 80)}`)
+
+  await new Promise<void>((resolve, reject) => {
+    const args = [
+      '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+      '--merge-output-format', 'mp4',
+      '--no-playlist',
+      '--max-filesize', '4G',
+      '-o', destPath,
+      url,
+    ]
+    console.log(`[download] starting yt-dlp → ${destPath}`)
+    const proc = spawn('yt-dlp', args, { stdio: ['ignore', 'pipe', 'pipe'] })
+    let stderr = ''
+    proc.stdout?.on('data', (c: Buffer) => process.stdout.write(c))
+    proc.stderr?.on('data', (c: Buffer) => { stderr += c.toString() })
+    proc.on('close', (code) => {
+      if (code === 0) {
+        const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
+        console.log(`[download] done ${sizeMB}MB`)
+        resolve()
+      } else {
+        reject(new Error(`yt-dlp exited ${code}: ${stderr.slice(-500)}`))
+      }
+    })
+    proc.on('error', (err) => reject(new Error(`yt-dlp spawn failed: ${err.message}`)))
+  })
+
+  return durationSeconds
+}
+
 async function detectSilence(
   inputPath: string,
   clipStartSec: number,
