@@ -370,21 +370,21 @@ async function downloadAndTranscribe(projectId: string, url: string): Promise<vo
   }
 }
 
+// /download uses x-worker-secret header (sent by Next.js url-import route via RAILWAY_WORKER_SECRET)
+// /process uses Authorization: Bearer (sent by Next.js export route via WORKER_SECRET)
+// Both env vars point to the same secret value — different callers, different header conventions.
 app.post('/download', (req, res) => {
   if (req.headers['x-worker-secret'] !== process.env.WORKER_SECRET) {
     res.status(401).json({ error: 'Unauthorized' }); return
   }
 
-  const { projectId, url, userId } = req.body as Record<string, unknown>
+  const { projectId, url } = req.body as Record<string, unknown>
 
   if (typeof projectId !== 'string' || !/^[0-9a-f-]{36}$/.test(projectId)) {
     res.status(400).json({ error: 'Invalid projectId' }); return
   }
-  if (typeof url !== 'string' || !url) {
-    res.status(400).json({ error: 'Invalid url' }); return
-  }
-  if (typeof userId !== 'string' || !userId) {
-    res.status(400).json({ error: 'Invalid userId' }); return
+  if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+    res.status(400).json({ error: 'url must be a valid http/https URL' }); return
   }
 
   console.log(`[request] /download project=${projectId} url=${url.slice(0, 80)}`)
