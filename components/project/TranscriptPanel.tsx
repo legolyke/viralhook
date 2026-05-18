@@ -304,16 +304,24 @@ export default function TranscriptPanel({ status, transcript, projectId }: Trans
               )}
             </>
           ) : (
-            <p
+            <div
               style={{
-                fontSize: 13,
-                lineHeight: 1.75,
-                color: 'rgba(255,255,255,0.6)',
-                margin: 0,
+                maxHeight: 180,
+                overflowY: 'auto',
+                paddingRight: 4,
               }}
             >
-              {applyHighlights(displayText, highlights)}
-            </p>
+              <p
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.75,
+                  color: 'rgba(255,255,255,0.6)',
+                  margin: 0,
+                }}
+              >
+                {applyHighlights(displayText, highlights)}
+              </p>
+            </div>
           )}
 
           {!editing && highlightCount > 0 && (
