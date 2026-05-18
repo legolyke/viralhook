@@ -121,6 +121,7 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
     const proc = spawn('yt-dlp', [
       '--dump-json', '--no-download', '--no-playlist',
       '--js-runtimes', 'node',
+      '--remote-components', 'ejs:github',
       ...cookiesArgs,
       url,
     ], {
@@ -158,6 +159,7 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
       '--no-playlist',
       '--max-filesize', '4G',
       '--js-runtimes', 'node',
+      '--remote-components', 'ejs:github',
       ...dlCookiesArgs,
       '-o', destPath,
       url,
