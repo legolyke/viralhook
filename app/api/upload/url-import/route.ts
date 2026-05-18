@@ -40,17 +40,23 @@ export async function POST(request: Request) {
 
   // Notify Railway worker if configured (worker implemented in Module 7)
   const workerUrl = process.env.RAILWAY_WORKER_URL
+  console.log('[url-import] RAILWAY_WORKER_URL:', workerUrl ?? 'NOT SET')
+  console.log('[url-import] RAILWAY_WORKER_SECRET set:', !!process.env.RAILWAY_WORKER_SECRET)
   if (workerUrl) {
-    fetch(`${workerUrl}/download`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-worker-secret': process.env.RAILWAY_WORKER_SECRET ?? '',
-      },
-      body: JSON.stringify({ projectId: project.id, url, userId: user.id }),
-    }).catch(() => {
-      // Worker unavailable — project stays as 'uploading', retried in Module 7
-    })
+    try {
+      const workerRes = await fetch(`${workerUrl}/download`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-worker-secret': process.env.RAILWAY_WORKER_SECRET ?? '',
+        },
+        body: JSON.stringify({ projectId: project.id, url, userId: user.id }),
+      })
+      const workerBody = await workerRes.text()
+      console.log('[url-import] Railway response:', workerRes.status, workerBody)
+    } catch (err) {
+      console.error('[url-import] Railway fetch failed:', err)
+    }
   }
 
   return NextResponse.json({ projectId: project.id })
