@@ -201,6 +201,8 @@ async function startTranscriptionDirect(fileUrl: string, webhookUrl: string): Pr
       webhook_url: webhookUrl,
       speech_models: ['universal-2'],
       language_detection: true,
+      webhook_auth_header_name: 'x-assemblyai-secret',
+      webhook_auth_header_value: process.env.ASSEMBLYAI_WEBHOOK_SECRET ?? '',
     }),
   })
   if (!res.ok) {
@@ -498,6 +500,7 @@ app.listen(Number(PORT), () => {
   console.log(`[startup] WORKER_SECRET=${process.env.WORKER_SECRET ? 'SET' : 'MISSING'}`)
   console.log(`[startup] SUPABASE_SERVICE_ROLE_KEY=${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING'}`)
   console.log(`[startup] ASSEMBLYAI_API_KEY=${process.env.ASSEMBLYAI_API_KEY ? 'SET' : 'MISSING'}`)
+  console.log(`[startup] ASSEMBLYAI_WEBHOOK_SECRET=${process.env.ASSEMBLYAI_WEBHOOK_SECRET ? 'SET' : 'MISSING'}`)
   console.log(`[startup] NEXT_PUBLIC_APP_URL=${process.env.NEXT_PUBLIC_APP_URL ?? 'MISSING'}`)
   console.log(`[startup] subtitle engine: drawtext`)
   try {
