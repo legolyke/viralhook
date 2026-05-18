@@ -90,6 +90,26 @@ async function patchClip(clipId: string, fields: Record<string, unknown>): Promi
   console.log(`[patchClip] RPC ok → status=${fields.status} clip=${clipId}`)
 }
 
+async function patchProject(projectId: string, fields: Record<string, unknown>): Promise<void> {
+  const supabaseUrl = process.env.SUPABASE_URL!
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const res = await fetch(`${supabaseUrl}/rest/v1/projects?id=eq.${projectId}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify(fields),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Supabase PATCH projects failed ${res.status}: ${text}`)
+  }
+  console.log(`[patchProject] ok → status=${fields.status} project=${projectId}`)
+}
+
 async function detectSilence(
   inputPath: string,
   clipStartSec: number,
