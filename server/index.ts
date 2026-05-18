@@ -115,10 +115,13 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   let durationSeconds = 0
   await new Promise<void>((resolve) => {
     console.log('[downloadVideo] fetching metadata...')
+    const cookiesArgs = fs.existsSync('/tmp/youtube-cookies.txt')
+      ? ['--cookies', '/tmp/youtube-cookies.txt']
+      : []
     const proc = spawn('yt-dlp', [
       '--dump-json', '--no-download', '--no-playlist',
       '--js-runtimes', 'node',
-      '--extractor-args', 'youtube:player_client=android',
+      ...cookiesArgs,
       url,
     ], {
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -146,13 +149,16 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   })
 
   await new Promise<void>((resolve, reject) => {
+    const dlCookiesArgs = fs.existsSync('/tmp/youtube-cookies.txt')
+      ? ['--cookies', '/tmp/youtube-cookies.txt']
+      : []
     const args = [
       '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
       '--no-playlist',
       '--max-filesize', '4G',
       '--js-runtimes', 'node',
-      '--extractor-args', 'youtube:player_client=android',
+      ...dlCookiesArgs,
       '-o', destPath,
       url,
     ]
@@ -495,5 +501,16 @@ app.listen(Number(PORT), () => {
     console.log(`[startup] yt-dlp: ${v}`)
   } catch {
     console.log('[startup] yt-dlp: NOT FOUND')
+  }
+  const cookiesB64 = process.env.YOUTUBE_COOKIES_B64
+  if (cookiesB64) {
+    try {
+      fs.writeFileSync('/tmp/youtube-cookies.txt', Buffer.from(cookiesB64, 'base64').toString('utf8'))
+      console.log('[startup] youtube-cookies.txt written ✓')
+    } catch (err) {
+      console.log('[startup] failed to write youtube-cookies.txt:', err)
+    }
+  } else {
+    console.log('[startup] YOUTUBE_COOKIES_B64 not set — YouTube may block downloads')
   }
 })
