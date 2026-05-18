@@ -1,7 +1,8 @@
 FROM node:20-slim
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core fonts-liberation && \
+    apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core fonts-liberation python3-pip && \
+    pip3 install yt-dlp --break-system-packages && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
