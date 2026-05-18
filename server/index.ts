@@ -59,11 +59,13 @@ async function downloadFromR2(key: string, destPath: string): Promise<void> {
 }
 
 async function uploadToR2(localPath: string, key: string): Promise<void> {
-  console.log(`[r2] uploading ${key}`)
+  const sizeMB = (fs.statSync(localPath).size / 1024 / 1024).toFixed(1)
+  console.log(`[r2] uploading ${key} (${sizeMB}MB)`)
   await r2.send(new PutObjectCommand({
     Bucket: process.env.R2_BUCKET_NAME!,
     Key: key,
-    Body: fs.readFileSync(localPath),
+    Body: fs.createReadStream(localPath),
+    ContentLength: fs.statSync(localPath).size,
     ContentType: 'video/mp4',
   }))
   console.log(`[r2] uploaded ${key}`)
