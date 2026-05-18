@@ -10,6 +10,7 @@ const URL_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/[\
 const STATUS_LABELS: Record<string, string> = {
   uploading: 'Downloading video...',
   processing: 'Processing...',
+  transcribing: 'Transcribing audio...',
   ready: 'Done! Redirecting...',
   error: 'Import failed.',
 }
@@ -79,7 +80,29 @@ export default function UrlImport({ projectName = '' }: { projectName?: string }
       )
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await supabase
+          .from('projects')
+          .select('status')
+          .eq('id', projectId)
+          .single()
+        if (!data) return
+        const status = data.status as string
+        setImportStatus(status)
+        if (status === 'ready') router.push(`/projects/${projectId}`)
+        if (status === 'error') {
+          setError('Download failed. The video may be private or unavailable.')
+          setProjectId(null)
+          setImportStatus(null)
+        }
+      } catch {}
+    }, 3000)
+
+    return () => {
+      supabase.removeChannel(channel)
+      clearInterval(interval)
+    }
   }, [projectId, router])
 
   return (
