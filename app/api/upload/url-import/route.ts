@@ -59,5 +59,9 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ projectId: project.id })
+  const debug = {
+    workerUrl: process.env.RAILWAY_WORKER_URL ?? 'NOT SET',
+    workerSecretSet: !!process.env.RAILWAY_WORKER_SECRET,
+  }
+  return NextResponse.json({ projectId: project.id, debug })
 }
