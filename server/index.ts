@@ -115,7 +115,12 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   let durationSeconds = 0
   await new Promise<void>((resolve) => {
     console.log('[downloadVideo] fetching metadata...')
-    const proc = spawn('yt-dlp', ['--dump-json', '--no-download', '--no-playlist', url], {
+    const proc = spawn('yt-dlp', [
+      '--dump-json', '--no-download', '--no-playlist',
+      '--js-runtimes', 'nodejs',
+      '--extractor-args', 'youtube:player_client=android',
+      url,
+    ], {
       stdio: ['ignore', 'pipe', 'pipe'],
     })
     let out = ''
@@ -146,6 +151,8 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
       '--merge-output-format', 'mp4',
       '--no-playlist',
       '--max-filesize', '4G',
+      '--js-runtimes', 'nodejs',
+      '--extractor-args', 'youtube:player_client=android',
       '-o', destPath,
       url,
     ]
