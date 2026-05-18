@@ -199,7 +199,7 @@ async function startTranscriptionDirect(fileUrl: string, webhookUrl: string): Pr
     body: JSON.stringify({
       audio_url: fileUrl,
       webhook_url: webhookUrl,
-      speech_models: ['best'],
+      speech_models: ['universal-2'],
       language_detection: true,
     }),
   })
