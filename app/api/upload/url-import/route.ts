@@ -42,6 +42,8 @@ export async function POST(request: Request) {
   const workerUrl = process.env.RAILWAY_WORKER_URL
   console.log('[url-import] RAILWAY_WORKER_URL:', workerUrl ?? 'NOT SET')
   console.log('[url-import] RAILWAY_WORKER_SECRET set:', !!process.env.RAILWAY_WORKER_SECRET)
+  let railwayStatus: number | string = 'not called'
+  let railwayBody = ''
   if (workerUrl) {
     try {
       const workerRes = await fetch(`${workerUrl}/download`, {
@@ -52,16 +54,21 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({ projectId: project.id, url, userId: user.id }),
       })
-      const workerBody = await workerRes.text()
-      console.log('[url-import] Railway response:', workerRes.status, workerBody)
+      railwayBody = await workerRes.text()
+      railwayStatus = workerRes.status
     } catch (err) {
-      console.error('[url-import] Railway fetch failed:', err)
+      railwayStatus = 'fetch_error'
+      railwayBody = String(err)
     }
   }
 
-  const debug = {
-    workerUrl: process.env.RAILWAY_WORKER_URL ?? 'NOT SET',
-    workerSecretSet: !!process.env.RAILWAY_WORKER_SECRET,
-  }
-  return NextResponse.json({ projectId: project.id, debug })
+  return NextResponse.json({
+    projectId: project.id,
+    debug: {
+      workerUrl: workerUrl ?? 'NOT SET',
+      workerSecretSet: !!process.env.RAILWAY_WORKER_SECRET,
+      railwayStatus,
+      railwayBody,
+    },
+  })
 }
