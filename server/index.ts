@@ -121,6 +121,7 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   const ytdlpBaseArgs: string[] = [
     '--extractor-args', 'youtube:player_client=web,mweb',
     '--js-runtimes', 'node',
+    '--remote-components', 'ejs:github',
     '--no-playlist',
     ...(hasCookies ? ['--cookies', cookiesFile] : []),
   ]
