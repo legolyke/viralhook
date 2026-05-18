@@ -338,6 +338,63 @@ ${ffmpegStderr.slice(-4000)}`)
   }
 }
 
+async function downloadAndTranscribe(projectId: string, url: string): Promise<void> {
+  const tmpPath = path.join(os.tmpdir(), `vh_dl_${projectId}.mp4`)
+  try {
+    const durationSeconds = await downloadVideo(url, tmpPath)
+
+    const r2Key = `projects/${projectId}/source.mp4`
+    await uploadToR2(tmpPath, r2Key)
+    const fileUrl = `${process.env.R2_PUBLIC_URL}/${r2Key}`
+
+    await patchProject(projectId, {
+      file_url: fileUrl,
+      ...(durationSeconds > 0 ? { duration_seconds: durationSeconds } : {}),
+      status: 'processing',
+    })
+
+    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transcribe/webhook`
+    const jobId = await startTranscriptionDirect(fileUrl, webhookUrl)
+
+    await patchProject(projectId, {
+      transcript_job_id: jobId,
+      status: 'transcribing',
+    })
+
+    console.log(`[download] project=${projectId} → transcribing ✓`)
+  } catch (err) {
+    console.error(`[download] FAILED project=${projectId}:`, err)
+    try { await patchProject(projectId, { status: 'error' }) } catch {}
+  } finally {
+    try { if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath) } catch {}
+  }
+}
+
+app.post('/download', (req, res) => {
+  if (req.headers['x-worker-secret'] !== process.env.WORKER_SECRET) {
+    res.status(401).json({ error: 'Unauthorized' }); return
+  }
+
+  const { projectId, url, userId } = req.body as Record<string, unknown>
+
+  if (typeof projectId !== 'string' || !/^[0-9a-f-]{36}$/.test(projectId)) {
+    res.status(400).json({ error: 'Invalid projectId' }); return
+  }
+  if (typeof url !== 'string' || !url) {
+    res.status(400).json({ error: 'Invalid url' }); return
+  }
+  if (typeof userId !== 'string' || !userId) {
+    res.status(400).json({ error: 'Invalid userId' }); return
+  }
+
+  console.log(`[request] /download project=${projectId} url=${url.slice(0, 80)}`)
+  res.json({ ok: true })
+
+  downloadAndTranscribe(projectId, url).catch((err) =>
+    console.error('[unhandled /download]', err)
+  )
+})
+
 app.get('/health', (_req, res) => {
   res.json({ ok: true, ffmpeg: resolvedFfmpegPath ?? 'missing' })
 })
