@@ -155,6 +155,29 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   return durationSeconds
 }
 
+async function startTranscriptionDirect(fileUrl: string, webhookUrl: string): Promise<string> {
+  const res = await fetch('https://api.assemblyai.com/v2/transcript', {
+    method: 'POST',
+    headers: {
+      authorization: process.env.ASSEMBLYAI_API_KEY!,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      audio_url: fileUrl,
+      webhook_url: webhookUrl,
+      auto_highlights: true,
+      language_detection: true,
+    }),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`AssemblyAI start failed ${res.status}: ${text}`)
+  }
+  const data = await res.json() as { id: string }
+  console.log(`[transcription] started job=${data.id}`)
+  return data.id
+}
+
 async function detectSilence(
   inputPath: string,
   clipStartSec: number,
