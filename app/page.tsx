@@ -455,7 +455,7 @@ export default function LandingPage() {
             {
               num: '3',
               title: 'Export & post in one click',
-              desc: 'Post clips directly to YouTube Shorts straight from the ViralHook dashboard — no switching apps. TikTok and Instagram Reels direct posting coming soon.',
+              desc: 'Post clips directly to TikTok, Instagram Reels, and YouTube Shorts — all from one place, without switching apps.',
             },
           ].map(step => (
             <div key={step.num} className="step">
@@ -527,11 +527,11 @@ export default function LandingPage() {
             {
               icon: (
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#A855F7" strokeWidth={1.5} aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                 </svg>
               ),
-              title: 'Secure & Private',
-              desc: 'Your videos are encrypted in transit and at rest. Files are processed in isolated environments and auto-deleted after 30 days.',
+              title: 'Direct Social Posting',
+              desc: 'Connect TikTok, Instagram, and YouTube. Post your best clips with one click — no switching apps.',
             },
           ].map(f => (
             <div key={f.title} className="feature-card">
@@ -731,6 +731,10 @@ export default function LandingPage() {
               q: 'Is there a free trial?',
               a: 'The Free plan includes 3 exports per month at no cost — forever. No credit card required to start. Upgrade only when you need more exports.',
             },
+            {
+              q: 'Can I post directly to TikTok and Instagram?',
+              a: 'Yes. Connect your TikTok and Instagram accounts in Settings, then post any clip directly from the dashboard with one click. YouTube is also supported.',
+            },
           ].map((item, i) => (
             <details key={i} className="faq-item">
               <summary className="faq-q">
@@ -765,7 +769,7 @@ export default function LandingPage() {
         <div className="footer-inner">
           <div className="footer-brand">
             <Link href="/" className="nav-logo" style={{ marginBottom: 12 }}>
-              <div style={{ width: 48, height: 48, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
+              <div style={{ width: 80, height: 80, backgroundImage: 'url(/viralhook-logo.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }} />
             </Link>
             <p>AI-powered short video generation for creators, marketers, and agencies worldwide.</p>
           </div>
