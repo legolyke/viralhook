@@ -48,13 +48,14 @@ export async function POST(
   try {
     const publishId = await postVideo(accessToken, streamUrl, title, effectivePrivacy)
 
-    await supabase.from('social_posts').insert({
+    // Non-fatal — log only
+    supabase.from('social_posts').insert({
       clip_id: clipId,
       user_id: user.id,
       platform: 'tiktok',
       platform_post_id: publishId,
       status: 'posted',
-    })
+    }).then(({ error }) => { if (error) console.error('[tiktok] social_posts insert:', error.message) })
 
     return NextResponse.json({ ok: true, publishId })
   } catch (err) {
@@ -69,13 +70,13 @@ export async function POST(
 
         const publishId = await postVideo(accessToken, streamUrl, title, effectivePrivacy)
 
-        await supabase.from('social_posts').insert({
+        supabase.from('social_posts').insert({
           clip_id: clipId,
           user_id: user.id,
           platform: 'tiktok',
           platform_post_id: publishId,
           status: 'posted',
-        })
+        }).then(({ error }) => { if (error) console.error('[tiktok] social_posts insert retry:', error.message) })
 
         return NextResponse.json({ ok: true, publishId })
       } catch (retryErr) {

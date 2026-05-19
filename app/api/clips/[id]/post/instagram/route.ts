@@ -40,10 +40,12 @@ export async function POST(
   }
 
   const { access_token: accessToken, channel_id: userId } = connection
-  const streamUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/clips/${clipId}/stream`
+
+  // Use direct R2 URL — Instagram downloads the video directly, no proxy needed
+  const videoUrl = clip.file_url
 
   try {
-    const containerId = await createReelContainer(accessToken, userId as string, streamUrl, caption)
+    const containerId = await createReelContainer(accessToken, userId as string, videoUrl, caption)
 
     // Poll up to 50 seconds for the container to finish processing
     const deadline = Date.now() + 50_000
@@ -62,16 +64,18 @@ export async function POST(
 
     const mediaId = await publishReel(accessToken, userId as string, containerId)
 
-    await supabase.from('social_posts').insert({
+    // Non-fatal — log only
+    supabase.from('social_posts').insert({
       clip_id: clipId,
       user_id: user.id,
       platform: 'instagram',
       platform_post_id: mediaId,
       status: 'posted',
-    })
+    }).then(({ error }) => { if (error) console.error('[instagram] social_posts insert:', error.message) })
 
     return NextResponse.json({ ok: true, mediaId })
   } catch (err) {
+    console.error('[instagram] post error:', err instanceof Error ? err.message : err)
     return NextResponse.json({
       error: err instanceof Error ? err.message : 'Instagram post failed',
     }, { status: 500 })
