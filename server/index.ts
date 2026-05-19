@@ -112,17 +112,95 @@ async function patchProject(projectId: string, fields: Record<string, unknown>):
   console.log(`[patchProject] ok → status=${fields.status} project=${projectId}`)
 }
 
+async function getVideoDuration(filePath: string): Promise<number> {
+  return new Promise((resolve) => {
+    const proc = spawn('ffprobe', [
+      '-v', 'quiet', '-print_format', 'json', '-show_format', filePath,
+    ], { stdio: ['ignore', 'pipe', 'pipe'] })
+    let out = ''
+    proc.stdout?.on('data', (c: Buffer) => { out += c.toString() })
+    proc.on('close', () => {
+      try { resolve(Math.round(parseFloat(JSON.parse(out).format.duration)) || 0) } catch { resolve(0) }
+    })
+    proc.on('error', () => resolve(0))
+  })
+}
+
+async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<number> {
+  const cobaltBase = (process.env.COBALT_API_URL ?? '').replace(/\/$/, '')
+  console.log(`[cobalt] requesting ${videoUrl.slice(0, 80)}`)
+
+  const res = await fetch(`${cobaltBase}/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ url: videoUrl, videoQuality: '1080', filenameStyle: 'basic' }),
+    signal: AbortSignal.timeout(30_000),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Cobalt API ${res.status}: ${text.slice(0, 200)}`)
+  }
+
+  const data = await res.json() as { status: string; url?: string; audio?: string; picker?: { url: string; type: string }[]; error?: { code: string } }
+  console.log(`[cobalt] status=${data.status}`)
+
+  if (data.status === 'error') throw new Error(`Cobalt error: ${data.error?.code ?? 'unknown'}`)
+
+  let downloadUrl: string | undefined
+  if (data.status === 'redirect' || data.status === 'tunnel') {
+    downloadUrl = data.url
+  } else if (data.status === 'picker' && data.picker) {
+    // pick first video entry, fall back to any
+    const video = data.picker.find(p => p.type === 'video') ?? data.picker[0]
+    downloadUrl = video?.url
+  }
+
+  if (!downloadUrl) throw new Error(`Cobalt: no download URL in response (status=${data.status})`)
+
+  console.log(`[cobalt] downloading from tunnel/redirect...`)
+  const fileRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(300_000) })
+  if (!fileRes.ok) throw new Error(`Cobalt file fetch ${fileRes.status}`)
+  if (!fileRes.body) throw new Error('Cobalt: empty response body')
+
+  const writer = fs.createWriteStream(destPath)
+  const reader = fileRes.body.getReader()
+  await new Promise<void>((resolve, reject) => {
+    const pump = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) { writer.end(); break }
+          writer.write(value)
+        }
+        writer.on('finish', resolve)
+        writer.on('error', reject)
+      } catch (e) { reject(e) }
+    }
+    pump()
+  })
+
+  const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
+  console.log(`[cobalt] done ${sizeMB}MB`)
+  return getVideoDuration(destPath)
+}
+
 async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] start url=${url.slice(0, 80)}`)
-  const useOAuth = !!process.env.YOUTUBE_OAUTH2_TOKEN_B64
+
+  if (process.env.COBALT_API_URL) {
+    console.log('[downloadVideo] using Cobalt')
+    return downloadViaCobalt(url, destPath)
+  }
+
+  // yt-dlp fallback (requires cookies via YOUTUBE_COOKIES_B64)
+  console.log('[downloadVideo] using yt-dlp fallback')
   const cookiesFile = '/tmp/youtube-cookies.txt'
-  const hasCookies = !useOAuth && fs.existsSync(cookiesFile)
-  console.log(`[downloadVideo] auth=oauth2:${useOAuth} cookies:${hasCookies}`)
-  // js-runtimes node solves YouTube n-challenge; oauth2 replaces cookies (auto-renews, lasts months)
+  const hasCookies = fs.existsSync(cookiesFile)
+  console.log(`[downloadVideo] cookies:${hasCookies}`)
+
   const ytdlpBaseArgs: string[] = [
-    '--extractor-args', hasCookies
-      ? 'youtube:player_client=web,tv_embedded'
-      : 'youtube:player_client=tv_embedded,ios,android',
+    '--extractor-args', hasCookies ? 'youtube:player_client=web,tv_embedded' : 'youtube:player_client=tv_embedded,ios,android',
     '--js-runtimes', 'node',
     '--geo-bypass-country', 'RO',
     '--no-playlist',
@@ -131,20 +209,10 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
 
   let durationSeconds = 0
   await new Promise<void>((resolve) => {
-    console.log('[downloadVideo] fetching metadata...')
-    const proc = spawn('yt-dlp', [
-      '--dump-json', '--no-download',
-      ...ytdlpBaseArgs,
-      url,
-    ], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const proc = spawn('yt-dlp', ['--dump-json', '--no-download', ...ytdlpBaseArgs, url], { stdio: ['ignore', 'pipe', 'pipe'] })
     let out = ''
     let errOut = ''
-    const timeout = setTimeout(() => {
-      console.log('[downloadVideo] metadata timeout after 30s, killing proc')
-      proc.kill()
-    }, 30_000)
+    const timeout = setTimeout(() => { proc.kill() }, 30_000)
     proc.stdout?.on('data', (c: Buffer) => { out += c.toString() })
     proc.stderr?.on('data', (c: Buffer) => { errOut += c.toString() })
     proc.on('close', (code) => {
@@ -154,38 +222,23 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
       console.log(`[downloadVideo] metadata done code=${code} duration=${durationSeconds}s`)
       resolve()
     })
-    proc.on('error', (err) => {
-      clearTimeout(timeout)
-      console.log(`[downloadVideo] metadata spawn error: ${err.message}`)
-      resolve()
-    })
+    proc.on('error', (err) => { clearTimeout(timeout); console.log(`[downloadVideo] metadata error: ${err.message}`); resolve() })
   })
 
   await new Promise<void>((resolve, reject) => {
     const args = [
       '-f', 'bestvideo[vcodec^=avc][ext=mp4]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-      '--merge-output-format', 'mp4',
-      '--max-filesize', '4G',
-      ...ytdlpBaseArgs,
-      '-o', destPath,
-      url,
+      '--merge-output-format', 'mp4', '--max-filesize', '4G',
+      ...ytdlpBaseArgs, '-o', destPath, url,
     ]
     console.log(`[downloadVideo] starting download → ${destPath}`)
     const proc = spawn('yt-dlp', args, { stdio: ['ignore', 'pipe', 'pipe'] })
     let stderr = ''
     proc.stdout?.on('data', (c: Buffer) => process.stdout.write(c))
-    proc.stderr?.on('data', (c: Buffer) => {
-      stderr += c.toString()
-      process.stderr.write(c)
-    })
+    proc.stderr?.on('data', (c: Buffer) => { stderr += c.toString(); process.stderr.write(c) })
     proc.on('close', (code) => {
-      if (code === 0) {
-        const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
-        console.log(`[downloadVideo] done ${sizeMB}MB`)
-        resolve()
-      } else {
-        reject(new Error(`yt-dlp exited ${code}: ${stderr.slice(-500)}`))
-      }
+      if (code === 0) { console.log(`[downloadVideo] done ${(fs.statSync(destPath).size / 1024 / 1024).toFixed(1)}MB`); resolve() }
+      else reject(new Error(`yt-dlp exited ${code}: ${stderr.slice(-500)}`))
     })
     proc.on('error', (err) => reject(new Error(`yt-dlp spawn failed: ${err.message}`)))
   })
