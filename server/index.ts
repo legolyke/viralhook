@@ -169,7 +169,7 @@ async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<nu
   if (!fileRes.body) throw new Error('Cobalt: empty response body')
 
   const contentLength = fileRes.headers.get('content-length')
-  console.log(`[cobalt] content-length=${contentLength ?? 'unknown'} content-type=${fileRes.headers.get('content-type')}`)
+  console.log(`[cobalt] tunnel response: status=${fileRes.status} content-length=${contentLength ?? 'unknown'} content-type=${fileRes.headers.get('content-type')} transfer-encoding=${fileRes.headers.get('transfer-encoding')}`)
 
   const { pipeline } = await import('node:stream/promises')
   const { Readable } = await import('node:stream')
