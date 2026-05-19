@@ -158,6 +158,7 @@ async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<nu
 
   if (!downloadUrl) throw new Error(`Cobalt: no download URL in response (status=${data.status})`)
 
+  console.log(`[cobalt] download URL: ${downloadUrl.slice(0, 120)}`)
   console.log(`[cobalt] downloading from tunnel/redirect...`)
   const fileRes = await fetch(downloadUrl, {
     headers: { 'User-Agent': 'Mozilla/5.0' },
