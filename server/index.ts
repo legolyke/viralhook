@@ -152,10 +152,9 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
   let downloadUrl: string | undefined = startData.url
   const jobId = startData.progressId ?? startData.id
 
-  // Step 2: Poll progress if needed
+  // Step 2: Poll progress until URL is ready (no hard deadline — supports very long videos)
   if (!downloadUrl && jobId) {
-    const deadline = Date.now() + 3_000_000
-    while (Date.now() < deadline) {
+    while (true) {
       await new Promise(r => setTimeout(r, 3000))
       const progRes = await fetch(
         `https://${host}/api/v1/progress?id=${jobId}`,
