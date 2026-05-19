@@ -159,29 +159,25 @@ async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<nu
   if (!downloadUrl) throw new Error(`Cobalt: no download URL in response (status=${data.status})`)
 
   console.log(`[cobalt] downloading from tunnel/redirect...`)
-  const fileRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(300_000) })
-  if (!fileRes.ok) throw new Error(`Cobalt file fetch ${fileRes.status}`)
+  const fileRes = await fetch(downloadUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+    redirect: 'follow',
+    signal: AbortSignal.timeout(300_000),
+  })
+  if (!fileRes.ok) throw new Error(`Cobalt file fetch ${fileRes.status}: ${await fileRes.text().then(t => t.slice(0, 200))}`)
   if (!fileRes.body) throw new Error('Cobalt: empty response body')
 
-  const writer = fs.createWriteStream(destPath)
-  const reader = fileRes.body.getReader()
-  await new Promise<void>((resolve, reject) => {
-    const pump = async () => {
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) { writer.end(); break }
-          writer.write(value)
-        }
-        writer.on('finish', resolve)
-        writer.on('error', reject)
-      } catch (e) { reject(e) }
-    }
-    pump()
-  })
+  const contentLength = fileRes.headers.get('content-length')
+  console.log(`[cobalt] content-length=${contentLength ?? 'unknown'} content-type=${fileRes.headers.get('content-type')}`)
+
+  const { pipeline } = await import('node:stream/promises')
+  const { Readable } = await import('node:stream')
+  const nodeReadable = Readable.fromWeb(fileRes.body as Parameters<typeof Readable.fromWeb>[0])
+  await pipeline(nodeReadable, fs.createWriteStream(destPath))
 
   const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
   console.log(`[cobalt] done ${sizeMB}MB`)
+  if (parseFloat(sizeMB) < 0.1) throw new Error('Cobalt: downloaded file is empty or too small')
   return getVideoDuration(destPath)
 }
 
