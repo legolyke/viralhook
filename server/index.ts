@@ -126,6 +126,68 @@ async function getVideoDuration(filePath: string): Promise<number> {
   })
 }
 
+function extractYouTubeId(url: string): string | null {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return m ? m[1] : null
+}
+
+async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Promise<number> {
+  const apiKey = process.env.YOUTUBE_MP4_API_KEY!
+  const host = 'youtube-mp41.p.rapidapi.com'
+  const videoId = extractYouTubeId(videoUrl)
+  if (!videoId) throw new Error(`Cannot extract YouTube ID from: ${videoUrl}`)
+
+  console.log(`[ytmp4api] starting download for videoId=${videoId}`)
+
+  // Step 1: Initiate download job
+  const startRes = await fetch(
+    `https://${host}/api/v1/download?id=${videoId}&format=720&audioQuality=128&addInfo=false`,
+    { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(30_000) }
+  )
+  if (!startRes.ok) throw new Error(`YoutubeMp4 start ${startRes.status}: ${await startRes.text().then(t => t.slice(0, 200))}`)
+  const startData = await startRes.json() as { id?: string; url?: string; status?: string }
+  console.log(`[ytmp4api] job started: ${JSON.stringify(startData).slice(0, 200)}`)
+
+  // If direct URL returned immediately
+  let downloadUrl: string | undefined = startData.url
+  const jobId = startData.id
+
+  // Step 2: Poll progress if needed
+  if (!downloadUrl && jobId) {
+    const deadline = Date.now() + 120_000
+    while (Date.now() < deadline) {
+      await new Promise(r => setTimeout(r, 3000))
+      const progRes = await fetch(
+        `https://${host}/api/v1/progress?id=${jobId}`,
+        { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(15_000) }
+      )
+      if (!progRes.ok) continue
+      const prog = await progRes.json() as { status?: string; url?: string; download?: string; percentage?: number }
+      console.log(`[ytmp4api] progress: ${JSON.stringify(prog).slice(0, 200)}`)
+      if (prog.url) { downloadUrl = prog.url; break }
+      if (prog.download) { downloadUrl = prog.download; break }
+      if (prog.status === 'failed') throw new Error('YoutubeMp4 job failed')
+    }
+  }
+
+  if (!downloadUrl) throw new Error('YoutubeMp4: no download URL after polling')
+  console.log(`[ytmp4api] download URL: ${downloadUrl.slice(0, 120)}`)
+
+  // Step 3: Download the file
+  const fileRes = await fetch(downloadUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, redirect: 'follow', signal: AbortSignal.timeout(300_000) })
+  if (!fileRes.ok) throw new Error(`YoutubeMp4 file fetch ${fileRes.status}`)
+  if (!fileRes.body) throw new Error('YoutubeMp4: empty response body')
+
+  const { pipeline } = await import('node:stream/promises')
+  const { Readable } = await import('node:stream')
+  await pipeline(Readable.fromWeb(fileRes.body as Parameters<typeof Readable.fromWeb>[0]), fs.createWriteStream(destPath))
+
+  const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
+  console.log(`[ytmp4api] done ${sizeMB}MB`)
+  if (parseFloat(sizeMB) < 0.1) throw new Error('YoutubeMp4: downloaded file is empty')
+  return getVideoDuration(destPath)
+}
+
 async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<number> {
   const cobaltBase = (process.env.COBALT_API_URL ?? '').replace(/\/$/, '')
   console.log(`[cobalt] requesting ${videoUrl.slice(0, 80)}`)
@@ -184,6 +246,13 @@ async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<nu
 
 async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] start url=${url.slice(0, 80)}`)
+
+  const isYouTube = /youtube\.com|youtu\.be/.test(url)
+
+  if (isYouTube && process.env.YOUTUBE_MP4_API_KEY) {
+    console.log('[downloadVideo] using YoutubeMp4 API')
+    return downloadViaYoutubeMp4Api(url, destPath)
+  }
 
   if (process.env.COBALT_API_URL) {
     console.log('[downloadVideo] using Cobalt')
