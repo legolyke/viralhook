@@ -6,6 +6,7 @@ import type { PlanName } from '@/lib/plans'
 import AdminPlanSelector from '@/components/admin/AdminPlanSelector'
 import AdminDeleteButton from '@/components/admin/AdminDeleteButton'
 import AdminToggleButton from '@/components/admin/AdminToggleButton'
+import AdminPhoneBypassToggle from '@/components/admin/AdminPhoneBypassToggle'
 import { SUPERADMIN_EMAIL } from '@/lib/is-admin'
 
 const COUNTRY_PREFIXES: { prefix: string; code: string; name: string }[] = [
@@ -209,7 +210,7 @@ export default async function AdminPage() {
     { count: exportCount },
   ] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
-    admin.from('subscriptions').select('user_id, plan, exports_used, created_at').order('created_at', { ascending: false }),
+    admin.from('subscriptions').select('user_id, plan, exports_used, phone_bypass, created_at').order('created_at', { ascending: false }),
     admin.from('admins').select('user_id'),
     admin.from('projects').select('*', { count: 'exact', head: true }),
     admin.from('clips').select('*', { count: 'exact', head: true }),
@@ -317,7 +318,7 @@ export default async function AdminPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  {['Email', 'Phone', 'Plan', 'Exports Used', 'Joined', 'Change Plan', 'Admin', 'Delete'].map(h => (
+                  {['Email', 'Phone', 'Plan', 'Exports Used', 'Joined', 'Change Plan', 'Admin', 'Bypass', 'Delete'].map(h => (
                     <th
                       key={h}
                       style={{ padding: '10px 16px', textAlign: 'left', color: 'rgba(255,255,255,0.3)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
@@ -376,6 +377,16 @@ export default async function AdminPage() {
                           <AdminToggleButton userId={u.id} isAdmin={userIsAdmin} />
                         ) : (
                           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '10px 16px' }}>
+                        {isSuperadmin && u.email !== SUPERADMIN_EMAIL ? (
+                          <AdminPhoneBypassToggle
+                            userId={u.id}
+                            phoneBypass={subsByUserId[u.id]?.phone_bypass ?? false}
+                          />
+                        ) : (
+                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)' }}>—</span>
                         )}
                       </td>
                       <td style={{ padding: '10px 16px' }}>

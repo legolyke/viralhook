@@ -14,16 +14,16 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  if (!user.phone_confirmed_at) {
-    return NextResponse.json({ error: 'phone_required' }, { status: 403 })
-  }
-
-  // Plan limit check
+  // Plan limit check + phone bypass check
   const { data: sub } = await supabase
     .from('subscriptions')
-    .select('plan, exports_used')
+    .select('plan, exports_used, phone_bypass')
     .eq('user_id', user.id)
     .single()
+
+  if (!user.phone_confirmed_at && !sub?.phone_bypass) {
+    return NextResponse.json({ error: 'phone_required' }, { status: 403 })
+  }
 
   const plan = (sub?.plan ?? 'free') as PlanName
   const exportsUsed = sub?.exports_used ?? 0
