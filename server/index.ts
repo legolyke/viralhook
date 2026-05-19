@@ -510,28 +510,10 @@ app.post('/setup/youtube-auth', (req, res) => {
 
   // Write Python script that does the OAuth2 device flow properly
   const pyScript = `
-import json, time, urllib.request, urllib.parse, urllib.error, os, sys, re
+import json, time, urllib.request, urllib.parse, urllib.error, os, sys
 
-# Extract credentials from installed yt-dlp-youtube-oauth2 plugin
-cid = None
-csecret = None
-try:
-    import inspect, importlib
-    m = importlib.import_module('yt_dlp_plugins.extractor.youtube_oauth2')
-    src = inspect.getsource(m)
-    cids = re.findall(r'[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com', src)
-    if cids: cid = cids[0]
-    # find secret: short alphanum string near client_id
-    secrets = re.findall(r"secret['\"]?\\s*[=:]\\s*['\"]([A-Za-z0-9_\\-]{10,40})['\"]", src, re.IGNORECASE)
-    if secrets: csecret = secrets[0]
-except Exception as e:
-    print(f'[creds] plugin read failed: {e}', flush=True)
-
-if not cid:
-    cid = '861556708454-d6dlm3lh05idd8npek18k6be8ba3oc68.apps.googleusercontent.com'
-    csecret = 'SboVhoG9s0rNafixCSGGKXAT'
-
-print(f'[creds] client_id={cid[:30]}...', flush=True)
+cid = '861556708454-d6dlm3lh05idd8npek18k6be8ba3oc68.apps.googleusercontent.com'
+csecret = 'SboVhoG9s0rNafixCSGGKXAT'
 
 def post(url, data):
     body = urllib.parse.urlencode(data).encode()
