@@ -498,6 +498,57 @@ app.post('/process', (req, res) => {
     .catch((err) => console.error('[unhandled]', err))
 })
 
+// ── YouTube OAuth2 setup endpoints ──────────────────────────────────────────
+let _ytAuthProc: ReturnType<typeof spawn> | null = null
+
+app.post('/setup/youtube-auth', (req, res) => {
+  if (req.headers['x-worker-secret'] !== process.env.WORKER_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  if (_ytAuthProc) { try { _ytAuthProc.kill() } catch {} }
+  _ytAuthProc = null
+
+  const proc = spawn('yt-dlp', [
+    '--username', 'oauth2', '--password', '',
+    '--', 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+  ])
+  _ytAuthProc = proc
+
+  let resolved = false
+  const onData = (data: Buffer) => {
+    const text = data.toString()
+    console.log('[youtube-auth]', text.trim())
+    const m = text.match(/enter code\s+([A-Z0-9]+-[A-Z0-9]+)/i)
+    if (m && !resolved) {
+      resolved = true
+      res.json({ ok: true, code: m[1], url: 'https://www.google.com/device' })
+    }
+  }
+  proc.stdout?.on('data', onData)
+  proc.stderr?.on('data', onData)
+  proc.on('exit', (code) => {
+    console.log('[youtube-auth] process exited', code)
+    _ytAuthProc = null
+    if (!resolved) { resolved = true; res.json({ ok: false, error: 'No device code found' }) }
+  })
+  setTimeout(() => {
+    if (!resolved) { resolved = true; res.json({ ok: false, error: 'Timeout' }) }
+  }, 30000)
+})
+
+app.get('/setup/youtube-token', (req, res) => {
+  if (req.headers['x-worker-secret'] !== process.env.WORKER_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  const tokenPath = path.join(os.homedir(), '.cache', 'yt-dlp', 'oauth_token.json')
+  if (!fs.existsSync(tokenPath)) {
+    return res.json({ ok: false, error: 'Token not saved yet — wait for yt-dlp to finish auth' })
+  }
+  const b64 = Buffer.from(fs.readFileSync(tokenPath, 'utf8')).toString('base64')
+  res.json({ ok: true, token_b64: b64, note: 'Set YOUTUBE_OAUTH2_TOKEN_B64 in Railway with this value' })
+})
+// ─────────────────────────────────────────────────────────────────────────────
+
 const PORT = process.env.PORT ?? 3001
 app.listen(Number(PORT), () => {
   console.log(`[startup] listening on port ${PORT}`)
