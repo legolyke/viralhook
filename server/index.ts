@@ -137,55 +137,75 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
   const videoId = extractYouTubeId(videoUrl)
   if (!videoId) throw new Error(`Cannot extract YouTube ID from: ${videoUrl}`)
 
-  console.log(`[ytmp4api] starting download for videoId=${videoId}`)
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    console.log(`[ytmp4api] attempt ${attempt}/3 for videoId=${videoId}`)
 
-  // Step 1: Initiate download job
-  const startRes = await fetch(
-    `https://${host}/api/v1/download?id=${videoId}&format=720&audioQuality=128&addInfo=false`,
-    { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(30_000) }
-  )
-  if (!startRes.ok) throw new Error(`YoutubeMp4 start ${startRes.status}: ${await startRes.text().then(t => t.slice(0, 200))}`)
-  const startData = await startRes.json() as { id?: string; progressId?: string; url?: string; status?: string; success?: boolean }
-  console.log(`[ytmp4api] job started: ${JSON.stringify(startData).slice(0, 200)}`)
+    // Step 1: Initiate download job
+    const startRes = await fetch(
+      `https://${host}/api/v1/download?id=${videoId}&format=720&audioQuality=128&addInfo=false`,
+      { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(30_000) }
+    )
+    if (!startRes.ok) throw new Error(`YoutubeMp4 start ${startRes.status}: ${await startRes.text().then(t => t.slice(0, 200))}`)
+    const startData = await startRes.json() as { id?: string; progressId?: string; url?: string; status?: string; success?: boolean }
+    console.log(`[ytmp4api] job started: ${JSON.stringify(startData).slice(0, 200)}`)
 
-  // If direct URL returned immediately
-  let downloadUrl: string | undefined = startData.url
-  const jobId = startData.progressId ?? startData.id
+    let downloadUrl: string | undefined = startData.url
+    const jobId = startData.progressId ?? startData.id
 
-  // Step 2: Poll progress until URL is ready (no hard deadline — supports very long videos)
-  if (!downloadUrl && jobId) {
-    while (true) {
-      await new Promise(r => setTimeout(r, 3000))
-      const progRes = await fetch(
-        `https://${host}/api/v1/progress?id=${jobId}`,
-        { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(15_000) }
-      )
-      if (!progRes.ok) continue
-      const prog = await progRes.json() as { finished?: boolean; status?: string; downloadUrl?: string; url?: string; progress?: number }
-      console.log(`[ytmp4api] progress: ${JSON.stringify(prog).slice(0, 200)}`)
-      const dlUrl = prog.downloadUrl || prog.url
-      if (dlUrl) { downloadUrl = dlUrl; break }
-      if (prog.finished) throw new Error('YoutubeMp4 job finished but no URL returned')
-      if (prog.status === 'Failed' || prog.status === 'Error') throw new Error(`YoutubeMp4 job ${prog.status}`)
+    // Step 2: Poll until URL ready, job errors, or progress stalls for 90s
+    if (!downloadUrl && jobId) {
+      let lastProgress = -1
+      let lastProgressAt = Date.now()
+
+      while (true) {
+        await new Promise(r => setTimeout(r, 3000))
+        const progRes = await fetch(
+          `https://${host}/api/v1/progress?id=${jobId}`,
+          { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(15_000) }
+        )
+        if (!progRes.ok) continue
+        const prog = await progRes.json() as { finished?: boolean; status?: string; downloadUrl?: string; url?: string; progress?: number }
+        console.log(`[ytmp4api] progress: ${JSON.stringify(prog).slice(0, 200)}`)
+        const dlUrl = prog.downloadUrl || prog.url
+        if (dlUrl) { downloadUrl = dlUrl; break }
+        if (prog.finished) throw new Error('YoutubeMp4 job finished but no URL returned')
+        if (prog.status === 'Failed' || prog.status === 'Error') {
+          console.log(`[ytmp4api] job ${prog.status}, retrying...`)
+          break
+        }
+        // Stale detection: if progress hasn't moved in 90s, job is dead — retry
+        if ((prog.progress ?? 0) !== lastProgress) {
+          lastProgress = prog.progress ?? 0
+          lastProgressAt = Date.now()
+        } else if (Date.now() - lastProgressAt > 90_000) {
+          console.log(`[ytmp4api] stuck at progress=${lastProgress} for 90s, retrying...`)
+          break
+        }
+      }
+    }
+
+    if (downloadUrl) {
+      console.log(`[ytmp4api] download URL: ${downloadUrl.slice(0, 120)}`)
+      // Step 3: Download the file
+      const fileRes = await fetch(downloadUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, redirect: 'follow', signal: AbortSignal.timeout(300_000) })
+      if (!fileRes.ok) throw new Error(`YoutubeMp4 file fetch ${fileRes.status}`)
+      if (!fileRes.body) throw new Error('YoutubeMp4: empty response body')
+      const { pipeline } = await import('node:stream/promises')
+      const { Readable } = await import('node:stream')
+      await pipeline(Readable.fromWeb(fileRes.body as Parameters<typeof Readable.fromWeb>[0]), fs.createWriteStream(destPath))
+      const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
+      console.log(`[ytmp4api] done ${sizeMB}MB`)
+      if (parseFloat(sizeMB) < 0.1) throw new Error('YoutubeMp4: downloaded file is empty')
+      return getVideoDuration(destPath)
+    }
+
+    if (attempt < 3) {
+      console.log(`[ytmp4api] attempt ${attempt} failed, waiting 5s before retry...`)
+      await new Promise(r => setTimeout(r, 5000))
     }
   }
 
-  if (!downloadUrl) throw new Error('YoutubeMp4: no download URL after polling')
-  console.log(`[ytmp4api] download URL: ${downloadUrl.slice(0, 120)}`)
-
-  // Step 3: Download the file
-  const fileRes = await fetch(downloadUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, redirect: 'follow', signal: AbortSignal.timeout(300_000) })
-  if (!fileRes.ok) throw new Error(`YoutubeMp4 file fetch ${fileRes.status}`)
-  if (!fileRes.body) throw new Error('YoutubeMp4: empty response body')
-
-  const { pipeline } = await import('node:stream/promises')
-  const { Readable } = await import('node:stream')
-  await pipeline(Readable.fromWeb(fileRes.body as Parameters<typeof Readable.fromWeb>[0]), fs.createWriteStream(destPath))
-
-  const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
-  console.log(`[ytmp4api] done ${sizeMB}MB`)
-  if (parseFloat(sizeMB) < 0.1) throw new Error('YoutubeMp4: downloaded file is empty')
-  return getVideoDuration(destPath)
+  throw new Error('YoutubeMp4: all 3 attempts failed')
 }
 
 async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<number> {
