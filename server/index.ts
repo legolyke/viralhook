@@ -154,7 +154,7 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
 
   // Step 2: Poll progress if needed
   if (!downloadUrl && jobId) {
-    const deadline = Date.now() + 600_000
+    const deadline = Date.now() + 3_000_000
     while (Date.now() < deadline) {
       await new Promise(r => setTimeout(r, 3000))
       const progRes = await fetch(
