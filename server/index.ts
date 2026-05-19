@@ -154,7 +154,7 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
 
   // Step 2: Poll progress if needed
   if (!downloadUrl && jobId) {
-    const deadline = Date.now() + 120_000
+    const deadline = Date.now() + 300_000
     while (Date.now() < deadline) {
       await new Promise(r => setTimeout(r, 3000))
       const progRes = await fetch(
@@ -162,11 +162,12 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
         { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(15_000) }
       )
       if (!progRes.ok) continue
-      const prog = await progRes.json() as { status?: string; url?: string; download?: string; percentage?: number }
+      const prog = await progRes.json() as { finished?: boolean; status?: string; downloadUrl?: string; url?: string; progress?: number }
       console.log(`[ytmp4api] progress: ${JSON.stringify(prog).slice(0, 200)}`)
-      if (prog.url) { downloadUrl = prog.url; break }
-      if (prog.download) { downloadUrl = prog.download; break }
-      if (prog.status === 'failed') throw new Error('YoutubeMp4 job failed')
+      const dlUrl = prog.downloadUrl || prog.url
+      if (dlUrl) { downloadUrl = dlUrl; break }
+      if (prog.finished) throw new Error('YoutubeMp4 job finished but no URL returned')
+      if (prog.status === 'Failed' || prog.status === 'Error') throw new Error(`YoutubeMp4 job ${prog.status}`)
     }
   }
 
