@@ -117,11 +117,10 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   const cookiesFile = '/tmp/youtube-cookies.txt'
   const hasCookies = fs.existsSync(cookiesFile)
   console.log(`[downloadVideo] cookies file present: ${hasCookies}`)
-  // android client is less restricted than web; cookies authenticate the session to pass bot check
+  // android client bypasses some geo-restrictions; geo-bypass-country spoofs Romanian IP headers
   const ytdlpBaseArgs: string[] = [
-    '--extractor-args', 'youtube:player_client=web,mweb',
-    '--js-runtimes', 'node',
-    '--remote-components', 'ejs:github',
+    '--extractor-args', 'youtube:player_client=web,mweb,android',
+    '--geo-bypass-country', 'RO',
     '--no-playlist',
     ...(hasCookies ? ['--cookies', cookiesFile] : []),
   ]
