@@ -538,12 +538,13 @@ while time.time() < deadline:
             'code': device_code, 'grant_type': 'http://oauth.net/grant_type/device/1.0',
         })
         if 'access_token' in t:
-            token = {'access_token': t['access_token'], 'expires': time.time() + t.get('expires_in', 3600),
-                     'refresh_token': t.get('refresh_token', ''), 'token_type': t.get('token_type', 'Bearer'),
-                     'scope': t.get('scope', '')}
-            cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'yt-dlp')
+            token = {'access_token': t['access_token'],
+                     'expires': time.time() + t.get('expires_in', 3600) - 60,
+                     'refresh_token': t.get('refresh_token', ''),
+                     'token_type': t.get('token_type', 'Bearer')}
+            cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'yt-dlp', 'youtube-oauth2')
             os.makedirs(cache_dir, exist_ok=True)
-            token_path = os.path.join(cache_dir, 'oauth_token.json')
+            token_path = os.path.join(cache_dir, 'token.json')
             with open(token_path, 'w') as f: json.dump(token, f)
             print(f'TOKEN_SAVED:{token_path}', flush=True)
             sys.exit(0)
@@ -595,9 +596,8 @@ app.get('/setup/youtube-token', (req, res) => {
   }
   const home = os.homedir()
   const candidates = [
+    path.join(home, '.cache', 'yt-dlp', 'youtube-oauth2', 'token.json'),
     path.join(home, '.cache', 'yt-dlp', 'oauth_token.json'),
-    path.join(home, '.cache', 'yt-dlp', 'youtube_oauth2.json'),
-    '/tmp/oauth_token.json',
   ]
   // List all files recursively for debugging
   let cacheFiles: string[] = []
@@ -636,9 +636,9 @@ app.listen(Number(PORT), () => {
   const oauthTokenB64 = process.env.YOUTUBE_OAUTH2_TOKEN_B64
   if (oauthTokenB64) {
     try {
-      const cacheDir = path.join(os.homedir(), '.cache', 'yt-dlp')
+      const cacheDir = path.join(os.homedir(), '.cache', 'yt-dlp', 'youtube-oauth2')
       fs.mkdirSync(cacheDir, { recursive: true })
-      fs.writeFileSync(path.join(cacheDir, 'oauth_token.json'), Buffer.from(oauthTokenB64, 'base64').toString('utf8'))
+      fs.writeFileSync(path.join(cacheDir, 'token.json'), Buffer.from(oauthTokenB64, 'base64').toString('utf8'))
       console.log('[startup] youtube oauth2 token written ✓ (auto-renews, no manual refresh needed)')
     } catch (err) {
       console.log('[startup] failed to write oauth2 token:', err)
