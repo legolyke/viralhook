@@ -145,12 +145,12 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
     { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(30_000) }
   )
   if (!startRes.ok) throw new Error(`YoutubeMp4 start ${startRes.status}: ${await startRes.text().then(t => t.slice(0, 200))}`)
-  const startData = await startRes.json() as { id?: string; url?: string; status?: string }
+  const startData = await startRes.json() as { id?: string; progressId?: string; url?: string; status?: string; success?: boolean }
   console.log(`[ytmp4api] job started: ${JSON.stringify(startData).slice(0, 200)}`)
 
   // If direct URL returned immediately
   let downloadUrl: string | undefined = startData.url
-  const jobId = startData.id
+  const jobId = startData.progressId ?? startData.id
 
   // Step 2: Poll progress if needed
   if (!downloadUrl && jobId) {
