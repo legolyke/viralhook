@@ -499,6 +499,20 @@ app.post('/process', (req, res) => {
 })
 
 // ── YouTube OAuth2 setup endpoints ──────────────────────────────────────────
+app.get('/setup/plugin-info', (req, res) => {
+  if (req.headers['x-worker-secret'] !== process.env.WORKER_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  try {
+    const src = execSync('python3 -c "import inspect, yt_dlp_plugins.extractor.youtube_oauth2 as m; print(inspect.getsource(m))"', { encoding: 'utf8', maxBuffer: 1024 * 1024 })
+    // Extract client_id and client_secret patterns
+    const cids = src.match(/\d+-[a-z0-9]+\.apps\.googleusercontent\.com/g) || []
+    const secrets = src.match(/(?:secret|SECRET)\s*=\s*['"]([^'"]{10,40})['"]/g) || []
+    res.json({ cids, secrets, snippet: src.slice(0, 2000) })
+  } catch (err) {
+    res.json({ error: String(err) })
+  }
+})
 let _ytAuthProc: ReturnType<typeof spawn> | null = null
 
 app.post('/setup/youtube-auth', (req, res) => {
