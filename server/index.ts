@@ -114,17 +114,21 @@ async function patchProject(projectId: string, fields: Record<string, unknown>):
 
 async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] start url=${url.slice(0, 80)}`)
+  const useOAuth = !!process.env.YOUTUBE_OAUTH2_TOKEN_B64
   const cookiesFile = '/tmp/youtube-cookies.txt'
-  const hasCookies = fs.existsSync(cookiesFile)
-  console.log(`[downloadVideo] cookies file present: ${hasCookies}`)
-  // js-runtimes node solves YouTube n-challenge (throttle bypass); geo-bypass-country spoofs RO IP
+  const hasCookies = !useOAuth && fs.existsSync(cookiesFile)
+  console.log(`[downloadVideo] auth=oauth2:${useOAuth} cookies:${hasCookies}`)
+  // js-runtimes node solves YouTube n-challenge; oauth2 replaces cookies (auto-renews, lasts months)
   const ytdlpBaseArgs: string[] = [
     '--extractor-args', 'youtube:player_client=web,mweb,android',
     '--js-runtimes', 'node',
     '--remote-components', 'ejs:github',
     '--geo-bypass-country', 'RO',
     '--no-playlist',
-    ...(hasCookies ? ['--cookies', cookiesFile] : []),
+    ...(useOAuth
+      ? ['--username', 'oauth2', '--password', '']
+      : hasCookies ? ['--cookies', cookiesFile] : []
+    ),
   ]
 
   let durationSeconds = 0
@@ -511,15 +515,27 @@ app.listen(Number(PORT), () => {
   } catch {
     console.log('[startup] yt-dlp: NOT FOUND')
   }
-  const cookiesB64 = process.env.YOUTUBE_COOKIES_B64
-  if (cookiesB64) {
+  const oauthTokenB64 = process.env.YOUTUBE_OAUTH2_TOKEN_B64
+  if (oauthTokenB64) {
     try {
-      fs.writeFileSync('/tmp/youtube-cookies.txt', Buffer.from(cookiesB64, 'base64').toString('utf8'))
-      console.log('[startup] youtube-cookies.txt written ✓')
+      const cacheDir = path.join(os.homedir(), '.cache', 'yt-dlp')
+      fs.mkdirSync(cacheDir, { recursive: true })
+      fs.writeFileSync(path.join(cacheDir, 'oauth_token.json'), Buffer.from(oauthTokenB64, 'base64').toString('utf8'))
+      console.log('[startup] youtube oauth2 token written ✓ (auto-renews, no manual refresh needed)')
     } catch (err) {
-      console.log('[startup] failed to write youtube-cookies.txt:', err)
+      console.log('[startup] failed to write oauth2 token:', err)
     }
   } else {
-    console.log('[startup] YOUTUBE_COOKIES_B64 not set — YouTube will block downloads on server IPs')
+    const cookiesB64 = process.env.YOUTUBE_COOKIES_B64
+    if (cookiesB64) {
+      try {
+        fs.writeFileSync('/tmp/youtube-cookies.txt', Buffer.from(cookiesB64, 'base64').toString('utf8'))
+        console.log('[startup] youtube-cookies.txt written ✓ (fallback — set YOUTUBE_OAUTH2_TOKEN_B64 for permanent auth)')
+      } catch (err) {
+        console.log('[startup] failed to write youtube-cookies.txt:', err)
+      }
+    } else {
+      console.log('[startup] no YouTube auth configured — downloads will likely fail')
+    }
   }
 })
