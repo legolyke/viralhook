@@ -69,8 +69,8 @@ export default function UrlImport({ projectName = '', onClose }: { projectName?:
           const newStatus = payload.new.status as string
           setImportStatus(newStatus)
           if (newStatus === 'ready') {
-            onClose?.()
             router.push(`/projects/${projectId}`)
+            onClose?.()
           }
           if (newStatus === 'error') {
             setError('Download failed. The video may be private or unavailable.')
@@ -91,7 +91,7 @@ export default function UrlImport({ projectName = '', onClose }: { projectName?:
         if (!data) return
         const status = data.status as string
         setImportStatus(status)
-        if (status === 'ready') { onClose?.(); router.push(`/projects/${projectId}`) }
+        if (status === 'ready') { router.push(`/projects/${projectId}`); onClose?.() }
         if (status === 'error') {
           setError('Download failed. The video may be private or unavailable.')
           setProjectId(null)
@@ -155,9 +155,26 @@ export default function UrlImport({ projectName = '', onClose }: { projectName?:
           <p style={{ color: '#C084FC', fontWeight: 600 }}>
             {importStatus ? STATUS_LABELS[importStatus] ?? importStatus : 'Queuing...'}
           </p>
-          <p style={{ color: '#6B7280', fontSize: 13, marginTop: 8 }}>
+          <p style={{ color: '#6B7280', fontSize: 13, marginTop: 8, marginBottom: 20 }}>
             This may take a few minutes. You can close this and check Projects.
           </p>
+          {importStatus && importStatus !== 'ready' && importStatus !== 'error' && (
+            <button
+              onClick={() => { router.push(`/projects/${projectId}`); onClose?.() }}
+              style={{
+                padding: '10px 24px',
+                borderRadius: 10,
+                background: 'rgba(124,58,237,0.25)',
+                border: '1px solid rgba(168,85,247,0.4)',
+                color: '#C084FC',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              View Project
+            </button>
+          )}
         </div>
       )}
 

@@ -223,10 +223,11 @@ export default function VideoPlayer({ fileUrl, status, projectId, durationSecond
 
   return (
     <video
-      src={fileUrl}
+      src={fileUrl ? `${fileUrl}#t=0.001` : undefined}
       controls
       muted
       playsInline
+      preload="metadata"
       aria-label="Project video"
       style={{
         width: '100%',
