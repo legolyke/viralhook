@@ -508,6 +508,12 @@ app.post('/setup/youtube-auth', (req, res) => {
   if (_ytAuthProc) { try { _ytAuthProc.kill() } catch {} }
   _ytAuthProc = null
 
+  // Remove cached token so yt-dlp starts fresh and waits for user auth
+  try {
+    const tokenPath = path.join(os.homedir(), '.cache', 'yt-dlp', 'oauth_token.json')
+    if (fs.existsSync(tokenPath)) fs.unlinkSync(tokenPath)
+  } catch {}
+
   const proc = spawn('yt-dlp', [
     '--username', 'oauth2', '--password', '',
     '--', 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
@@ -518,7 +524,7 @@ app.post('/setup/youtube-auth', (req, res) => {
   const onData = (data: Buffer) => {
     const text = data.toString()
     console.log('[youtube-auth]', text.trim())
-    const m = text.match(/enter code\s+([A-Z0-9]+-[A-Z0-9]+)/i)
+    const m = text.match(/enter code\s+([A-Z0-9]+(?:-[A-Z0-9]+)+)/i)
     if (m && !resolved) {
       resolved = true
       res.json({ ok: true, code: m[1], url: 'https://www.google.com/device' })
