@@ -158,7 +158,7 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
       let lastProgressAt = Date.now()
 
       while (true) {
-        await new Promise(r => setTimeout(r, 3000))
+        await new Promise(r => setTimeout(r, 10_000))
         const progRes = await fetch(
           `https://${host}/api/v1/progress?id=${jobId}`,
           { headers: { 'x-rapidapi-host': host, 'x-rapidapi-key': apiKey }, signal: AbortSignal.timeout(15_000) }
