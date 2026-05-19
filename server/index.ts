@@ -546,12 +546,26 @@ app.get('/setup/youtube-token', (req, res) => {
   if (req.headers['x-worker-secret'] !== process.env.WORKER_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
-  const tokenPath = path.join(os.homedir(), '.cache', 'yt-dlp', 'oauth_token.json')
-  if (!fs.existsSync(tokenPath)) {
-    return res.json({ ok: false, error: 'Token not saved yet — wait for yt-dlp to finish auth' })
+  const home = os.homedir()
+  const candidates = [
+    path.join(home, '.cache', 'yt-dlp', 'oauth_token.json'),
+    path.join(home, '.cache', 'yt-dlp', 'youtube_oauth2.json'),
+    '/tmp/oauth_token.json',
+  ]
+  // Also list cache dir for debugging
+  let cacheFiles: string[] = []
+  try {
+    const cacheDir = path.join(home, '.cache', 'yt-dlp')
+    if (fs.existsSync(cacheDir)) cacheFiles = fs.readdirSync(cacheDir)
+  } catch {}
+
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      const b64 = Buffer.from(fs.readFileSync(p, 'utf8')).toString('base64')
+      return res.json({ ok: true, token_b64: b64, path: p, note: 'Set YOUTUBE_OAUTH2_TOKEN_B64 in Railway' })
+    }
   }
-  const b64 = Buffer.from(fs.readFileSync(tokenPath, 'utf8')).toString('base64')
-  res.json({ ok: true, token_b64: b64, note: 'Set YOUTUBE_OAUTH2_TOKEN_B64 in Railway with this value' })
+  res.json({ ok: false, error: 'Token not saved yet', home, cacheFiles })
 })
 // ─────────────────────────────────────────────────────────────────────────────
 
