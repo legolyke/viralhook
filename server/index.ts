@@ -552,11 +552,11 @@ app.get('/setup/youtube-token', (req, res) => {
     path.join(home, '.cache', 'yt-dlp', 'youtube_oauth2.json'),
     '/tmp/oauth_token.json',
   ]
-  // Also list cache dir for debugging
+  // List all files recursively for debugging
   let cacheFiles: string[] = []
   try {
-    const cacheDir = path.join(home, '.cache', 'yt-dlp')
-    if (fs.existsSync(cacheDir)) cacheFiles = fs.readdirSync(cacheDir)
+    const out = execSync('find /root/.cache -type f 2>/dev/null; find /tmp -name "*.json" -type f 2>/dev/null', { encoding: 'utf8' }).trim()
+    cacheFiles = out ? out.split('\n').filter(Boolean) : []
   } catch {}
 
   for (const p of candidates) {
