@@ -2,8 +2,10 @@ FROM node:22-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core fonts-liberation python3-pip && \
-    pip3 install --upgrade yt-dlp yt-dlp-youtube-oauth2 --break-system-packages && \
     rm -rf /var/lib/apt/lists/*
+
+# bust cache 2026-05-19 — force fresh yt-dlp install
+RUN pip3 install --no-cache-dir --upgrade yt-dlp yt-dlp-youtube-oauth2 --break-system-packages
 
 WORKDIR /app
 COPY package*.json tsconfig*.json ./
