@@ -4,10 +4,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core fonts-liberation curl python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-# Install OAuth2 plugin first (installs old yt-dlp as dep)
-RUN pip3 install yt-dlp-youtube-oauth2 --break-system-packages
-
-# Override with latest yt-dlp binary AFTER pip so it wins
+# Latest yt-dlp binary from GitHub releases
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
     -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
 
