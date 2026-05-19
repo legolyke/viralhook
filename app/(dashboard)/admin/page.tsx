@@ -318,7 +318,7 @@ export default async function AdminPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  {['Email', 'Phone', 'Plan', 'Exports Used', 'Joined', 'Change Plan', 'Admin', 'Bypass', 'Delete'].map(h => (
+                  {['Email', 'Phone', 'Plan', 'Exports Used', 'Joined', 'Change Plan', 'Admin', 'Delete'].map(h => (
                     <th
                       key={h}
                       style={{ padding: '10px 16px', textAlign: 'left', color: 'rgba(255,255,255,0.3)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}
@@ -338,25 +338,33 @@ export default async function AdminPage() {
                     <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <td style={{ padding: '10px 16px', color: '#E9D5FF' }}>{u.email}</td>
                       <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
-                        {(() => {
-                          const fp = formatPhone(u.phone)
-                          if (!fp) return <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>—</span>
-                          return (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                              <span
-                                title={fp.name}
-                                style={{ color: '#A855F7', fontSize: 10, fontWeight: 700, cursor: 'default', borderBottom: '1px dotted rgba(168,85,247,0.4)' }}
-                              >
-                                {fp.code}{fp.prefix ? ` +${fp.prefix}` : ''}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {(() => {
+                            const fp = formatPhone(u.phone)
+                            if (!fp) return <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>—</span>
+                            return (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <span
+                                  title={fp.name}
+                                  style={{ color: '#A855F7', fontSize: 10, fontWeight: 700, cursor: 'default', borderBottom: '1px dotted rgba(168,85,247,0.4)' }}
+                                >
+                                  {fp.code}{fp.prefix ? ` +${fp.prefix}` : ''}
+                                </span>
+                                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{fp.local}</span>
+                                {u.phone_confirmed_at
+                                  ? <span title="Verified" style={{ color: '#4ADE80', fontSize: 11, fontWeight: 700 }}>✓</span>
+                                  : <span title="Not verified" style={{ color: '#F87171', fontSize: 11, fontWeight: 700 }}>✗</span>
+                                }
                               </span>
-                              <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{fp.local}</span>
-                              {u.phone_confirmed_at
-                                ? <span title="Verified" style={{ color: '#4ADE80', fontSize: 11, fontWeight: 700 }}>✓</span>
-                                : <span title="Not verified" style={{ color: '#F87171', fontSize: 11, fontWeight: 700 }}>✗</span>
-                              }
-                            </span>
-                          )
-                        })()}
+                            )
+                          })()}
+                          {isSuperadmin && u.email !== SUPERADMIN_EMAIL && (
+                            <AdminPhoneBypassToggle
+                              userId={u.id}
+                              phoneBypass={sub?.phone_bypass ?? false}
+                            />
+                          )}
+                        </div>
                       </td>
                       <td style={{ padding: '10px 16px' }}>
                         <span style={{ background: 'rgba(168,85,247,0.15)', color: '#A855F7', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, letterSpacing: '0.08em' }}>
@@ -377,16 +385,6 @@ export default async function AdminPage() {
                           <AdminToggleButton userId={u.id} isAdmin={userIsAdmin} />
                         ) : (
                           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>—</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '10px 16px' }}>
-                        {isSuperadmin && u.email !== SUPERADMIN_EMAIL ? (
-                          <AdminPhoneBypassToggle
-                            userId={u.id}
-                            phoneBypass={subsByUserId[u.id]?.phone_bypass ?? false}
-                          />
-                        ) : (
-                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)' }}>—</span>
                         )}
                       </td>
                       <td style={{ padding: '10px 16px' }}>
