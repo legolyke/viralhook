@@ -120,14 +120,13 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] auth=oauth2:${useOAuth} cookies:${hasCookies}`)
   // js-runtimes node solves YouTube n-challenge; oauth2 replaces cookies (auto-renews, lasts months)
   const ytdlpBaseArgs: string[] = [
-    '--extractor-args', 'youtube:player_client=tv_embedded,ios,android',
+    '--extractor-args', hasCookies
+      ? 'youtube:player_client=web,tv_embedded'
+      : 'youtube:player_client=tv_embedded,ios,android',
     '--js-runtimes', 'node',
     '--geo-bypass-country', 'RO',
     '--no-playlist',
-    ...(useOAuth
-      ? ['--username', 'oauth2', '--password', '']
-      : hasCookies ? ['--cookies', cookiesFile] : []
-    ),
+    ...(hasCookies ? ['--cookies', cookiesFile] : []),
   ]
 
   let durationSeconds = 0
