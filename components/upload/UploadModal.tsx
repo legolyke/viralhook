@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react'
 import FileUpload from './FileUpload'
 import UrlImport from './UrlImport'
+import { createClient } from '@/lib/supabase/client'
+import type { Plan } from '@/lib/upload-validator'
 
 type Tab = 'file' | 'url'
 
@@ -15,6 +17,17 @@ interface UploadModalProps {
 export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('file')
   const [projectName, setProjectName] = useState('')
+  const [userPlan, setUserPlan] = useState<Plan>('free')
+
+  useEffect(() => {
+    if (!isOpen) return
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('subscriptions').select('plan').eq('user_id', user.id).single()
+        .then(({ data }) => { if (data?.plan) setUserPlan(data.plan as Plan) })
+    })
+  }, [isOpen])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -104,7 +117,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         </div>
 
         {activeTab === 'file' ? (
-          <FileUpload projectName={projectName} onClose={onClose} />
+          <FileUpload projectName={projectName} onClose={onClose} userPlan={userPlan} />
         ) : (
           <UrlImport projectName={projectName} onClose={onClose} />
         )}
