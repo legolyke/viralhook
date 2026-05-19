@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     title: string
   }
 
-  // All users are on FREE plan until Module 11 (Stripe subscriptions)
-  const plan: Plan = 'free'
+  const { data: sub } = await supabase.from('subscriptions').select('plan').eq('user_id', user.id).single()
+  const plan: Plan = (sub?.plan as Plan) ?? 'free'
 
   const formatCheck = validateFileFormat(fileName)
   if (!formatCheck.valid) {
