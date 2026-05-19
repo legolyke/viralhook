@@ -508,23 +508,88 @@ app.post('/setup/youtube-auth', (req, res) => {
   if (_ytAuthProc) { try { _ytAuthProc.kill() } catch {} }
   _ytAuthProc = null
 
-  // Remove cached token so yt-dlp starts fresh and waits for user auth
-  try {
-    const tokenPath = path.join(os.homedir(), '.cache', 'yt-dlp', 'oauth_token.json')
-    if (fs.existsSync(tokenPath)) fs.unlinkSync(tokenPath)
-  } catch {}
+  // Write Python script that does the OAuth2 device flow properly
+  const pyScript = `
+import json, time, urllib.request, urllib.parse, urllib.error, os, sys, re
 
-  const proc = spawn('yt-dlp', [
-    '--username', 'oauth2', '--password', '',
-    '--', 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
-  ])
+# Extract credentials from installed yt-dlp-youtube-oauth2 plugin
+cid = None
+csecret = None
+try:
+    import inspect, importlib
+    m = importlib.import_module('yt_dlp_plugins.extractor.youtube_oauth2')
+    src = inspect.getsource(m)
+    cids = re.findall(r'[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com', src)
+    if cids: cid = cids[0]
+    # find secret: short alphanum string near client_id
+    secrets = re.findall(r"secret['\"]?\\s*[=:]\\s*['\"]([A-Za-z0-9_\\-]{10,40})['\"]", src, re.IGNORECASE)
+    if secrets: csecret = secrets[0]
+except Exception as e:
+    print(f'[creds] plugin read failed: {e}', flush=True)
+
+if not cid:
+    cid = '861556708454-d6dlm3lh05idd8npek18k6be8ba3oc68.apps.googleusercontent.com'
+    csecret = 'SboVhoG9s0rNafixCSGGKXAT'
+
+print(f'[creds] client_id={cid[:30]}...', flush=True)
+
+def post(url, data):
+    body = urllib.parse.urlencode(data).encode()
+    req = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read())
+
+r = post('https://oauth2.googleapis.com/device/code', {'client_id': cid, 'scope': 'https://www.googleapis.com/auth/youtube'})
+device_code = r['device_code']
+user_code = r['user_code']
+interval = r.get('interval', 5)
+expires_in = r.get('expires_in', 1800)
+
+print(f'DEVICE_CODE:{user_code}', flush=True)
+
+deadline = time.time() + expires_in
+while time.time() < deadline:
+    time.sleep(interval)
+    try:
+        t = post('https://oauth2.googleapis.com/token', {
+            'client_id': cid, 'client_secret': csecret,
+            'code': device_code, 'grant_type': 'http://oauth.net/grant_type/device/1.0',
+        })
+        if 'access_token' in t:
+            token = {'access_token': t['access_token'], 'expires': time.time() + t.get('expires_in', 3600),
+                     'refresh_token': t.get('refresh_token', ''), 'token_type': t.get('token_type', 'Bearer'),
+                     'scope': t.get('scope', '')}
+            cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'yt-dlp')
+            os.makedirs(cache_dir, exist_ok=True)
+            token_path = os.path.join(cache_dir, 'oauth_token.json')
+            with open(token_path, 'w') as f: json.dump(token, f)
+            print(f'TOKEN_SAVED:{token_path}', flush=True)
+            sys.exit(0)
+        err = t.get('error', '')
+        if err not in ('authorization_pending', 'slow_down'):
+            print(f'ERROR:{err}', flush=True); sys.exit(1)
+        if err == 'slow_down': interval += 5
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        try:
+            ej = json.loads(body); err = ej.get('error', '')
+            if e.code == 428 and err == 'authorization_pending': continue
+            if err == 'slow_down': interval += 5; continue
+        except: pass
+        print(f'HTTP_ERROR:{e.code}:{body}', flush=True); sys.exit(1)
+
+print('TIMEOUT', flush=True); sys.exit(1)
+`
+  fs.writeFileSync('/tmp/yt_oauth.py', pyScript)
+
+  const proc = spawn('python3', ['/tmp/yt_oauth.py'])
   _ytAuthProc = proc
 
   let resolved = false
   const onData = (data: Buffer) => {
     const text = data.toString()
     console.log('[youtube-auth]', text.trim())
-    const m = text.match(/enter code\s+([A-Z0-9]+(?:-[A-Z0-9]+)+)/i)
+    const m = text.match(/DEVICE_CODE:([A-Z0-9]+(?:-[A-Z0-9]+)+)/i)
     if (m && !resolved) {
       resolved = true
       res.json({ ok: true, code: m[1], url: 'https://www.google.com/device' })
@@ -533,7 +598,7 @@ app.post('/setup/youtube-auth', (req, res) => {
   proc.stdout?.on('data', onData)
   proc.stderr?.on('data', onData)
   proc.on('exit', (code) => {
-    console.log('[youtube-auth] process exited', code)
+    console.log('[youtube-auth] python exited', code)
     _ytAuthProc = null
     if (!resolved) { resolved = true; res.json({ ok: false, error: 'No device code found' }) }
   })
