@@ -132,6 +132,60 @@ function extractYouTubeId(url: string): string | null {
   return m ? m[1] : null
 }
 
+const INVIDIOUS_INSTANCES = [
+  'https://inv.tux.pizza',
+  'https://invidious.privacyredirect.com',
+  'https://yt.cdaut.de',
+  'https://invidious.nerdvpn.de',
+]
+
+async function downloadViaInvidious(videoUrl: string, destPath: string): Promise<number> {
+  const videoId = extractYouTubeId(videoUrl)
+  if (!videoId) throw new Error('Cannot extract YouTube ID')
+
+  for (const instance of INVIDIOUS_INSTANCES) {
+    try {
+      console.log(`[invidious] trying ${instance}`)
+      const apiRes = await fetch(`${instance}/api/v1/videos/${videoId}?fields=formatStreams,adaptiveFormats`, {
+        signal: AbortSignal.timeout(15_000),
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      })
+      if (!apiRes.ok) { console.log(`[invidious] ${instance} api ${apiRes.status}`); continue }
+      const data = await apiRes.json() as {
+        formatStreams?: { url: string; container: string; resolution?: string; qualityLabel?: string }[]
+        adaptiveFormats?: { url: string; container: string; type: string; qualityLabel?: string }[]
+      }
+
+      // prefer combined mp4 streams (audio+video), pick highest quality
+      const streams = (data.formatStreams ?? [])
+        .filter(f => f.container === 'mp4')
+        .sort((a, b) => parseInt(b.resolution ?? '0') - parseInt(a.resolution ?? '0'))
+      const stream = streams[0]
+      if (!stream?.url) { console.log(`[invidious] ${instance} no mp4 stream`); continue }
+
+      console.log(`[invidious] downloading ${stream.qualityLabel ?? stream.resolution} from ${instance}`)
+      const fileRes = await fetch(stream.url, {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': instance },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(300_000),
+      })
+      console.log(`[invidious] file fetch status=${fileRes.status} content-type=${fileRes.headers.get('content-type')} content-length=${fileRes.headers.get('content-length')}`)
+      if (!fileRes.ok || !fileRes.body) { console.log(`[invidious] fetch failed`); continue }
+
+      const { pipeline } = await import('node:stream/promises')
+      const { Readable } = await import('node:stream')
+      await pipeline(Readable.fromWeb(fileRes.body as Parameters<typeof Readable.fromWeb>[0]), fs.createWriteStream(destPath))
+      const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
+      console.log(`[invidious] done ${sizeMB}MB`)
+      if (parseFloat(sizeMB) < 0.1) { console.log(`[invidious] file empty, trying next instance`); continue }
+      return getVideoDuration(destPath)
+    } catch (err) {
+      console.log(`[invidious] ${instance} error: ${err}`)
+    }
+  }
+  throw new Error('Invidious: all instances failed')
+}
+
 async function downloadViaYtdlCore(videoUrl: string, destPath: string): Promise<number> {
   console.log('[ytdlcore] getting video info')
   const info = await ytdl.getInfo(videoUrl)
@@ -296,6 +350,15 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] start url=${url.slice(0, 80)}`)
 
   const isYouTube = /youtube\.com|youtu\.be/.test(url)
+
+  if (isYouTube) {
+    console.log('[downloadVideo] using Invidious')
+    try {
+      return await downloadViaInvidious(url, destPath)
+    } catch (err) {
+      console.log(`[downloadVideo] Invidious failed: ${err} — trying ytdl-core`)
+    }
+  }
 
   if (isYouTube) {
     console.log('[downloadVideo] using ytdl-core')
