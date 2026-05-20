@@ -119,7 +119,30 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         {activeTab === 'file' ? (
           <FileUpload projectName={projectName} onClose={onClose} userPlan={userPlan} />
         ) : (
-          <UrlImport projectName={projectName} onClose={onClose} />
+          <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>🔗</div>
+            <p style={{ color: '#fff', fontSize: 16, fontWeight: 600, margin: '0 0 8px' }}>
+              YouTube & TikTok Import
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, margin: '0 0 24px', lineHeight: 1.6 }}>
+              Coming soon. In the meantime, download your video and upload it directly — it takes just a few seconds.
+            </p>
+            <button
+              onClick={() => setActiveTab('file')}
+              style={{
+                background: 'linear-gradient(135deg, #7C3AED, #C026D3)',
+                border: 'none',
+                borderRadius: 10,
+                padding: '10px 24px',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Upload File Instead
+            </button>
+          </div>
         )}
       </div>
     </div>
