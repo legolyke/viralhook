@@ -326,6 +326,7 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
 
   // yt-dlp fallback (requires cookies via YOUTUBE_COOKIES_B64)
   console.log('[downloadVideo] using yt-dlp fallback')
+  if (fs.existsSync(destPath)) fs.unlinkSync(destPath)
   const cookiesFile = '/tmp/youtube-cookies.txt'
   const hasCookies = fs.existsSync(cookiesFile)
   console.log(`[downloadVideo] cookies:${hasCookies}`)
