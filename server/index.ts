@@ -187,7 +187,16 @@ async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Pro
     if (downloadUrl) {
       console.log(`[ytmp4api] download URL: ${downloadUrl.slice(0, 120)}`)
       // Step 3: Download the file
-      const fileRes = await fetch(downloadUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, redirect: 'follow', signal: AbortSignal.timeout(300_000) })
+      const fileRes = await fetch(downloadUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Referer': 'https://youtube-mp41.p.rapidapi.com/',
+          'Accept': 'video/mp4,video/*,*/*',
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(300_000),
+      })
+      console.log(`[ytmp4api] file fetch status=${fileRes.status} content-type=${fileRes.headers.get('content-type')} content-length=${fileRes.headers.get('content-length')}`)
       if (!fileRes.ok) throw new Error(`YoutubeMp4 file fetch ${fileRes.status}`)
       if (!fileRes.body) throw new Error('YoutubeMp4: empty response body')
       const { pipeline } = await import('node:stream/promises')
@@ -271,7 +280,11 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
 
   if (isYouTube && process.env.YOUTUBE_MP4_API_KEY) {
     console.log('[downloadVideo] using YoutubeMp4 API')
-    return downloadViaYoutubeMp4Api(url, destPath)
+    try {
+      return await downloadViaYoutubeMp4Api(url, destPath)
+    } catch (err) {
+      console.log(`[downloadVideo] ytmp4api failed: ${err} — falling back to yt-dlp`)
+    }
   }
 
   if (process.env.COBALT_API_URL) {
