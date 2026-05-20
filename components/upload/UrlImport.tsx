@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const URL_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/[\w-]+|tiktok\.com\/.+\/video\/\d+)/
+const YOUTUBE_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)/
 
 const STATUS_LABELS: Record<string, string> = {
   uploading: 'Downloading video...',
@@ -28,7 +29,13 @@ export default function UrlImport({ projectName = '', onClose }: { projectName?:
     setError(null)
 
     if (!URL_REGEX.test(url)) {
-      setError('Please enter a valid YouTube or TikTok URL')
+      setError('Please enter a valid TikTok URL')
+      return
+    }
+
+    if (YOUTUBE_REGEX.test(url)) {
+      setError('YouTube import is temporarily unavailable. Download the video and upload it directly.')
+      setIsSubmitting(false)
       return
     }
 
@@ -111,13 +118,13 @@ export default function UrlImport({ projectName = '', onClose }: { projectName?:
       {!projectId ? (
         <form onSubmit={handleSubmit}>
           <p style={{ color: '#9CA3AF', fontSize: 14, marginBottom: 12 }}>
-            Paste a YouTube or TikTok link to import the video.
+            Paste a TikTok link to import the video.
           </p>
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://youtube.com/watch?v=... or https://tiktok.com/..."
+            placeholder="https://www.tiktok.com/@user/video/..."
             style={{
               width: '100%',
               padding: '12px 16px',
