@@ -256,11 +256,10 @@ async function downloadViaCobalt(videoUrl: string, destPath: string): Promise<nu
     redirect: 'follow',
     signal: AbortSignal.timeout(300_000),
   })
-  if (!fileRes.ok) throw new Error(`Cobalt file fetch ${fileRes.status}: ${await fileRes.text().then(t => t.slice(0, 200))}`)
-  if (!fileRes.body) throw new Error('Cobalt: empty response body')
-
   const contentLength = fileRes.headers.get('content-length')
   console.log(`[cobalt] tunnel response: status=${fileRes.status} content-length=${contentLength ?? 'unknown'} content-type=${fileRes.headers.get('content-type')} transfer-encoding=${fileRes.headers.get('transfer-encoding')}`)
+  if (!fileRes.ok) throw new Error(`Cobalt file fetch ${fileRes.status}`)
+  if (!fileRes.body) throw new Error('Cobalt: empty response body')
 
   const { pipeline } = await import('node:stream/promises')
   const { Readable } = await import('node:stream')
@@ -283,13 +282,17 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
     try {
       return await downloadViaYoutubeMp4Api(url, destPath)
     } catch (err) {
-      console.log(`[downloadVideo] ytmp4api failed: ${err} — falling back to yt-dlp`)
+      console.log(`[downloadVideo] ytmp4api failed: ${err} — trying Cobalt next`)
     }
   }
 
   if (process.env.COBALT_API_URL) {
     console.log('[downloadVideo] using Cobalt')
-    return downloadViaCobalt(url, destPath)
+    try {
+      return await downloadViaCobalt(url, destPath)
+    } catch (err) {
+      console.log(`[downloadVideo] cobalt failed: ${err} — falling back to yt-dlp`)
+    }
   }
 
   // yt-dlp fallback (requires cookies via YOUTUBE_COOKIES_B64)
