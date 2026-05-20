@@ -15,6 +15,7 @@ import {
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
+import ytdl from '@distube/ytdl-core'
 
 function detectFfmpeg(): string | null {
   try {
@@ -129,6 +130,25 @@ async function getVideoDuration(filePath: string): Promise<number> {
 function extractYouTubeId(url: string): string | null {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
   return m ? m[1] : null
+}
+
+async function downloadViaYtdlCore(videoUrl: string, destPath: string): Promise<number> {
+  console.log('[ytdlcore] getting video info')
+  const info = await ytdl.getInfo(videoUrl)
+  const format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' })
+  console.log(`[ytdlcore] format: ${format.qualityLabel} ${format.container} ${format.codecs}`)
+  await new Promise<void>((resolve, reject) => {
+    const stream = ytdl.downloadFromInfo(info, { format })
+    const file = fs.createWriteStream(destPath)
+    stream.pipe(file)
+    file.on('finish', resolve)
+    file.on('error', reject)
+    stream.on('error', reject)
+  })
+  const sizeMB = (fs.statSync(destPath).size / 1024 / 1024).toFixed(1)
+  console.log(`[ytdlcore] done ${sizeMB}MB`)
+  if (parseFloat(sizeMB) < 0.1) throw new Error('ytdlcore: downloaded file is empty')
+  return getVideoDuration(destPath)
 }
 
 async function downloadViaYoutubeMp4Api(videoUrl: string, destPath: string): Promise<number> {
@@ -277,6 +297,15 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
 
   const isYouTube = /youtube\.com|youtu\.be/.test(url)
 
+  if (isYouTube) {
+    console.log('[downloadVideo] using ytdl-core')
+    try {
+      return await downloadViaYtdlCore(url, destPath)
+    } catch (err) {
+      console.log(`[downloadVideo] ytdl-core failed: ${err} — trying ytmp4api`)
+    }
+  }
+
   if (isYouTube && process.env.YOUTUBE_MP4_API_KEY) {
     console.log('[downloadVideo] using YoutubeMp4 API')
     try {
@@ -302,10 +331,9 @@ async function downloadVideo(url: string, destPath: string): Promise<number> {
   console.log(`[downloadVideo] cookies:${hasCookies}`)
 
   const ytdlpBaseArgs: string[] = [
-    '--extractor-args', hasCookies ? 'youtube:player_client=web,tv_embedded' : 'youtube:player_client=tv_embedded,ios,android',
-    '--js-runtimes', 'node',
-    '--geo-bypass-country', 'RO',
+    '--extractor-args', hasCookies ? 'youtube:player_client=web,ios,android' : 'youtube:player_client=ios,android,mweb',
     '--no-playlist',
+    '--socket-timeout', '30',
     ...(hasCookies ? ['--cookies', cookiesFile] : []),
   ]
 
