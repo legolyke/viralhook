@@ -241,7 +241,7 @@ export default function LandingPage() {
         </h1>
 
         <p className="hero-sub">
-          Upload any video. Our AI finds the most viral moments, cuts perfect 9:16 clips, adds animated subtitles, and generates captions — in minutes.
+          Upload any video or import from TikTok. Our AI finds the most viral moments, cuts perfect 9:16 clips, adds animated subtitles, and generates captions — in minutes.
         </p>
 
         <div className="hero-cta">
@@ -445,7 +445,7 @@ export default function LandingPage() {
             {
               num: '1',
               title: 'Upload your video',
-              desc: 'Drop any long-form video — podcast, webinar, interview, vlog, or course. We accept MP4 and MOV files. Free plan supports up to 30 minutes; paid plans up to 6 hours.',
+              desc: 'Drop any long-form video or paste a TikTok link — podcast, webinar, interview, vlog, or course. We accept MP4, MOV files and TikTok imports. YouTube import coming soon. Free plan supports up to 30 minutes; paid plans up to 6 hours.',
             },
             {
               num: '2',

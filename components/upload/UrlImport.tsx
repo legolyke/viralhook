@@ -118,7 +118,10 @@ export default function UrlImport({ projectName = '', onClose }: { projectName?:
       {!projectId ? (
         <form onSubmit={handleSubmit}>
           <p style={{ color: '#9CA3AF', fontSize: 14, marginBottom: 12 }}>
-            Paste a TikTok link to import the video.
+            Paste a TikTok link to import the video directly.
+          <span style={{ display: 'block', marginTop: 6, fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+            YouTube import coming soon.
+          </span>
           </p>
           <input
             type="text"
