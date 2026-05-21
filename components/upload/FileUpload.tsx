@@ -3,7 +3,7 @@
 
 import { useState, useRef, useCallback, type DragEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { validateFileFormat, validateDuration } from '@/lib/upload-validator'
+import { validateFileFormat, validateFileSize, validateDuration, PLAN_LIMITS } from '@/lib/upload-validator'
 import type { Plan } from '@/lib/upload-validator'
 
 interface FileUploadProps {
@@ -71,6 +71,13 @@ export default function FileUpload({ userPlan = 'free', onClose, projectName = '
       return
     }
 
+    const sizeCheck = validateFileSize(file.size, userPlan)
+    if (!sizeCheck.valid) {
+      setError(sizeCheck.error!)
+      setStatus('idle')
+      return
+    }
+
     const durationSeconds = await getVideoDuration(file)
     const durationCheck = validateDuration(durationSeconds, userPlan)
     if (!durationCheck.valid) {
@@ -89,6 +96,7 @@ export default function FileUpload({ userPlan = 'free', onClose, projectName = '
         body: JSON.stringify({
           fileName: file.name,
           fileType: file.type || 'video/mp4',
+          fileSize: file.size,
           durationSeconds,
           title: projectName.trim(),
         }),
@@ -177,6 +185,8 @@ export default function FileUpload({ userPlan = 'free', onClose, projectName = '
               {userPlan === 'free' ? '30 min' :
                userPlan === 'creator' ? '2h' :
                userPlan === 'pro' ? '4h' : '6h'}
+              {' · '}
+              {PLAN_LIMITS[userPlan].maxFileSizeBytes / (1024 * 1024 * 1024)}GB max
             </p>
             <button
               type="button"

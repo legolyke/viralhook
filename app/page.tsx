@@ -445,7 +445,7 @@ export default function LandingPage() {
             {
               num: '1',
               title: 'Upload your video',
-              desc: 'Drop any long-form video or paste a TikTok link — podcast, webinar, interview, vlog, or course. We accept MP4, MOV files and TikTok imports. YouTube import coming soon. Free plan supports up to 30 minutes; paid plans up to 6 hours.',
+              desc: 'Drop any long-form video or paste a TikTok link — podcast, webinar, interview, vlog, or course. We accept MP4 and MOV files. Free: 30 min / 2GB · Creator: 2h / 5GB · Pro: 4h / 10GB · Agency: 6h / 20GB.',
             },
             {
               num: '2',
@@ -600,6 +600,7 @@ export default function LandingPage() {
               features: [
                 '3 video exports/month',
                 '1080p export quality',
+                'Max 30 min · 2GB per video',
                 'AI clip detection',
                 'Auto captions',
                 'YouTube & Instagram posting',
@@ -616,6 +617,7 @@ export default function LandingPage() {
               features: [
                 '40 video exports/month',
                 '1080p export quality',
+                'Max 2h · 5GB per video',
                 'AI clip detection',
                 'Auto captions',
                 'AI caption styles',
@@ -635,6 +637,7 @@ export default function LandingPage() {
               features: [
                 '150 video exports/month',
                 '1080p export quality',
+                'Max 4h · 10GB per video',
                 'AI clip detection',
                 'Auto captions',
                 'AI Voiceover (50 clips)',
@@ -655,6 +658,7 @@ export default function LandingPage() {
               features: [
                 '2,000 video exports/month',
                 '1080p export quality',
+                'Max 6h · 20GB per video',
                 'AI clip detection',
                 'Auto captions',
                 'AI Voiceover (300 clips)',
